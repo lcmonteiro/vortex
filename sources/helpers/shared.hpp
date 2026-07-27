@@ -1,0 +1,85 @@
+/// ===========================================================================
+/// @file
+/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
+/// (BMW AG)
+///
+/// @brief g2o_dual.helper.shared component
+/// ===========================================================================
+#ifndef G2O_DUAL_HELPERS_SHARED_HPP
+#define G2O_DUAL_HELPERS_SHARED_HPP
+#include <functional>
+#include <memory>
+#include <memory_resource>
+#include <tuple>
+
+namespace graph {
+namespace detail {
+
+/// @brief A lightweight shared object implementation with custom memory
+/// resource support.
+/// @tparam Type The type of object to manage.
+template <typename Type>
+class Shared {
+ public:
+  /// @brief Type alias to allow access to the Type being pointed to,
+  /// similarly to std::shared_ptr::element_type.
+  using element_type = Type;
+
+  /// @brief Constructors
+  template <class... Args>
+  explicit Shared(std::pmr::memory_resource* const memory, Args&&... args)
+      : ptr_{std::allocate_shared<Type>(std::pmr::polymorphic_allocator<Type>{memory},
+                                        std::forward<Args>(args)...)} {}
+  Shared(const Shared& other) = default;
+  Shared& operator=(const Shared& other) = default;
+  Shared(Shared&& other) = default;
+  Shared& operator=(Shared&& other) = default;
+  ~Shared() = default;
+
+  /// @brief Accessor for the managed object.
+  Type* get() const { return ptr_.get(); }
+  Type& value() const { return *ptr_; }
+
+  /// @brief Operators.
+  Type& operator*() const { return *ptr_; }
+  Type* operator->() const { return ptr_.get(); }
+
+  friend bool operator<(const Shared& lhs, const Shared& rhs) { return lhs.ptr_ < rhs.ptr_; }
+  friend bool operator==(const Shared& lhs, const Shared& rhs) { return lhs.ptr_ == rhs.ptr_; }
+
+ private:
+  std::shared_ptr<Type> ptr_;
+};
+
+/// @brief Checks equality between two Shared objects of possibly different
+/// types.
+/// @param a First Shared object.
+/// @param b Second Shared object.
+/// @return True if both Shared objects manage the same object, false otherwise.
+template <class T1, class T2>
+inline bool equal(const Shared<T1>& a, const Shared<T2>& b) {
+  if constexpr (std::is_same_v<T1, T2>) {
+    return a == b;
+  } else {
+    std::ignore = a;
+    std::ignore = b;
+    return false;
+  }
+}
+
+}  // namespace detail
+}  // namespace graph
+
+// NOLINTBEGIN(cert-dcl58-cpp)
+namespace std {
+template <class Type>
+struct hash<graph::detail::Shared<Type>> {
+  auto operator()(const graph::detail::Shared<Type>& shared) const {
+    return std::hash<Type*>()(shared.get());
+  }
+};
+
+}  // namespace std
+// NOLINTEND(cert-dcl58-cpp)
+
+#endif  // G2O_DUAL_HELPERS_SHARED_HPP
