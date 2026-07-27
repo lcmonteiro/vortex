@@ -16,7 +16,7 @@
 
 namespace vortex_test {
 
-namespace go = graph::optimization;
+namespace go = vortex::graph::optimization;
 
 /// @brief A scalar-generic 2D point / translation.
 template <class T>

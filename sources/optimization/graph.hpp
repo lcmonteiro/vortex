@@ -15,7 +15,7 @@
 #include "sources/optimization/graph_edge.hpp"
 #include "sources/optimization/graph_node.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 using graph::OptionalShared;
 using graph::Shared;
@@ -176,6 +176,6 @@ auto Build(std::pmr::memory_resource* const memory, A&&... args) {
   return Shared<T>(memory, memory, std::forward<A>(args)...);
 }
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_HPP

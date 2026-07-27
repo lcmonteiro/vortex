@@ -12,7 +12,7 @@
 
 #include "sources/helpers/compat.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 /// @brief A memory resource wrapper that enforces a maximum allocation size
@@ -61,6 +61,6 @@ class BoundedMemoryResource : public std::pmr::memory_resource {
 };
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_HELPERS_MEMORY_HPP

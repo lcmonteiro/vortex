@@ -16,7 +16,7 @@
 #include "sources/helpers/compat.hpp"
 #include "sources/optimization/graph_algorithm.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 /// ===========================================================================
@@ -173,6 +173,6 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_ALGORITHM_LEVENBERG_HPP

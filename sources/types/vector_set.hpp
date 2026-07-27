@@ -16,7 +16,7 @@
 
 #include "sources/helpers/compat.hpp"
 
-namespace graph {
+namespace vortex::graph {
 
 /// @brief Unique-element container that iterates in insertion order.
 ///
@@ -105,6 +105,6 @@ class VectorSet : private std::pmr::vector<Value> {
   void swap(VectorSet& other) { Base::swap(other); }
 };
 
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_TYPES_VECTOR_SET_HPP

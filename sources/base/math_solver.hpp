@@ -11,7 +11,7 @@
 #include "sources/base/math.hpp"
 #include "sources/helpers/compat.hpp"
 
-namespace math {
+namespace vortex::math {
 
 /// ===========================================================================
 /// @brief Solves a symmetric indefinite system of linear equations using the
@@ -105,5 +105,5 @@ inline bool solve_cholesky(const Matrix& h, const Vector& b, Vector& x) {
   return info == 0;
 }
 
-}  // namespace math
+}  // namespace vortex::math
 #endif  // VORTEX_BASE_MATH_SOLVER_HPP

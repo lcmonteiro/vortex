@@ -13,7 +13,7 @@
 
 #include "sources/helpers/traits.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 namespace impl {
@@ -35,6 +35,6 @@ decltype(auto) invoke(Fcall&& call, Fargs args, Expand<N> expand) {
 }
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_HELPERS_INVOKE_HPP

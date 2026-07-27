@@ -25,7 +25,7 @@
 #include "sources/optimization/variants/information_matrix.hpp"
 #include "sources/optimization/variants/robust_kernel.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 using detail::Types;
 
@@ -329,6 +329,6 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP

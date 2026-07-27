@@ -11,7 +11,7 @@
 #include "sources/base/math_solver.hpp"
 #include "sources/optimization/linear_solver.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 class DefaultLinearSolver : public LinearSolver {
@@ -28,6 +28,6 @@ class DefaultLinearSolver : public LinearSolver {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP

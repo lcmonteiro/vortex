@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace graph {
+namespace vortex::graph {
 namespace trait {
 ///
 /// @brief Identity metafunction that returns the type T unchanged.
@@ -61,6 +61,6 @@ constexpr T& lreference(T&& x) noexcept {
 }
 
 }  // namespace trait
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_HELPERS_TRAITS_HPP

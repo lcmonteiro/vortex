@@ -12,7 +12,7 @@
 #include "sources/base/math_solver.hpp"
 #include "sources/optimization/linear_solver.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 class CholeskyInversionLinearSolver : public LinearSolver {
@@ -51,6 +51,6 @@ class CholeskyLinearSolver : public LinearSolver {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_CHOLESKY_HPP

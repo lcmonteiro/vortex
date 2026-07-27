@@ -10,7 +10,7 @@
 
 #include "sources/helpers/traits.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 namespace impl {
@@ -27,6 +27,6 @@ inline auto build(Init&& init) {
 }
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_HELPERS_BUILD_HPP

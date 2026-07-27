@@ -10,7 +10,7 @@
 
 #include <variant>
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 namespace variants {
 
@@ -122,6 +122,6 @@ struct KernelVariant {
 
 }  // namespace variants
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP

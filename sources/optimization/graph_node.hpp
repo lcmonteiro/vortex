@@ -13,7 +13,7 @@
 #include "sources/helpers/compat.hpp"
 #include "sources/optimization/graph_config.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 using graph::SharedRevision;
@@ -148,6 +148,6 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_NODE_HPP

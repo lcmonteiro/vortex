@@ -15,7 +15,7 @@
 #include "sources/helpers/apply.hpp"
 #include "sources/helpers/build.hpp"
 #include "sources/helpers/shared.hpp"
-namespace graph {
+namespace vortex::graph {
 /// ===========================================================================
 /// @class Node
 /// @brief A graph node that can manage edges of different types.
@@ -108,5 +108,5 @@ inline constexpr auto ToNode(const Node<E...>& v) {
 }
 // LCOV_EXCL_STOP
 
-}  // namespace graph
+}  // namespace vortex::graph
 #endif  // VORTEX_BASE_GRAPH_NODE_HPP

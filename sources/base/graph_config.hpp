@@ -9,7 +9,7 @@
 #define VORTEX_BASE_GRAPH_CONFIG_HPP
 #include <map>
 #include <set>
-namespace graph {
+namespace vortex::graph {
 
 /// ===========================================================================
 /// Default Graph Config
@@ -36,5 +36,5 @@ struct DefaultConfig {
   using Set = std::pmr::set<T>;
 };
 
-}  // namespace graph
+}  // namespace vortex::graph
 #endif  // VORTEX_BASE_GRAPH_CONFIG_HPP

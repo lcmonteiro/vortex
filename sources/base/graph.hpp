@@ -25,7 +25,7 @@
 #include "sources/helpers/traits.hpp"
 #include "sources/helpers/types.hpp"
 
-namespace graph {
+namespace vortex::graph {
 /// ===========================================================================
 /// Helper Types
 /// ===========================================================================
@@ -651,5 +651,5 @@ class Graph {
   TupleSetShared edges_disable_;
   SharedRevision revision_;
 };
-}  // namespace graph
+}  // namespace vortex::graph
 #endif  // VORTEX_BASE_GRAPH_HPP

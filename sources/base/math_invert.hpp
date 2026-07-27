@@ -11,7 +11,7 @@
 #include "sources/base/math.hpp"
 #include "sources/helpers/compat.hpp"
 
-namespace math {
+namespace vortex::math {
 
 /// ===========================================================================
 /// @brief Inverts a square matrix using Cholesky decomposition.
@@ -43,5 +43,5 @@ inline bool invert_cholesky(Matrix& matrix) {
   return true;
 }
 
-}  // namespace math
+}  // namespace vortex::math
 #endif  // VORTEX_BASE_MATH_INVERT_HPP

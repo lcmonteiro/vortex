@@ -13,7 +13,7 @@
 
 #include "sources/helpers/traits.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 namespace impl {
 
@@ -75,6 +75,6 @@ inline void apply(F&& func, const T& data) {
 }
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_HELPERS_APPLY_HPP

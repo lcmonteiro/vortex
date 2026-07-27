@@ -10,7 +10,7 @@
 
 #include "sources/base/math.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 class LinearSolver {
@@ -32,6 +32,6 @@ class LinearSolver {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP

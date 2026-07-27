@@ -9,7 +9,7 @@
 #define VORTEX_HELPERS_TYPES_HPP
 #include <tuple>
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 /// @brief Types Container
@@ -50,5 +50,5 @@ template <size_t index, class Ts>
 using TypesElementBuild = typename Ts::template ElementType<index>;
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 #endif  // VORTEX_HELPERS_TYPES_HPP

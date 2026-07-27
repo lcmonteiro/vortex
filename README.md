@@ -209,11 +209,6 @@ ctest --test-dir build --output-on-failure
 ---
 
 ## Acknowledgements
-
-- **vortex** — the statically-typed graph optimization engine this project's
-  `base`/`optimization` layers build upon.
-- **b2o** — the forward-mode automatic differentiation (dual number) engine
-  ported into `sources/dual`.
 - **[Blaze](https://bitbucket.org/blaze-lib/blaze)** — high-performance C++
   dense linear algebra.
 - **[GoogleTest](https://github.com/google/googletest)** — unit testing.

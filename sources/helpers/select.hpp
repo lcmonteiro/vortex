@@ -10,7 +10,7 @@
 
 #include <array>
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 /// @enum Option
@@ -68,6 +68,6 @@ auto cselect(T& left, T& right, const OptionConstant<value>) {
 }
 /* LCOV_EXCL_STOP : Constexpr */
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_HELPERS_SELECT_HPP

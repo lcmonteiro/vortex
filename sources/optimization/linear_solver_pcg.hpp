@@ -11,7 +11,7 @@
 #include "sources/base/math_invert.hpp"
 #include "sources/optimization/linear_solver.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 template <class Number, int ResidualExponent = -6, size_t IterationsLimit = 1000>
@@ -62,6 +62,6 @@ class PCGLinearSolver : public LinearSolver {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP

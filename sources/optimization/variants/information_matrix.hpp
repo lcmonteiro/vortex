@@ -12,7 +12,7 @@
 
 #include "sources/base/math.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 namespace variants {
 
@@ -193,6 +193,6 @@ struct InformationVariant {
 
 }  // namespace variants
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_VARIANTS_INFORMATION_MATRIX_HPP

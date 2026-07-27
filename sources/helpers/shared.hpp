@@ -12,7 +12,7 @@
 #include <memory_resource>
 #include <tuple>
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 /// @brief A lightweight shared object implementation with custom memory
@@ -68,13 +68,13 @@ inline bool equal(const Shared<T1>& a, const Shared<T2>& b) {
 }
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 
 // NOLINTBEGIN(cert-dcl58-cpp)
 namespace std {
 template <class Type>
-struct hash<graph::detail::Shared<Type>> {
-  auto operator()(const graph::detail::Shared<Type>& shared) const {
+struct hash<vortex::graph::detail::Shared<Type>> {
+  auto operator()(const vortex::graph::detail::Shared<Type>& shared) const {
     return std::hash<Type*>()(shared.get());
   }
 };

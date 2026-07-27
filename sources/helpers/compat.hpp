@@ -18,7 +18,7 @@
 /// behaves like an assertion; the message is kept for readability.
 #define VORTEX_PRECONDITION(condition, message) assert((condition) && (message))
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 /// @brief Narrowing cast helper (replacement for `graph::detail::narrow_cast`).
@@ -86,6 +86,6 @@ class CircularBuffer {
 };
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_HELPERS_COMPAT_HPP

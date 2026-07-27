@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <utility>
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 /// @brief Alternative operations API for interacting with the Graph class.
@@ -105,6 +105,6 @@ inline decltype(auto) GetNode(Type& obj) {
 }
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_OPERATIONS_HPP

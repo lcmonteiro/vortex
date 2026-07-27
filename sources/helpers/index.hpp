@@ -14,7 +14,7 @@
 
 #include "sources/helpers/traits.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 namespace impl {
@@ -50,5 +50,5 @@ void for_each_pair(Indexes<N>, F&& fn) {
 }
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 #endif  // VORTEX_HELPERS_INDEX_HPP

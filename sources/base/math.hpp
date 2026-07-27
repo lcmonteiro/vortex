@@ -10,9 +10,7 @@
 
 #include <blaze/Math.h>
 
-#include <memory>
-#include <memory_resource>
-namespace math {
+namespace vortex::math {
 /// ===========================================================================
 /// Matrix & Vector Types
 /// @brief math base interface types
@@ -80,6 +78,6 @@ using blaze::submatrix;
 using blaze::subvector;
 using blaze::trans;
 
-}  // namespace math
+}  // namespace vortex::math
 
 #endif  // VORTEX_BASE_MATH_HPP

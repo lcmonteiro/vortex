@@ -10,7 +10,7 @@
 
 #include <expected>
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 /// ============================================================================
@@ -49,6 +49,6 @@ class Algorithm {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_ALGORITHM_HPP

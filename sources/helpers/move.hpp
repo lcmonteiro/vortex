@@ -12,7 +12,7 @@
 
 #include "sources/helpers/traits.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 template <class K, class V>
@@ -70,6 +70,6 @@ inline void move(T& source, T& destination, const Key& key, Fn&& execute) {
 }
 
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_HELPERS_MOVE_HPP

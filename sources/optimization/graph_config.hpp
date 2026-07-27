@@ -15,7 +15,7 @@
 #include "sources/optimization/linear_solver_default.hpp"
 #include "sources/optimization/linear_solver_pcg.hpp"
 
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 /// ===========================================================================
@@ -45,6 +45,6 @@ struct DefaultConfig : graph::DefaultConfig {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP

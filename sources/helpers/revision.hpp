@@ -8,7 +8,7 @@
 #ifndef VORTEX_HELPERS_REVISION_HPP
 #define VORTEX_HELPERS_REVISION_HPP
 #include <cstddef>
-namespace graph {
+namespace vortex::graph {
 namespace detail {
 
 /// Revision Type
@@ -42,5 +42,5 @@ struct Revision {
   size_t revision_;
 };
 }  // namespace detail
-}  // namespace graph
+}  // namespace vortex::graph
 #endif  // VORTEX_HELPERS_REVISION_HPP

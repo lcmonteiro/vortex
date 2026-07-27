@@ -14,7 +14,7 @@
 
 #include "sources/helpers/apply.hpp"
 #include "sources/helpers/shared.hpp"
-namespace graph {
+namespace vortex::graph {
 
 /// ===========================================================================
 /// @class Edge
@@ -101,5 +101,5 @@ inline constexpr auto ToEdge(const Edge<N...>& e) {
   return e;
 }
 // LCOV_EXCL_STOP
-}  // namespace graph
+}  // namespace vortex::graph
 #endif  // VORTEX_BASE_GRAPH_EDGE_HPP

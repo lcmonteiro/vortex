@@ -11,7 +11,7 @@
 #include "sources/base/math.hpp"
 #include "sources/optimization/graph_operations.hpp"
 #include "sources/optimization/graph_solver.hpp"
-namespace graph {
+namespace vortex::graph {
 namespace optimization {
 
 /// ============================================================================
@@ -154,6 +154,6 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
 };
 
 }  // namespace optimization
-}  // namespace graph
+}  // namespace vortex::graph
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_SOLVER_BLOCK_HPP
