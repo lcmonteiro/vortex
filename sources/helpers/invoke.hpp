@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helper.invoke component
+/// @brief vortex.helper.invoke component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_INVOKE_HPP
-#define G2O_DUAL_HELPERS_INVOKE_HPP
+#ifndef VORTEX_HELPERS_INVOKE_HPP
+#define VORTEX_HELPERS_INVOKE_HPP
 
 #include <cstddef>
 #include <utility>
@@ -37,4 +37,4 @@ decltype(auto) invoke(Fcall&& call, Fargs args, Expand<N> expand) {
 }  // namespace detail
 }  // namespace graph
 
-#endif  // G2O_DUAL_HELPERS_INVOKE_HPP
+#endif  // VORTEX_HELPERS_INVOKE_HPP

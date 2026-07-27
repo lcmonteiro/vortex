@@ -1,10 +1,10 @@
 include(GoogleTest)
 
-add_executable(g2o_dual_tests
+add_executable(vortex_tests
   dual_test.cpp
   optimization_test.cpp)
 
-target_link_libraries(g2o_dual_tests PRIVATE g2o_dual::g2o_dual gtest_main)
-target_include_directories(g2o_dual_tests PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(vortex_tests PRIVATE vortex::vortex gtest_main)
+target_include_directories(vortex_tests PRIVATE ${CMAKE_SOURCE_DIR})
 
-gtest_discover_tests(g2o_dual_tests)
+gtest_discover_tests(vortex_tests)

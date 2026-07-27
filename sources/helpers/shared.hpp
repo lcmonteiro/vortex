@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helper.shared component
+/// @brief vortex.helper.shared component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_SHARED_HPP
-#define G2O_DUAL_HELPERS_SHARED_HPP
+#ifndef VORTEX_HELPERS_SHARED_HPP
+#define VORTEX_HELPERS_SHARED_HPP
 #include <functional>
 #include <memory>
 #include <memory_resource>
@@ -82,4 +82,4 @@ struct hash<graph::detail::Shared<Type>> {
 }  // namespace std
 // NOLINTEND(cert-dcl58-cpp)
 
-#endif  // G2O_DUAL_HELPERS_SHARED_HPP
+#endif  // VORTEX_HELPERS_SHARED_HPP

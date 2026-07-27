@@ -4,7 +4,7 @@
 
 #include "sources/dual/operations/base.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 struct log : unary_operation<log> {
   template <class T>
   auto value(const T& v) const {
@@ -28,15 +28,15 @@ struct log1p : unary_operation<log1p> {
     return n.d / (T{1} + n.v);
   }
 };
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual
 
 namespace std {
-template <class T, g2o_dual::dual::log::enable_t<T> = 0>
+template <class T, vortex::dual::log::enable_t<T> = 0>
 inline auto log(const T& n) {
-  return std::invoke(g2o_dual::dual::log{}, n);
+  return std::invoke(vortex::dual::log{}, n);
 }
-template <class T, g2o_dual::dual::log1p::enable_t<T> = 0>
+template <class T, vortex::dual::log1p::enable_t<T> = 0>
 inline auto log1p(const T& n) {
-  return std::invoke(g2o_dual::dual::log1p{}, n);
+  return std::invoke(vortex::dual::log1p{}, n);
 }
 }  // namespace std

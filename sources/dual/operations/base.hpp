@@ -6,7 +6,7 @@
 
 #include "sources/dual/number.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 
 template <class T>
 struct duo {
@@ -155,4 +155,4 @@ struct binary_operation {
     }
   }
 };
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual

@@ -10,7 +10,7 @@
 
 namespace {
 
-using g2o_dual::dual::number;
+using vortex::dual::number;
 using Dual = number<double>;
 
 TEST(DualNumber, ProductRule) {

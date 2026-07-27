@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helper.types component
+/// @brief vortex.helper.types component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_TYPES_HPP
-#define G2O_DUAL_HELPERS_TYPES_HPP
+#ifndef VORTEX_HELPERS_TYPES_HPP
+#define VORTEX_HELPERS_TYPES_HPP
 #include <tuple>
 
 namespace graph {
@@ -51,4 +51,4 @@ using TypesElementBuild = typename Ts::template ElementType<index>;
 
 }  // namespace detail
 }  // namespace graph
-#endif  // G2O_DUAL_HELPERS_TYPES_HPP
+#endif  // VORTEX_HELPERS_TYPES_HPP

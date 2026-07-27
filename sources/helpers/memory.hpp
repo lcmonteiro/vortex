@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helper.memory component
+/// @brief vortex.helper.memory component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_MEMORY_HPP
-#define G2O_DUAL_HELPERS_MEMORY_HPP
+#ifndef VORTEX_HELPERS_MEMORY_HPP
+#define VORTEX_HELPERS_MEMORY_HPP
 #include <memory>
 #include <memory_resource>
 
@@ -36,9 +36,9 @@ class BoundedMemoryResource : public std::pmr::memory_resource {
   /// @param alignment Required alignment.
   /// @return Pointer to allocated memory.
   ///
-  /// Triggers G2O_DUAL_PRECONDITION if bytes > MaxAllocSize.
+  /// Triggers VORTEX_PRECONDITION if bytes > MaxAllocSize.
   void* do_allocate(size_t bytes, size_t alignment) override {
-    G2O_DUAL_PRECONDITION(bytes <= MaxAllocSize,
+    VORTEX_PRECONDITION(bytes <= MaxAllocSize,
                           "Allocation exceeds maximum allowed size (check CacheBlockMaxSize)");
     return upstream_->allocate(bytes, alignment);
   }
@@ -63,4 +63,4 @@ class BoundedMemoryResource : public std::pmr::memory_resource {
 }  // namespace detail
 }  // namespace graph
 
-#endif  // G2O_DUAL_HELPERS_MEMORY_HPP
+#endif  // VORTEX_HELPERS_MEMORY_HPP

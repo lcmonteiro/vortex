@@ -5,7 +5,7 @@
 
 #include "sources/dual/operations/base.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 struct cos : unary_operation<cos> {
   template <class T>
   auto value(const T& v) const {
@@ -16,11 +16,11 @@ struct cos : unary_operation<cos> {
     return -std::sin(n.v) * n.d;
   }
 };
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual
 
 namespace std {
-template <class T, g2o_dual::dual::cos::enable_t<T> = 0>
+template <class T, vortex::dual::cos::enable_t<T> = 0>
 inline auto cos(const T& n) {
-  return std::invoke(g2o_dual::dual::cos{}, n);
+  return std::invoke(vortex::dual::cos{}, n);
 }
 }  // namespace std

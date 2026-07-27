@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helpers.build component
+/// @brief vortex.helpers.build component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_BUILD_HPP
-#define G2O_DUAL_HELPERS_BUILD_HPP
+#ifndef VORTEX_HELPERS_BUILD_HPP
+#define VORTEX_HELPERS_BUILD_HPP
 
 #include "sources/helpers/traits.hpp"
 
@@ -29,4 +29,4 @@ inline auto build(Init&& init) {
 }  // namespace detail
 }  // namespace graph
 
-#endif  // G2O_DUAL_HELPERS_BUILD_HPP
+#endif  // VORTEX_HELPERS_BUILD_HPP

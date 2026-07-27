@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.graph_engine.node component
+/// @brief vortex.graph_engine.node component
 /// ===========================================================================
-#ifndef G2O_DUAL_BASE_GRAPH_NODE_HPP
-#define G2O_DUAL_BASE_GRAPH_NODE_HPP
+#ifndef VORTEX_BASE_GRAPH_NODE_HPP
+#define VORTEX_BASE_GRAPH_NODE_HPP
 #include <memory>
 #include <memory_resource>
 #include <set>
@@ -109,4 +109,4 @@ inline constexpr auto ToNode(const Node<E...>& v) {
 // LCOV_EXCL_STOP
 
 }  // namespace graph
-#endif  // G2O_DUAL_BASE_GRAPH_NODE_HPP
+#endif  // VORTEX_BASE_GRAPH_NODE_HPP

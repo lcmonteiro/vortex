@@ -2,7 +2,7 @@
 
 #include "sources/dual/operations/base.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 struct multiplies : binary_operation<multiplies> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
@@ -26,4 +26,4 @@ template <class T, class U, multiplies::enable_t<T, U> = 0>
 inline auto operator*(const T& n1, const U& n2) {
   return std::invoke(multiplies{}, n1, n2);
 }
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual

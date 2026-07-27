@@ -1,9 +1,9 @@
 /// ===========================================================================
 /// @file
-/// @brief g2o_dual.dual umbrella header
+/// @brief vortex.dual umbrella header
 ///
 /// Forward-mode automatic differentiation via dual numbers, ported from
-/// library-b2o. Include this to get the `g2o_dual::dual::number<T>` type
+/// library-b2o. Include this to get the `vortex::dual::number<T>` type
 /// together with all arithmetic and math operations.
 /// ===========================================================================
 #pragma once

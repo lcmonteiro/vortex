@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.optimization.linear_solver_default component
+/// @brief vortex.optimization.linear_solver_default component
 /// ===========================================================================
-#ifndef G2O_DUAL_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP
-#define G2O_DUAL_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP
+#ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP
+#define VORTEX_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP
 
 #include "sources/base/math_solver.hpp"
 #include "sources/optimization/linear_solver.hpp"
@@ -30,4 +30,4 @@ class DefaultLinearSolver : public LinearSolver {
 }  // namespace optimization
 }  // namespace graph
 
-#endif  // G2O_DUAL_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP
+#endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP

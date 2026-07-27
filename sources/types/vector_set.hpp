@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2026, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.type.vector_set component
+/// @brief vortex.type.vector_set component
 /// ===========================================================================
-#ifndef G2O_DUAL_TYPES_VECTOR_SET_HPP
-#define G2O_DUAL_TYPES_VECTOR_SET_HPP
+#ifndef VORTEX_TYPES_VECTOR_SET_HPP
+#define VORTEX_TYPES_VECTOR_SET_HPP
 #include <algorithm>
 #include <iterator>
 #include <memory>
@@ -58,7 +58,7 @@ class VectorSet : private std::pmr::vector<Value> {
   /// @return A pair mirroring @c std::set::insert; the bool is always true (the
   /// caller guarantees uniqueness).
   std::pair<iterator, bool> insert(const value_type& value) {
-    G2O_DUAL_PRECONDITION(find(value) == Base::end(), "value already present in set");
+    VORTEX_PRECONDITION(find(value) == Base::end(), "value already present in set");
     Base::push_back(value);
     return {std::prev(Base::end()), true};
   }
@@ -107,4 +107,4 @@ class VectorSet : private std::pmr::vector<Value> {
 
 }  // namespace graph
 
-#endif  // G2O_DUAL_TYPES_VECTOR_SET_HPP
+#endif  // VORTEX_TYPES_VECTOR_SET_HPP

@@ -5,7 +5,7 @@
 
 #include "sources/dual/operations/base.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 /// @brief atan2(y, x) with n1 == y and n2 == x.
 struct atan2 : binary_operation<atan2> {
   template <class T>
@@ -33,11 +33,11 @@ template <class T, class U, atan2::enable_t<T, U> = 0>
 inline auto atan2_impl(const T& y, const U& x) {
   return std::invoke(atan2{}, y, x);
 }
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual
 
 namespace std {
-template <class T, class U, g2o_dual::dual::atan2::enable_t<T, U> = 0>
+template <class T, class U, vortex::dual::atan2::enable_t<T, U> = 0>
 inline auto atan2(const T& y, const U& x) {
-  return std::invoke(g2o_dual::dual::atan2{}, y, x);
+  return std::invoke(vortex::dual::atan2{}, y, x);
 }
 }  // namespace std

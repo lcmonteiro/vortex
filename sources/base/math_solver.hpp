@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.math_base component
+/// @brief vortex.math_base component
 /// ===========================================================================
-#ifndef G2O_DUAL_BASE_MATH_SOLVER_HPP
-#define G2O_DUAL_BASE_MATH_SOLVER_HPP
+#ifndef VORTEX_BASE_MATH_SOLVER_HPP
+#define VORTEX_BASE_MATH_SOLVER_HPP
 
 #include "sources/base/math.hpp"
 #include "sources/helpers/compat.hpp"
@@ -32,8 +32,8 @@ namespace math {
 template <class Matrix, class Vector,
           blaze::EnableIf_t<blaze::IsColumnMajorMatrix_v<Matrix>>* = nullptr>
 inline bool solve_ldlt(const Matrix& h, const Vector& b, Vector& x) {
-  G2O_DUAL_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
-  G2O_DUAL_PRECONDITION(h.rows() == b.size(), "incompatible matrix and vector");
+  VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
+  VORTEX_PRECONDITION(h.rows() == b.size(), "incompatible matrix and vector");
 
   static thread_local Matrix h_factor;
   h_factor = h;
@@ -79,8 +79,8 @@ inline bool solve_ldlt(const Matrix& h, const Vector& b, Vector& x) {
 template <class Matrix, class Vector,
           blaze::EnableIf_t<blaze::IsColumnMajorMatrix_v<Matrix>>* = nullptr>
 inline bool solve_cholesky(const Matrix& h, const Vector& b, Vector& x) {
-  G2O_DUAL_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
-  G2O_DUAL_PRECONDITION(h.rows() == b.size(), "incompatible matrix and vector");
+  VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
+  VORTEX_PRECONDITION(h.rows() == b.size(), "incompatible matrix and vector");
 
   static thread_local Matrix h_factor;
   h_factor = h;
@@ -106,4 +106,4 @@ inline bool solve_cholesky(const Matrix& h, const Vector& b, Vector& x) {
 }
 
 }  // namespace math
-#endif  // G2O_DUAL_BASE_MATH_SOLVER_HPP
+#endif  // VORTEX_BASE_MATH_SOLVER_HPP

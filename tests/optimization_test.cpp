@@ -10,7 +10,7 @@
 
 namespace {
 
-using namespace g2o_dual_test;
+using namespace vortex_test;
 
 class SlamOptimizationTest : public ::testing::Test {
  protected:

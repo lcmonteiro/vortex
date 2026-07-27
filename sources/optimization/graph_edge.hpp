@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.graph component
+/// @brief vortex.graph component
 /// ===========================================================================
-#ifndef G2O_DUAL_OPTIMIZATION_GRAPH_EDGE_HPP
-#define G2O_DUAL_OPTIMIZATION_GRAPH_EDGE_HPP
+#ifndef VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
+#define VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
 
 #include <algorithm>
 #include <array>
@@ -75,7 +75,7 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
   using Base::Base;
 
   /// @brief Dual number scalar used for automatic differentiation.
-  using Dual = ::g2o_dual::dual::number<Number>;
+  using Dual = ::vortex::dual::number<Number>;
 
   /// @brief Scalar-generic error container returned by a derived edge.
   ///
@@ -331,4 +331,4 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
 }  // namespace optimization
 }  // namespace graph
 
-#endif  // G2O_DUAL_OPTIMIZATION_GRAPH_EDGE_HPP
+#endif  // VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP

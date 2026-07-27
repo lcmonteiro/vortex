@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.math_base component
+/// @brief vortex.math_base component
 /// ===========================================================================
-#ifndef G2O_DUAL_BASE_MATH_INVERT_HPP
-#define G2O_DUAL_BASE_MATH_INVERT_HPP
+#ifndef VORTEX_BASE_MATH_INVERT_HPP
+#define VORTEX_BASE_MATH_INVERT_HPP
 
 #include "sources/base/math.hpp"
 #include "sources/helpers/compat.hpp"
@@ -23,7 +23,7 @@ namespace math {
 /// ===========================================================================
 template <class Matrix, blaze::EnableIf_t<blaze::IsColumnMajorMatrix_v<Matrix> >* = nullptr>
 inline bool invert_cholesky(Matrix& matrix) {
-  G2O_DUAL_PRECONDITION(matrix.rows() == matrix.columns(), "non-square matrix");
+  VORTEX_PRECONDITION(matrix.rows() == matrix.columns(), "non-square matrix");
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(matrix.rows());
   const auto lda = blaze::numeric_cast<blaze::blas_int_t>(matrix.spacing());
   auto info = blaze::blas_int_t{0};
@@ -44,4 +44,4 @@ inline bool invert_cholesky(Matrix& matrix) {
 }
 
 }  // namespace math
-#endif  // G2O_DUAL_BASE_MATH_INVERT_HPP
+#endif  // VORTEX_BASE_MATH_INVERT_HPP

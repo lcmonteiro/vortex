@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helpers.revision component
+/// @brief vortex.helpers.revision component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_REVISION_HPP
-#define G2O_DUAL_HELPERS_REVISION_HPP
+#ifndef VORTEX_HELPERS_REVISION_HPP
+#define VORTEX_HELPERS_REVISION_HPP
 #include <cstddef>
 namespace graph {
 namespace detail {
@@ -43,4 +43,4 @@ struct Revision {
 };
 }  // namespace detail
 }  // namespace graph
-#endif  // G2O_DUAL_HELPERS_REVISION_HPP
+#endif  // VORTEX_HELPERS_REVISION_HPP

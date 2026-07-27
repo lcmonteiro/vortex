@@ -5,7 +5,7 @@
 
 #include "sources/dual/operations/base.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 struct sqrt : unary_operation<sqrt> {
   template <class T>
   auto value(const T& v) const {
@@ -16,11 +16,11 @@ struct sqrt : unary_operation<sqrt> {
     return n.d / (T{2} * std::sqrt(n.v));
   }
 };
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual
 
 namespace std {
-template <class T, g2o_dual::dual::sqrt::enable_t<T> = 0>
+template <class T, vortex::dual::sqrt::enable_t<T> = 0>
 inline auto sqrt(const T& n) {
-  return std::invoke(g2o_dual::dual::sqrt{}, n);
+  return std::invoke(vortex::dual::sqrt{}, n);
 }
 }  // namespace std

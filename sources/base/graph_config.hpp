@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.graph_engine.common component
+/// @brief vortex.graph_engine.common component
 /// ===========================================================================
-#ifndef G2O_DUAL_BASE_GRAPH_CONFIG_HPP
-#define G2O_DUAL_BASE_GRAPH_CONFIG_HPP
+#ifndef VORTEX_BASE_GRAPH_CONFIG_HPP
+#define VORTEX_BASE_GRAPH_CONFIG_HPP
 #include <map>
 #include <set>
 namespace graph {
@@ -37,4 +37,4 @@ struct DefaultConfig {
 };
 
 }  // namespace graph
-#endif  // G2O_DUAL_BASE_GRAPH_CONFIG_HPP
+#endif  // VORTEX_BASE_GRAPH_CONFIG_HPP

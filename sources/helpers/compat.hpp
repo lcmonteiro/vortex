@@ -1,12 +1,12 @@
 /// ===========================================================================
 /// @file
-/// @brief g2o_dual.helpers.compat component
+/// @brief vortex.helpers.compat component
 ///
 /// Small standard-library based replacements for the utilities that were
 /// previously provided by the internal `amp` library.
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_COMPAT_HPP
-#define G2O_DUAL_HELPERS_COMPAT_HPP
+#ifndef VORTEX_HELPERS_COMPAT_HPP
+#define VORTEX_HELPERS_COMPAT_HPP
 
 #include <cassert>
 #include <cstddef>
@@ -14,9 +14,9 @@
 #include <vector>
 
 /// @brief Runtime precondition check.
-/// Replaces the former `G2O_DUAL_PRECONDITION` macro. In debug builds it
+/// Replaces the former `VORTEX_PRECONDITION` macro. In debug builds it
 /// behaves like an assertion; the message is kept for readability.
-#define G2O_DUAL_PRECONDITION(condition, message) assert((condition) && (message))
+#define VORTEX_PRECONDITION(condition, message) assert((condition) && (message))
 
 namespace graph {
 namespace detail {
@@ -88,4 +88,4 @@ class CircularBuffer {
 }  // namespace detail
 }  // namespace graph
 
-#endif  // G2O_DUAL_HELPERS_COMPAT_HPP
+#endif  // VORTEX_HELPERS_COMPAT_HPP

@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helper.move component
+/// @brief vortex.helper.move component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_MOVE_HPP
-#define G2O_DUAL_HELPERS_MOVE_HPP
+#ifndef VORTEX_HELPERS_MOVE_HPP
+#define VORTEX_HELPERS_MOVE_HPP
 #include <iterator>
 #include <utility>
 
@@ -72,4 +72,4 @@ inline void move(T& source, T& destination, const Key& key, Fn&& execute) {
 }  // namespace detail
 }  // namespace graph
 
-#endif  // G2O_DUAL_HELPERS_MOVE_HPP
+#endif  // VORTEX_HELPERS_MOVE_HPP

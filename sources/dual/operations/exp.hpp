@@ -5,7 +5,7 @@
 
 #include "sources/dual/operations/base.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 struct exp : unary_operation<exp> {
   template <class T>
   auto value(const T& v) const {
@@ -16,11 +16,11 @@ struct exp : unary_operation<exp> {
     return std::exp(n.v) * n.d;
   }
 };
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual
 
 namespace std {
-template <class T, g2o_dual::dual::exp::enable_t<T> = 0>
+template <class T, vortex::dual::exp::enable_t<T> = 0>
 inline auto exp(const T& n) {
-  return std::invoke(g2o_dual::dual::exp{}, n);
+  return std::invoke(vortex::dual::exp{}, n);
 }
 }  // namespace std

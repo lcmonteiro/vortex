@@ -4,7 +4,7 @@
 
 #include "sources/dual/operations/base.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 
 struct abs : unary_operation<abs> {
   template <class T>
@@ -18,11 +18,11 @@ struct abs : unary_operation<abs> {
   }
 };
 
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual
 
 namespace std {
-template <class T, g2o_dual::dual::abs::enable_t<T> = 0>
+template <class T, vortex::dual::abs::enable_t<T> = 0>
 inline auto abs(const T& n) {
-  return std::invoke(g2o_dual::dual::abs{}, n);
+  return std::invoke(vortex::dual::abs{}, n);
 }
 }  // namespace std

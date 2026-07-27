@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.graph_engine.edge component
+/// @brief vortex.graph_engine.edge component
 /// ===========================================================================
-#ifndef G2O_DUAL_BASE_GRAPH_EDGE_HPP
-#define G2O_DUAL_BASE_GRAPH_EDGE_HPP
+#ifndef VORTEX_BASE_GRAPH_EDGE_HPP
+#define VORTEX_BASE_GRAPH_EDGE_HPP
 
 #include <memory>
 #include <memory_resource>
@@ -102,4 +102,4 @@ inline constexpr auto ToEdge(const Edge<N...>& e) {
 }
 // LCOV_EXCL_STOP
 }  // namespace graph
-#endif  // G2O_DUAL_BASE_GRAPH_EDGE_HPP
+#endif  // VORTEX_BASE_GRAPH_EDGE_HPP

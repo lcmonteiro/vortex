@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(g2o_dual LANGUAGES CXX)
+project(vortex LANGUAGES CXX)
 
 # ---------------------------------------------------------------------------
 # Global settings
@@ -12,7 +12,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-option(G2O_DUAL_BUILD_TESTS "Build g2o-dual tests" ON)
+option(VORTEX_BUILD_TESTS "Build vortex tests" ON)
 
 include(FetchContent)
 
@@ -35,19 +35,19 @@ find_library(LAPACK_LIB NAMES lapack liblapack.so.3 PATHS /lib/x86_64-linux-gnu)
 find_library(BLAS_LIB NAMES blas libblas.so.3 PATHS /lib/x86_64-linux-gnu)
 
 # ---------------------------------------------------------------------------
-# g2o_dual library
+# vortex library
 # ---------------------------------------------------------------------------
-add_library(g2o_dual STATIC sources/g2o_dual.cpp)
-target_compile_features(g2o_dual PUBLIC cxx_std_23)
-target_include_directories(g2o_dual PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(g2o_dual SYSTEM PUBLIC ${blaze_SOURCE_DIR})
-target_link_libraries(g2o_dual PUBLIC ${LAPACK_LIB} ${BLAS_LIB})
-add_library(g2o_dual::g2o_dual ALIAS g2o_dual)
+add_library(vortex STATIC sources/vortex.cpp)
+target_compile_features(vortex PUBLIC cxx_std_23)
+target_include_directories(vortex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(vortex SYSTEM PUBLIC ${blaze_SOURCE_DIR})
+target_link_libraries(vortex PUBLIC ${LAPACK_LIB} ${BLAS_LIB})
+add_library(vortex::vortex ALIAS vortex)
 
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
-if(G2O_DUAL_BUILD_TESTS)
+if(VORTEX_BUILD_TESTS)
   FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git

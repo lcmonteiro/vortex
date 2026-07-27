@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.graph component
+/// @brief vortex.graph component
 /// ===========================================================================
-#ifndef G2O_DUAL_OPTIMIZATION_GRAPH_NODE_HPP
-#define G2O_DUAL_OPTIMIZATION_GRAPH_NODE_HPP
+#ifndef VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
+#define VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 
 #include "sources/base/graph.hpp"
 #include "sources/base/math.hpp"
@@ -124,7 +124,7 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
   /// @param delta to be added to the current estimation
   template <class Delta>
   void updateEstimation(const Delta delta) {
-    G2O_DUAL_PRECONDITION(std::size(delta) == dimension(),
+    VORTEX_PRECONDITION(std::size(delta) == dimension(),
                           "delta update size do not match with node dimension");
     estimation(self()->plus(delta));
   }
@@ -150,4 +150,4 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
 }  // namespace optimization
 }  // namespace graph
 
-#endif  // G2O_DUAL_OPTIMIZATION_GRAPH_NODE_HPP
+#endif  // VORTEX_OPTIMIZATION_GRAPH_NODE_HPP

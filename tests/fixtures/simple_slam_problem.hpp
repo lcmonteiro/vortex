@@ -1,20 +1,20 @@
 /// ===========================================================================
 /// @file
-/// @brief Scalar-generic SLAM problem fixture for g2o-dual.
+/// @brief Scalar-generic SLAM problem fixture for vortex.
 ///
-/// This mirrors the classic g2o-next simple SLAM problem but the user types,
+/// This mirrors the classic vortex simple SLAM problem but the user types,
 /// `plus()` and `error()` are now generic over the scalar type so that the
 /// same cost functions can be evaluated with `double` (residual) and with a
 /// dual number (exact Jacobian via forward-mode automatic differentiation).
 /// ===========================================================================
-#ifndef G2O_DUAL_TESTS_FIXTURES_SIMPLE_SLAM_PROBLEM_HPP
-#define G2O_DUAL_TESTS_FIXTURES_SIMPLE_SLAM_PROBLEM_HPP
+#ifndef VORTEX_TESTS_FIXTURES_SIMPLE_SLAM_PROBLEM_HPP
+#define VORTEX_TESTS_FIXTURES_SIMPLE_SLAM_PROBLEM_HPP
 
 #include <type_traits>
 
 #include "sources/optimization/graph.hpp"
 
-namespace g2o_dual_test {
+namespace vortex_test {
 
 namespace go = graph::optimization;
 
@@ -73,6 +73,6 @@ struct SlamGraph : go::Graph<go::Nodes<Pose>, go::Edges<PoseDistance, PoseLocati
   using Base::Base;
 };
 
-}  // namespace g2o_dual_test
+}  // namespace vortex_test
 
-#endif  // G2O_DUAL_TESTS_FIXTURES_SIMPLE_SLAM_PROBLEM_HPP
+#endif  // VORTEX_TESTS_FIXTURES_SIMPLE_SLAM_PROBLEM_HPP

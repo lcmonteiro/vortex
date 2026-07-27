@@ -2,7 +2,7 @@
 
 #include "sources/dual/operations/base.hpp"
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 struct negate : unary_operation<negate> {
   template <class T>
   auto value(const T& v) const {
@@ -18,4 +18,4 @@ template <class T, negate::enable_t<T> = 0>
 inline auto operator-(const T& n) {
   return std::invoke(negate{}, n);
 }
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual

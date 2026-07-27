@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helper.index component
+/// @brief vortex.helper.index component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_INDEX_HPP
-#define G2O_DUAL_HELPERS_INDEX_HPP
+#ifndef VORTEX_HELPERS_INDEX_HPP
+#define VORTEX_HELPERS_INDEX_HPP
 
 #include <cstddef>
 #include <type_traits>
@@ -51,4 +51,4 @@ void for_each_pair(Indexes<N>, F&& fn) {
 
 }  // namespace detail
 }  // namespace graph
-#endif  // G2O_DUAL_HELPERS_INDEX_HPP
+#endif  // VORTEX_HELPERS_INDEX_HPP

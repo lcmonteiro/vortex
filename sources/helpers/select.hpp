@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helper.select component
+/// @brief vortex.helper.select component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_SELECT_HPP
-#define G2O_DUAL_HELPERS_SELECT_HPP
+#ifndef VORTEX_HELPERS_SELECT_HPP
+#define VORTEX_HELPERS_SELECT_HPP
 
 #include <array>
 
@@ -70,4 +70,4 @@ auto cselect(T& left, T& right, const OptionConstant<value>) {
 }  // namespace detail
 }  // namespace graph
 
-#endif  // G2O_DUAL_HELPERS_SELECT_HPP
+#endif  // VORTEX_HELPERS_SELECT_HPP

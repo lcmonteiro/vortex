@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.math_base component
+/// @brief vortex.math_base component
 /// ===========================================================================
-#ifndef G2O_DUAL_BASE_MATH_HPP
-#define G2O_DUAL_BASE_MATH_HPP
+#ifndef VORTEX_BASE_MATH_HPP
+#define VORTEX_BASE_MATH_HPP
 
 #include <blaze/Math.h>
 
@@ -82,4 +82,4 @@ using blaze::trans;
 
 }  // namespace math
 
-#endif  // G2O_DUAL_BASE_MATH_HPP
+#endif  // VORTEX_BASE_MATH_HPP

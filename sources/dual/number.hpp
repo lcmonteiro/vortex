@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-namespace g2o_dual::dual {
+namespace vortex::dual {
 
 template <std::size_t N>
 using make_sequence = std::make_index_sequence<N>;
@@ -133,4 +133,4 @@ struct is_number_like<number<T>> : std::true_type {};
 template <class T>
 constexpr bool is_number_like_v = is_number_like<T>::value;
 
-}  // namespace g2o_dual::dual
+}  // namespace vortex::dual

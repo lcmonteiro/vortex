@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.optimization.variants component
+/// @brief vortex.optimization.variants component
 /// ===========================================================================
-#ifndef G2O_DUAL_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
-#define G2O_DUAL_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
+#ifndef VORTEX_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
+#define VORTEX_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
 
 #include <variant>
 
@@ -124,4 +124,4 @@ struct KernelVariant {
 }  // namespace optimization
 }  // namespace graph
 
-#endif  // G2O_DUAL_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
+#endif  // VORTEX_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP

@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helper.apply component
+/// @brief vortex.helper.apply component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_APPLY_HPP
-#define G2O_DUAL_HELPERS_APPLY_HPP
+#ifndef VORTEX_HELPERS_APPLY_HPP
+#define VORTEX_HELPERS_APPLY_HPP
 
 #include <tuple>
 #include <utility>
@@ -77,4 +77,4 @@ inline void apply(F&& func, const T& data) {
 }  // namespace detail
 }  // namespace graph
 
-#endif  // G2O_DUAL_HELPERS_APPLY_HPP
+#endif  // VORTEX_HELPERS_APPLY_HPP

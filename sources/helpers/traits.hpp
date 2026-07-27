@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.helpers.traits component
+/// @brief vortex.helpers.traits component
 /// ===========================================================================
-#ifndef G2O_DUAL_HELPERS_TRAITS_HPP
-#define G2O_DUAL_HELPERS_TRAITS_HPP
+#ifndef VORTEX_HELPERS_TRAITS_HPP
+#define VORTEX_HELPERS_TRAITS_HPP
 #include <type_traits>
 #include <utility>
 
@@ -63,4 +63,4 @@ constexpr T& lreference(T&& x) noexcept {
 }  // namespace trait
 }  // namespace graph
 
-#endif  // G2O_DUAL_HELPERS_TRAITS_HPP
+#endif  // VORTEX_HELPERS_TRAITS_HPP

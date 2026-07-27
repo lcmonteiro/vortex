@@ -3,10 +3,10 @@
 /// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
 /// (BMW AG)
 ///
-/// @brief g2o_dual.graph component
+/// @brief vortex.graph component
 /// ===========================================================================
-#ifndef G2O_DUAL_OPTIMIZATION_GRAPH_HPP
-#define G2O_DUAL_OPTIMIZATION_GRAPH_HPP
+#ifndef VORTEX_OPTIMIZATION_GRAPH_HPP
+#define VORTEX_OPTIMIZATION_GRAPH_HPP
 #include <expected>
 
 #include "sources/base/graph.hpp"
@@ -178,4 +178,4 @@ auto Build(std::pmr::memory_resource* const memory, A&&... args) {
 }  // namespace optimization
 }  // namespace graph
 
-#endif  // G2O_DUAL_OPTIMIZATION_GRAPH_HPP
+#endif  // VORTEX_OPTIMIZATION_GRAPH_HPP
