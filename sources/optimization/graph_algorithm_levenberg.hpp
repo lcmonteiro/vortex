@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.graph component
 /// ===========================================================================
@@ -13,7 +11,7 @@
 #include <expected>
 
 #include "base/math.hpp"
-#include "helpers/compat.hpp"
+#include "helpers/numeric.hpp"
 #include "optimization/graph_algorithm.hpp"
 
 namespace vortex::graph::optimization {
@@ -156,7 +154,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   void adjustLambdaAdaptive(Number rho) {
     constexpr Number alpha_min = Constant<Number>(Config::LowerScale);
     constexpr Number alpha_max = Constant<Number>(Config::UpperScale);
-    const Number alpha = 1. - graph::detail::int_pow<3>((2 * rho) - 1);
+    const Number alpha = 1. - helpers::int_pow<3>((2 * rho) - 1);
     const Number alpha_clamp = std::clamp(alpha, alpha_min, alpha_max);
     lambda_ *= alpha_clamp;
     lambda_factor_ = 2;

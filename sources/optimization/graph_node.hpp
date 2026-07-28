@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.graph component
 /// ===========================================================================
@@ -10,7 +8,8 @@
 
 #include "base/graph.hpp"
 #include "base/math.hpp"
-#include "helpers/compat.hpp"
+#include "helpers/buffer.hpp"
+#include "helpers/contracts.hpp"
 #include "optimization/graph_config.hpp"
 
 namespace vortex::graph::optimization {
@@ -34,7 +33,7 @@ using Edges = Types<Ts...>;
 /// @tparam Config       Configuration settings for the node.
 /// ===========================================================================
 template <class Derived, size_t MaxDimension, class Type, class Edges, class Config = DefaultConfig>
-class Node : public detail::TypesBuild<graph::Node, Edges> {
+class Node : public helpers::TypesBuild<graph::Node, Edges> {
  public:
   /// @brief helper alises
   static constexpr size_t kMaxDimension{MaxDimension};
@@ -45,7 +44,7 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
   template <size_t D>
   using Matrix = math::HybridMatrix<Number, D, kMaxDimension>;
   using Vector = math::HybridVector<Number, kMaxDimension>;
-  using Base = detail::TypesBuild<graph::Node, Edges>;
+  using Base = helpers::TypesBuild<graph::Node, Edges>;
   using Base::Base;
 
   /// @brief Node constructor.
@@ -59,7 +58,7 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
         backlog_{},
         key_{key},
         revision_{revision} {
-    backlog_.emplace_back();
+    push();
   }
   Node(const Key& key, std::pmr::memory_resource* const memory)
       : Node(SharedRevision{memory}, memory, key) {}
@@ -91,14 +90,14 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
   const Key& key() const { return key_; }
 
   /// @brief Backlog handing functions
-  void push() { backlog_.emplace_back(estimation_); }
-
+  void push() { backlog_.push(estimation_); }
   void pull() { estimation(backlog_.back()); }
 
   void revert(size_t n = 1) {
-    const auto offset =
-        std::min(graph::detail::narrow_cast<std::ptrdiff_t>(n), std::ssize(backlog_) - 1);
-    std::ignore = backlog_.erase(std::prev(std::end(backlog_), offset), std::end(backlog_));
+    const size_t drop = backlog_.size() > 1 ? std::min(n, backlog_.size() - 1) : 0;
+    for (size_t i = 0; i < drop; ++i) {
+      backlog_.pop();
+    }
     pull();
   }
 
@@ -111,7 +110,6 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
 
    protected:
     auto operator()() { return value_; }
-
     void operator()(size_t value) { value_ = value; }
 
    private:
@@ -137,7 +135,7 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
   void postEstimation() {}
 
  private:
-  using Backlog = graph::detail::CircularBuffer<Type, Config::BacklogCapacity>;
+  using Backlog = helpers::Buffer<Type, Config::BacklogCapacity>;
 
   size_t dimension_;
   Type estimation_;

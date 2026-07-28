@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.math_base component
 /// ===========================================================================
@@ -9,7 +7,7 @@
 #define VORTEX_BASE_MATH_INVERT_HPP
 
 #include "base/math.hpp"
-#include "helpers/compat.hpp"
+#include "helpers/contracts.hpp"
 
 namespace vortex::math {
 

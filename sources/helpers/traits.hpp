@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.helpers.traits component
 /// ===========================================================================
@@ -10,8 +8,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace vortex::graph {
-namespace trait {
+namespace vortex::helpers {
 ///
 /// @brief Identity metafunction that returns the type T unchanged.
 ///
@@ -60,7 +57,6 @@ constexpr T& lreference(T&& x) noexcept {
   return static_cast<T&>(x);
 }
 
-}  // namespace trait
-}  // namespace vortex::graph
+}  // namespace vortex::helpers
 
 #endif  // VORTEX_HELPERS_TRAITS_HPP

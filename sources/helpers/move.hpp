@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.helper.move component
 /// ===========================================================================
@@ -12,8 +10,7 @@
 
 #include "helpers/traits.hpp"
 
-namespace vortex::graph {
-namespace detail {
+namespace vortex::helpers {
 
 template <class K, class V>
 inline decltype(auto) get_value(const std::pair<K, V>& pair) {
@@ -44,8 +41,8 @@ inline void move_all(T& source, T& destination, Fn&& execute) {
 /// @brief move all elements via condition
 template <class T, class Fn1, class Fn2>
 inline void move_if(T& source, T& destination, Fn1&& evaluate, Fn2&& execute) {
-  auto& ref_evaluate = trait::lreference<Fn1>(std::forward<Fn1>(evaluate));
-  auto& ref_execute = trait::lreference<Fn2>(std::forward<Fn2>(execute));
+  auto& ref_evaluate = lreference<Fn1>(std::forward<Fn1>(evaluate));
+  auto& ref_execute = lreference<Fn2>(std::forward<Fn2>(execute));
   for (auto iter = source.begin(); iter != source.end();) {
     if (ref_evaluate(get_value(*iter))) {
       std::ignore = destination.emplace(*iter);
@@ -60,7 +57,7 @@ inline void move_if(T& source, T& destination, Fn1&& evaluate, Fn2&& execute) {
 /// @brief move elements by key
 template <class T, class Key, class Fn>
 inline void move(T& source, T& destination, const Key& key, Fn&& execute) {
-  auto& ref_execute = trait::lreference<Fn>(std::forward<Fn>(execute));
+  auto& ref_execute = lreference<Fn>(std::forward<Fn>(execute));
   if (auto iter = source.find(key); iter != std::end(source)) {
     std::ignore = destination.emplace(*iter);
     ref_execute(get_value(*iter));
@@ -69,7 +66,6 @@ inline void move(T& source, T& destination, const Key& key, Fn&& execute) {
   }
 }
 
-}  // namespace detail
-}  // namespace vortex::graph
+}  // namespace vortex::helpers
 
 #endif  // VORTEX_HELPERS_MOVE_HPP

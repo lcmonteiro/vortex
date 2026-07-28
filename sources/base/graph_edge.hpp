@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.graph_engine.edge component
 /// ===========================================================================
@@ -32,7 +30,7 @@ class Edge {
  public:
   static constexpr auto NNodes = sizeof...(Nodes);
 
-  explicit Edge(const detail::Shared<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
+  explicit Edge(const helpers::Shared<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
   // Move and copy constructors purposely omitted
 
   /// @brief Get node by type
@@ -40,7 +38,7 @@ class Edge {
   /// @return shared node
   template <class T>
   const auto& node() const {
-    return std::get<detail::Shared<T>>(nodes_);
+    return std::get<helpers::Shared<T>>(nodes_);
   }
 
   /// @brief Get node by index
@@ -56,12 +54,12 @@ class Edge {
   /// @param func - function reference
   template <class F>
   void apply(F&& func) {
-    detail::apply(std::forward<F>(func), nodes_);
+    helpers::apply(std::forward<F>(func), nodes_);
   }
 
   template <class F>
   void apply(F&& func) const {
-    detail::apply(std::forward<F>(func), nodes_);
+    helpers::apply(std::forward<F>(func), nodes_);
   }
 
   template <class T, class F>
@@ -89,7 +87,7 @@ class Edge {
 
  private:
   bool disable_{};
-  std::tuple<detail::Shared<Nodes>...> nodes_;
+  std::tuple<helpers::Shared<Nodes>...> nodes_;
 };
 
 /// ===========================================================================

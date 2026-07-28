@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.graph component
 /// ===========================================================================
@@ -26,7 +24,7 @@
 #include "optimization/variants/robust_kernel.hpp"
 
 namespace vortex::graph::optimization {
-using detail::Types;
+using helpers::Types;
 
 /// ===========================================================================
 /// @brief Type Container: A utility template to define nodes types.
@@ -44,7 +42,7 @@ using Nodes = Types<Ts...>;
 /// @tparam Config     Configuration settings for the edge.
 /// ===========================================================================
 template <class Derived, size_t Dimension, class Type, class Nodes, class Config = DefaultConfig>
-class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
+class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   using KernelVariant = variants::KernelVariant<Derived, Config>;
 
  public:
@@ -65,10 +63,10 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
 
   ///< Helper alises types.
   template <size_t I>
-  using Node = detail::TypesElementBuild<I, Nodes>;
+  using Node = helpers::TypesElementBuild<I, Nodes>;
   using Number = typename Config::Number;
   using Measurement = Type;
-  using Base = detail::TypesBuild<graph::Edge, Nodes>;
+  using Base = helpers::TypesBuild<graph::Edge, Nodes>;
   using Matrix = math::StaticMatrix<Number, kDimension, kDimension>;
   using Vector = math::StaticVector<Number, kDimension>;
   using Base::Base;
@@ -133,17 +131,17 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
 
   /// @brief Updates the error value and chi-squared value.
   void updateError() {
-    const auto residual = detail::invoke(
+    const auto residual = helpers::invoke(
         ErrorCall{self()},           // Invoke the error function of the derived edge
         EstimationCallback{self()},  // Get the estimation values of the connected nodes
-        detail::Expand<Base::NNodes>{});
+        helpers::Expand<Base::NNodes>{});
     std::copy(std::cbegin(residual), std::cend(residual), std::begin(error_));
     kernel_->update(math::dot(error_, information() * error_));
   }
 
   /// @brief Updates the jacobian values for all nodes.
   void updateJacobians() {
-    graph::detail::for_each(graph::detail::Indexes<Base::NNodes>{},
+    helpers::for_each(helpers::Indexes<Base::NNodes>{},
                             JacobiansUpdateCallback{self()});
   }
 
@@ -151,7 +149,7 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
   /// @param callable function that receives the nodes and the block value
   template <class Fn>
   void forEachHBlock(Fn&& callable) {
-    detail::for_each_pair(detail::Indexes<Base::NNodes>{},
+    helpers::for_each_pair(helpers::Indexes<Base::NNodes>{},
                           HBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
 
@@ -159,7 +157,7 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
   /// @param callable function that receives the nodes and the block value
   template <class Fn>
   void forEachBBlock(Fn&& callable) {
-    detail::for_each(detail::Indexes<Base::NNodes>{},
+    helpers::for_each(helpers::Indexes<Base::NNodes>{},
                      BBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
 
@@ -192,10 +190,10 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
     const auto node_dimension = GetNode<I>(*this)->dimension();
     auto jacobian = JacobianMatrix<NodeType>(kDimension, node_dimension, Number{0});
 
-    const auto residual = detail::invoke(
+    const auto residual = helpers::invoke(
         ErrorCall{self()},                                  // Invoke the error function
         DualEstimationCallback<I>{self(), node_dimension},  // Get the dual estimations
-        detail::Expand<Base::NNodes>{});
+        helpers::Expand<Base::NNodes>{});
 
     for (size_t row{0}; row < kDimension; ++row) {
       const auto& partials = residual[row];
@@ -321,8 +319,8 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
   KernelVariant kernel_{};
 
   /// @brief Jacobian types.
-  using JacobianTransposeTuple = detail::TypesWrapBuild<std::tuple, JacobianTransposeMatrix, Nodes>;
-  using JacobianTuple = detail::TypesWrapBuild<std::tuple, JacobianMatrix, Nodes>;
+  using JacobianTransposeTuple = helpers::TypesWrapBuild<std::tuple, JacobianTransposeMatrix, Nodes>;
+  using JacobianTuple = helpers::TypesWrapBuild<std::tuple, JacobianMatrix, Nodes>;
   JacobianTransposeTuple jacobian_transpose_{};
   JacobianTuple jacobian_{};
 };

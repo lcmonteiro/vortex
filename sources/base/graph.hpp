@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.graph_engine component
 /// ===========================================================================
@@ -29,14 +27,14 @@ namespace vortex::graph {
 /// ===========================================================================
 /// Helper Types
 /// ===========================================================================
-using detail::Revision;
-using detail::Shared;
-using detail::Types;
+using helpers::Revision;
+using helpers::Shared;
+using helpers::Types;
 
 template <class T>
 using OptionalShared = std::optional<Shared<T>>;
 
-using SharedRevision = Shared<detail::Revision>;
+using SharedRevision = Shared<helpers::Revision>;
 
 /// ===========================================================================
 /// Helpers Functions
@@ -68,16 +66,16 @@ class Graph {
  protected:
   /// concepts
   template <class T>
-  using if_node = trait::if_valid<decltype(ToNode(std::declval<T>()))>;
+  using if_node = helpers::if_valid<decltype(ToNode(std::declval<T>()))>;
 
   template <class T>
-  using if_edge = trait::if_valid<decltype(ToEdge(std::declval<T>()))>;
+  using if_edge = helpers::if_valid<decltype(ToEdge(std::declval<T>()))>;
 
   template <class T>
-  using if_types = trait::if_valid<decltype(ToTypes(std::declval<T>()))>;
+  using if_types = helpers::if_valid<decltype(ToTypes(std::declval<T>()))>;
 
   template <class F, class N>
-  using if_predicate = trait::if_valid<std::enable_if_t<std::is_invocable_v<F, Shared<N>&>>>;
+  using if_predicate = helpers::if_valid<std::enable_if_t<std::is_invocable_v<F, Shared<N>&>>>;
 
   /// types
   using Key = typename Config::Key;
@@ -92,12 +90,12 @@ class Graph {
   template <class T>
   using SetShared = Set<Shared<T>>;
 
-  using TupleMapShared = detail::TypesWrapBuild<std::tuple, MapShared, Tnodes>;
-  using TupleSetShared = detail::TypesWrapBuild<std::tuple, SetShared, Tedges>;
+  using TupleMapShared = helpers::TypesWrapBuild<std::tuple, MapShared, Tnodes>;
+  using TupleSetShared = helpers::TypesWrapBuild<std::tuple, SetShared, Tedges>;
 
-  template <detail::Option value>
-  using OptionConstant = detail::OptionConstant<value>;
-  using Option = detail::Option;
+  template <helpers::Option value>
+  using OptionConstant = helpers::OptionConstant<value>;
+  using Option = helpers::Option;
 
  public:
   using Nodes = Tnodes;
@@ -117,10 +115,10 @@ class Graph {
         memory_pool_{{0, Config::CacheBlockMaxSize}, &memory_monotonic_},
         memory_bounded_{&memory_pool_},
         memory_{&memory_bounded_},
-        nodes_enable_{detail::build<TupleMapShared>(memory_resource)},
-        nodes_disable_{detail::build<TupleMapShared>(memory_resource)},
-        edges_enable_{detail::build<TupleSetShared>(memory_resource)},
-        edges_disable_{detail::build<TupleSetShared>(memory_resource)},
+        nodes_enable_{helpers::build<TupleMapShared>(memory_resource)},
+        nodes_disable_{helpers::build<TupleMapShared>(memory_resource)},
+        edges_enable_{helpers::build<TupleSetShared>(memory_resource)},
+        edges_disable_{helpers::build<TupleSetShared>(memory_resource)},
         revision_{revision} {}
 
   explicit Graph(std::pmr::memory_resource* const memory_resource)
@@ -215,17 +213,17 @@ class Graph {
   /// @param option The constant indicating the selection criteria.
   template <class T, class Fn, Option value = Option::kAll, if_node<T> = 0>
   void apply(Fn&& func, const OptionConstant<value> option = All{}) const {
-    auto& ref_func = trait::lreference<Fn>(std::forward<Fn>(func));
+    auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (const MapShared<T>& map : select<T>(nodes_enable_, nodes_disable_, option)) {
-      detail::apply(ref_func, map);
+      helpers::apply(ref_func, map);
     }
   }
 
   template <class T, class Fn, Option value = Option::kAll, if_edge<T> = 0>
   void apply(Fn&& func, const OptionConstant<value> option = All{}) const {
-    auto& ref_func = trait::lreference<Fn>(std::forward<Fn>(func));
+    auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (const SetShared<T>& set : select<T>(edges_enable_, edges_disable_, option)) {
-      detail::apply(ref_func, set);
+      helpers::apply(ref_func, set);
     }
   }
 
@@ -236,7 +234,7 @@ class Graph {
 
   template <class Fn, Option value = Option::kAll>
   void apply(Fn&& func, const OptionConstant<value> option = All{}) const {
-    auto& ref_func = trait::lreference<Fn>(std::forward<Fn>(func));
+    auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     apply<Nodes>(ref_func, option);
     apply<Edges>(ref_func, option);
   }
@@ -265,7 +263,7 @@ class Graph {
 
   template <class N, class Fn, Option value = Option::kAll, if_node<N> = 0, if_predicate<Fn, N> = 0>
   OptionalShared<N> find(Fn&& evaluate, const OptionConstant<value> option = All{}) const {
-    auto& ref_evaluate = trait::lreference<Fn>(std::forward<Fn>(evaluate));
+    auto& ref_evaluate = helpers::lreference<Fn>(std::forward<Fn>(evaluate));
     const auto& nodes{select<N>(nodes_enable_, nodes_disable_, option)};
     for (const MapShared<N>& map : nodes) {
       for (auto& node_pair : map) {
@@ -388,7 +386,7 @@ class Graph {
 
   template <class N, class Fn, Option value = Option::kAll, if_node<N> = 0, if_predicate<Fn, N> = 0>
   void destroy(Fn&& func, const OptionConstant<value> option = All{}) {
-    auto& ref_func = trait::lreference<Fn>(std::forward<Fn>(func));
+    auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (auto iter = map.begin(); iter != map.end();) {
         if (ref_func(std::get<Shared<N>>(*iter))) {
@@ -422,14 +420,14 @@ class Graph {
   /// disabled nodes or edges.
   template <class T, if_node<T> = 0>
   void toggle(const Enabled) {
-    detail::move_all(get<T>(nodes_enable_), get<T>(nodes_disable_),
+    helpers::move_all(get<T>(nodes_enable_), get<T>(nodes_disable_),
                      [](const auto& node) { node->disable(true); });
     revision_->update();
   }
 
   template <class T, if_node<T> = 0>
   void toggle(const Disabled) {
-    detail::move_all(get<T>(nodes_disable_), get<T>(nodes_enable_),
+    helpers::move_all(get<T>(nodes_disable_), get<T>(nodes_enable_),
                      [](const auto& node) { node->disable(false); });
     revision_->update();
   }
@@ -437,7 +435,7 @@ class Graph {
   template <class E, class T, if_node<T> = 0, if_edge<E> = 0>
   void toggle(const Shared<T>& node, const Enabled) {
     node->template apply<E>([this](const auto& edge) {
-      detail::move(get<E>(edges_enable_), get<E>(edges_disable_), edge,
+      helpers::move(get<E>(edges_enable_), get<E>(edges_disable_), edge,
                    [](const auto& e) { e->disable(true); });
     });
   }
@@ -445,72 +443,72 @@ class Graph {
   template <class E, class T, if_node<T> = 0, if_edge<E> = 0>
   void toggle(const Shared<T>& node, const Disabled) {
     node->template apply<E>([this](const auto& edge) {
-      detail::move(get<E>(edges_disable_), get<E>(edges_enable_), edge,
+      helpers::move(get<E>(edges_disable_), get<E>(edges_enable_), edge,
                    [](const auto& e) { e->disable(false); });
     });
   }
 
   template <class T, class Fn, if_node<T> = 0, if_predicate<Fn, T> = 0>
   void toggle(Fn&& func, const Enabled) {
-    detail::move_if(get<T>(nodes_enable_), get<T>(nodes_disable_), std::forward<Fn>(func),
+    helpers::move_if(get<T>(nodes_enable_), get<T>(nodes_disable_), std::forward<Fn>(func),
                     [](const auto& node) { node->disable(true); });
     revision_->update();
   }
 
   template <class T, class Fn, if_node<T> = 0, if_predicate<Fn, T> = 0>
   void toggle(Fn&& func, const Disabled) {
-    detail::move_if(get<T>(nodes_disable_), get<T>(nodes_enable_), std::forward<Fn>(func),
+    helpers::move_if(get<T>(nodes_disable_), get<T>(nodes_enable_), std::forward<Fn>(func),
                     [](const auto& node) { node->disable(false); });
     revision_->update();
   }
 
   template <class T, if_node<T> = 0>
   void toggle(const Key& key, const Enabled) {
-    detail::move(get<T>(nodes_enable_), get<T>(nodes_disable_), key,
+    helpers::move(get<T>(nodes_enable_), get<T>(nodes_disable_), key,
                  [](const auto& node) { node->disable(true); });
     revision_->update();
   }
 
   template <class T, if_node<T> = 0>
   void toggle(const Key& key, const Disabled) {
-    detail::move(get<T>(nodes_disable_), get<T>(nodes_enable_), key,
+    helpers::move(get<T>(nodes_disable_), get<T>(nodes_enable_), key,
                  [](const auto& node) { node->disable(false); });
     revision_->update();
   }
 
   template <class T, if_edge<T> = 0>
   void toggle(const Enabled) {
-    detail::move_all(get<T>(edges_enable_), get<T>(edges_disable_),
+    helpers::move_all(get<T>(edges_enable_), get<T>(edges_disable_),
                      [](const auto& edge) { edge->disable(true); });
   }
 
   template <class T, if_edge<T> = 0>
   void toggle(const Disabled) {
-    detail::move_all(get<T>(edges_disable_), get<T>(edges_enable_),
+    helpers::move_all(get<T>(edges_disable_), get<T>(edges_enable_),
                      [](const auto& edge) { edge->disable(false); });
   }
 
   template <class T, if_edge<T> = 0>
   void toggle(const Shared<T>& edge, const Enabled) {
-    detail::move(get<T>(edges_enable_), get<T>(edges_disable_), edge,
+    helpers::move(get<T>(edges_enable_), get<T>(edges_disable_), edge,
                  [](const auto& e) { e->disable(true); });
   }
 
   template <class T, if_edge<T> = 0>
   void toggle(const Shared<T>& edge, const Disabled) {
-    detail::move(get<T>(edges_disable_), get<T>(edges_enable_), edge,
+    helpers::move(get<T>(edges_disable_), get<T>(edges_enable_), edge,
                  [](const auto& e) { e->disable(false); });
   }
 
   template <class T, class Fn, if_edge<T> = 0, if_predicate<Fn, T> = 0>
   void toggle(Fn&& func, const Enabled) {
-    detail::move_if(get<T>(edges_enable_), get<T>(edges_disable_), std::forward<Fn>(func),
+    helpers::move_if(get<T>(edges_enable_), get<T>(edges_disable_), std::forward<Fn>(func),
                     [](const auto& edge) { edge->disable(true); });
   }
 
   template <class T, class Fn, if_edge<T> = 0, if_predicate<Fn, T> = 0>
   void toggle(Fn&& func, const Disabled) {
-    detail::move_if(get<T>(edges_disable_), get<T>(edges_enable_), std::forward<Fn>(func),
+    helpers::move_if(get<T>(edges_disable_), get<T>(edges_enable_), std::forward<Fn>(func),
                     [](const auto& edge) { edge->disable(false); });
   }
 
@@ -549,23 +547,23 @@ class Graph {
 
   template <class T, Option value = Option::kAll>
   auto select(TupleMapShared& enable, TupleMapShared& disable, const OptionConstant<value> option) {
-    return detail::select(get<T>(enable), get<T>(disable), option);
+    return helpers::select(get<T>(enable), get<T>(disable), option);
   }
 
   template <class T, Option value = Option::kAll>
   auto select(const TupleMapShared& enable, const TupleMapShared& disable,
               const OptionConstant<value> option) const {
-    return detail::cselect(get<T>(enable), get<T>(disable), option);
+    return helpers::cselect(get<T>(enable), get<T>(disable), option);
   }
 
   template <class T, Option value = Option::kAll>
   auto select(TupleSetShared& enable, TupleSetShared& disable, const OptionConstant<value> option) {
-    return detail::select(get<T>(enable), get<T>(disable), option);
+    return helpers::select(get<T>(enable), get<T>(disable), option);
   }
   template <class T, Option value = Option::kAll>
   auto select(const TupleSetShared& enable, const TupleSetShared& disable,
               const OptionConstant<value> option) const {
-    return detail::cselect(get<T>(enable), get<T>(disable), option);
+    return helpers::cselect(get<T>(enable), get<T>(disable), option);
   }
 
   template <class T>
@@ -618,13 +616,13 @@ class Graph {
 
   template <class Fn, class... T, Option value>
   void apply(Fn&& func, Types<T...>, const OptionConstant<value> option) {
-    auto& ref_func = trait::lreference<Fn>(std::forward<Fn>(func));
+    auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     (apply<T>(ref_func, option), ...);
   }
 
   template <class Fn, class... T, Option value>
   void apply(Fn&& func, Types<T...>, const OptionConstant<value> option) const {
-    auto& ref_func = trait::lreference<Fn>(std::forward<Fn>(func));
+    auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     (apply<T>(ref_func, option), ...);
   }
 
@@ -635,7 +633,7 @@ class Graph {
 
   template <class... E, Option value, class... Ts>
   void toggle(Types<E...>, const OptionConstant<value> option, Ts&&... args) {
-    (toggle<E>(trait::lreference<Ts>(args)..., option), ...);
+    (toggle<E>(helpers::lreference<Ts>(args)..., option), ...);
   }
 
   const auto& revision() const { return revision_; }
@@ -643,7 +641,7 @@ class Graph {
  private:
   std::pmr::monotonic_buffer_resource memory_monotonic_;
   std::pmr::unsynchronized_pool_resource memory_pool_;
-  detail::BoundedMemoryResource<Config::CacheBlockMaxSize> memory_bounded_;
+  helpers::MemoryBoundedResource<Config::CacheBlockMaxSize> memory_bounded_;
   std::pmr::memory_resource* memory_;
   TupleMapShared nodes_enable_;
   TupleMapShared nodes_disable_;

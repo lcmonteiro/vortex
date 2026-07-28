@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2026, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.type.vector_set component
 /// ===========================================================================
@@ -14,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "helpers/compat.hpp"
+#include "helpers/contracts.hpp"
 
 namespace vortex::graph {
 

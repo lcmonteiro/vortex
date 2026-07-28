@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.helpers.build component
 /// ===========================================================================
@@ -10,23 +8,21 @@
 
 #include "helpers/traits.hpp"
 
-namespace vortex::graph {
-namespace detail {
+namespace vortex::helpers {
 
-namespace impl {
+namespace details {
 template <class Init, template <class...> class Container, class... Types>
 inline auto build(Init&& init, Container<Types...>) {
-  auto& ref_init = trait::lreference<Init>(std::forward<Init>(init));
+  auto& ref_init = lreference<Init>(std::forward<Init>(init));
   return Container<Types...>{Types{ref_init}...};
 }
-}  // namespace impl
+}  // namespace details
 
 template <class Container, class Init>
 inline auto build(Init&& init) {
-  return impl::build(std::forward<Init>(init), Container{});
+  return details::build(std::forward<Init>(init), Container{});
 }
 
-}  // namespace detail
-}  // namespace vortex::graph
+}  // namespace vortex::helpers
 
 #endif  // VORTEX_HELPERS_BUILD_HPP

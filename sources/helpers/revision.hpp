@@ -1,15 +1,12 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.helpers.revision component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_REVISION_HPP
 #define VORTEX_HELPERS_REVISION_HPP
 #include <cstddef>
-namespace vortex::graph {
-namespace detail {
+namespace vortex::helpers {
 
 /// Revision Type
 /// @brief This struct is used to manage revision numbers for objects.
@@ -41,6 +38,5 @@ struct Revision {
  private:
   size_t revision_;
 };
-}  // namespace detail
-}  // namespace vortex::graph
+}  // namespace vortex::helpers
 #endif  // VORTEX_HELPERS_REVISION_HPP

@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.helper.invoke component
 /// ===========================================================================
@@ -13,16 +11,15 @@
 
 #include "helpers/traits.hpp"
 
-namespace vortex::graph {
-namespace detail {
+namespace vortex::helpers {
 
-namespace impl {
+namespace details {
 template <class Fcall, class Fargs, size_t... Is>
 constexpr decltype(auto) invoke(Fcall&& call, Fargs&& args, std::index_sequence<Is...>) {
-  auto& ref_args = trait::lreference<Fargs>(std::forward<Fargs>(args));
+  auto& ref_args = lreference<Fargs>(std::forward<Fargs>(args));
   return std::forward<Fcall>(call)(ref_args.template operator()<Is>()...);
 }
-}  // namespace impl
+}  // namespace details
 
 template <size_t N>
 struct Expand {
@@ -31,10 +28,9 @@ struct Expand {
 
 template <size_t N, class Fcall, class Fargs>
 decltype(auto) invoke(Fcall&& call, Fargs args, Expand<N> expand) {
-  return impl::invoke(std::forward<Fcall>(call), std::forward<Fargs>(args), expand.value);
+  return details::invoke(std::forward<Fcall>(call), std::forward<Fargs>(args), expand.value);
 }
 
-}  // namespace detail
-}  // namespace vortex::graph
+}  // namespace vortex::helpers
 
 #endif  // VORTEX_HELPERS_INVOKE_HPP

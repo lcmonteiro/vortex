@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.helper.types component
 /// ===========================================================================
@@ -9,8 +7,7 @@
 #define VORTEX_HELPERS_TYPES_HPP
 #include <tuple>
 
-namespace vortex::graph {
-namespace detail {
+namespace vortex::helpers {
 
 /// @brief Types Container
 /// This template class `Types` is used to store and manipulate a list of types
@@ -49,6 +46,5 @@ using TypesWrapBuild = typename Ts::template WrapType<B, W>;
 template <size_t index, class Ts>
 using TypesElementBuild = typename Ts::template ElementType<index>;
 
-}  // namespace detail
-}  // namespace vortex::graph
+}  // namespace vortex::helpers
 #endif  // VORTEX_HELPERS_TYPES_HPP

@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.helper.select component
 /// ===========================================================================
@@ -10,8 +8,7 @@
 
 #include <array>
 
-namespace vortex::graph {
-namespace detail {
+namespace vortex::helpers {
 
 /// @enum Option
 /// @brief Defines options for selecting between different configurations.
@@ -67,7 +64,6 @@ auto cselect(T& left, T& right, const OptionConstant<value>) {
   }
 }
 /* LCOV_EXCL_STOP : Constexpr */
-}  // namespace detail
-}  // namespace vortex::graph
+}  // namespace vortex::helpers
 
 #endif  // VORTEX_HELPERS_SELECT_HPP

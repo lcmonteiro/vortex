@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.helper.shared component
 /// ===========================================================================
@@ -12,8 +10,7 @@
 #include <memory_resource>
 #include <tuple>
 
-namespace vortex::graph {
-namespace detail {
+namespace vortex::helpers {
 
 /// @brief A lightweight shared object implementation with custom memory
 /// resource support.
@@ -67,14 +64,13 @@ inline bool equal(const Shared<T1>& a, const Shared<T2>& b) {
   }
 }
 
-}  // namespace detail
-}  // namespace vortex::graph
+}  // namespace vortex::helpers
 
 // NOLINTBEGIN(cert-dcl58-cpp)
 namespace std {
 template <class Type>
-struct hash<vortex::graph::detail::Shared<Type>> {
-  auto operator()(const vortex::graph::detail::Shared<Type>& shared) const {
+struct hash<vortex::helpers::Shared<Type>> {
+  auto operator()(const vortex::helpers::Shared<Type>& shared) const {
     return std::hash<Type*>()(shared.get());
   }
 };

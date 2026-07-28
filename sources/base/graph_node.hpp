@@ -1,7 +1,5 @@
 /// ===========================================================================
 /// @file
-/// @copyright Copyright (C) 2024, Bayerische Motoren Werke Aktiengesellschaft
-/// (BMW AG)
 ///
 /// @brief vortex.graph_engine.node component
 /// ===========================================================================
@@ -27,7 +25,7 @@ namespace vortex::graph {
 template <class... Edges>
 class Node {
   template <class T>
-  using SetShared = std::pmr::set<detail::Shared<T>>;
+  using SetShared = std::pmr::set<helpers::Shared<T>>;
   using TupleSetShared = std::tuple<SetShared<Edges>...>;
 
  public:
@@ -35,29 +33,29 @@ class Node {
 
   template <class Key>
   Node(const Key&, std::pmr::memory_resource* const memory)
-      : disable_{}, edges_{detail::build<TupleSetShared>(memory)} {}
+      : disable_{}, edges_{helpers::build<TupleSetShared>(memory)} {}
 
   /// @brief Apply a function to all edges
   /// @tparam F - function type
   /// @param func - function reference
   template <class F>
   void apply(F&& func) {
-    detail::apply([&](auto& data) { detail::apply(std::forward<F>(func), data); }, edges_);
+    helpers::apply([&](auto& data) { helpers::apply(std::forward<F>(func), data); }, edges_);
   }
 
   template <class F>
   void apply(F&& func) const {
-    detail::apply([&](auto& data) { detail::apply(std::forward<F>(func), data); }, edges_);
+    helpers::apply([&](auto& data) { helpers::apply(std::forward<F>(func), data); }, edges_);
   }
 
   template <class T, class F>
   void apply(F&& func) {
-    detail::apply(std::forward<F>(func), std::get<SetShared<T>>(edges_));
+    helpers::apply(std::forward<F>(func), std::get<SetShared<T>>(edges_));
   }
 
   template <class T, class F>
   void apply(F&& func) const {
-    detail::apply(std::forward<F>(func), std::get<SetShared<T>>(edges_));
+    helpers::apply(std::forward<F>(func), std::get<SetShared<T>>(edges_));
   }
 
   /// @brief Checks if the node is disable.
@@ -77,12 +75,12 @@ class Node {
   /// @tparam T - edge type
   /// @param edge
   template <class T>
-  void link(const detail::Shared<T>& edge) {
+  void link(const helpers::Shared<T>& edge) {
     std::ignore = std::get<SetShared<T>>(edges_).insert(edge);
   }
 
   template <class T>
-  void unlink(const detail::Shared<T>& edge) {
+  void unlink(const helpers::Shared<T>& edge) {
     std::ignore = std::get<SetShared<T>>(edges_).erase(edge);
   }
   template <class T>
@@ -90,7 +88,7 @@ class Node {
     std::get<SetShared<T>>(edges_).clear();
   }
   void unlink() {
-    detail::apply([&](auto& set) { set.clear(); }, edges_);
+    helpers::apply([&](auto& set) { set.clear(); }, edges_);
   }
 
  private:
