@@ -3,12 +3,12 @@
 ///
 /// @brief vortex.dual.operations.log component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_LOG_HPP
-#define VORTEX_DUAL_OPERATIONS_LOG_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_LOG_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_LOG_HPP
 
 #include <cmath>
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Natural-logarithm operation.
@@ -51,4 +51,4 @@ inline auto log1p(const T& n) {
 }
 }  // namespace std
 
-#endif  // VORTEX_DUAL_OPERATIONS_LOG_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_LOG_HPP

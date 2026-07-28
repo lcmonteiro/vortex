@@ -7,8 +7,8 @@
 #define VORTEX_OPTIMIZATION_GRAPH_HPP
 #include <expected>
 
-#include "base/graph.hpp"
-#include "base/math.hpp"
+#include "foundation/graph/graph.hpp"
+#include "foundation/math/math.hpp"
 #include "helpers/memory.hpp"
 #include "optimization/graph_config.hpp"
 #include "optimization/graph_edge.hpp"

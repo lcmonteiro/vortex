@@ -1,12 +1,12 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.math_base component
+/// @brief vortex.math.solver component
 /// ===========================================================================
-#ifndef VORTEX_BASE_MATH_SOLVER_HPP
-#define VORTEX_BASE_MATH_SOLVER_HPP
+#ifndef VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP
+#define VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP
 
-#include "base/math.hpp"
+#include "foundation/math/math.hpp"
 #include "helpers/contracts.hpp"
 
 namespace vortex::math {
@@ -104,4 +104,4 @@ inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool 
 }
 
 }  // namespace vortex::math
-#endif  // VORTEX_BASE_MATH_SOLVER_HPP
+#endif  // VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP

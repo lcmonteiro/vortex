@@ -13,9 +13,9 @@
 #include <iterator>
 #include <vector>
 
-#include "base/graph.hpp"
-#include "base/math.hpp"
-#include "dual/dual.hpp"
+#include "foundation/graph/graph.hpp"
+#include "foundation/math/math.hpp"
+#include "foundation/dual/dual.hpp"
 #include "helpers/index.hpp"
 #include "helpers/invoke.hpp"
 #include "optimization/graph_config.hpp"

@@ -1,18 +1,18 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.graph_engine component
+/// @brief vortex.graph component
 /// ===========================================================================
-#ifndef VORTEX_BASE_GRAPH_HPP
-#define VORTEX_BASE_GRAPH_HPP
+#ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_HPP
+#define VORTEX_FOUNDATION_GRAPH_GRAPH_HPP
 #include <memory>
 #include <memory_resource>
 #include <optional>
 #include <tuple>
 
-#include "base/graph_config.hpp"
-#include "base/graph_edge.hpp"
-#include "base/graph_node.hpp"
+#include "foundation/graph/graph_config.hpp"
+#include "foundation/graph/graph_edge.hpp"
+#include "foundation/graph/graph_node.hpp"
 #include "helpers/apply.hpp"
 #include "helpers/build.hpp"
 #include "helpers/memory.hpp"
@@ -649,4 +649,4 @@ class Graph {
   SharedRevision revision_;
 };
 }  // namespace vortex::graph
-#endif  // VORTEX_BASE_GRAPH_HPP
+#endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_HPP

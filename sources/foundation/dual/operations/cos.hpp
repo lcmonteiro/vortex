@@ -3,13 +3,13 @@
 ///
 /// @brief vortex.dual.operations.cos component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_COS_HPP
-#define VORTEX_DUAL_OPERATIONS_COS_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_COS_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_COS_HPP
 
 #include <cmath>
 #include <functional>
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Cosine operation.
@@ -33,4 +33,4 @@ inline auto cos(const T& n) {
 }
 }  // namespace std
 
-#endif  // VORTEX_DUAL_OPERATIONS_COS_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_COS_HPP

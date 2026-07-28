@@ -1,10 +1,10 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.math_base component
+/// @brief vortex.math component
 /// ===========================================================================
-#ifndef VORTEX_BASE_MATH_HPP
-#define VORTEX_BASE_MATH_HPP
+#ifndef VORTEX_FOUNDATION_MATH_MATH_HPP
+#define VORTEX_FOUNDATION_MATH_MATH_HPP
 
 #include <blaze/Math.h>
 
@@ -74,4 +74,4 @@ using blaze::trans;
 
 }  // namespace vortex::math
 
-#endif  // VORTEX_BASE_MATH_HPP
+#endif  // VORTEX_FOUNDATION_MATH_MATH_HPP

@@ -6,8 +6,8 @@
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_CHOLESKY_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_CHOLESKY_HPP
 
-#include "base/math_invert.hpp"
-#include "base/math_solver.hpp"
+#include "foundation/math/math_invert.hpp"
+#include "foundation/math/math_solver.hpp"
 #include "optimization/linear_solver.hpp"
 
 namespace vortex::graph::optimization {

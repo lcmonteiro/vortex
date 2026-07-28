@@ -6,7 +6,7 @@
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP
 
-#include "base/math.hpp"
+#include "foundation/math/math.hpp"
 
 namespace vortex::graph::optimization {
 

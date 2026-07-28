@@ -3,11 +3,11 @@
 ///
 /// @brief vortex.dual.operations.erf component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_ERF_HPP
-#define VORTEX_DUAL_OPERATIONS_ERF_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_ERF_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_ERF_HPP
 #include <cmath>
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Error-function operation.
@@ -57,4 +57,4 @@ inline auto erfc(const T& n) {
 }
 }  // namespace std
 
-#endif  // VORTEX_DUAL_OPERATIONS_ERF_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_ERF_HPP

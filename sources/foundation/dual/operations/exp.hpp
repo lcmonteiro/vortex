@@ -3,13 +3,13 @@
 ///
 /// @brief vortex.dual.operations.exp component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_EXP_HPP
-#define VORTEX_DUAL_OPERATIONS_EXP_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_EXP_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_EXP_HPP
 
 #include <cmath>
 #include <functional>
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Exponential operation.
@@ -33,4 +33,4 @@ inline auto exp(const T& n) {
 }
 }  // namespace std
 
-#endif  // VORTEX_DUAL_OPERATIONS_EXP_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_EXP_HPP

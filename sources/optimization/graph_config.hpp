@@ -6,7 +6,7 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP
 
-#include "base/graph_config.hpp"
+#include "foundation/graph/graph_config.hpp"
 #include "optimization/graph_algorithm_levenberg.hpp"
 #include "optimization/graph_solver_block.hpp"
 #include "optimization/linear_solver_cholesky.hpp"

@@ -46,12 +46,15 @@ The result: you write your residual once, and the exact Jacobian comes for free.
 
 | Path | Responsibility |
 | --- | --- |
-| [sources/dual/](sources/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
-| [sources/base/](sources/base/) | Core statically-typed graph engine — `Graph`, `Node`, `Edge`, revision tracking, memory management, and math wrappers (from `vortex`). |
+| [sources/foundation/dual/](sources/foundation/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
+| [sources/foundation/graph/](sources/foundation/graph/) | Core statically-typed graph engine — `Graph`, `Node`, `Edge`, revision tracking, and memory management (from `vortex`). |
+| [sources/foundation/math/](sources/foundation/math/) | Dense linear-algebra wrappers over [Blaze](https://bitbucket.org/blaze-lib/blaze) (matrix/vector types, inversion, and solvers). |
 | [sources/optimization/](sources/optimization/) | Optimizer layer: `optimize()`, Levenberg–Marquardt algorithm, block graph solver, and the Cholesky/PCG/default linear solvers. Edges compute exact Jacobians via dual numbers. |
 | [sources/helpers/](sources/helpers/) | Compile-time utilities — type lists, apply/invoke, shared/pmr helpers, traits. |
 | [sources/types/](sources/types/) | Small supporting containers (e.g. `vector_set`). |
 | [tests/](tests/) | GoogleTest unit and end-to-end tests, including a scalar-generic SLAM fixture. |
+
+> `sources/foundation/` groups the core modeling modules (`dual`, `graph`, `math`).
 
 ---
 

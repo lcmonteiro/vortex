@@ -1,10 +1,10 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.graph_engine.edge component
+/// @brief vortex.graph.edge component
 /// ===========================================================================
-#ifndef VORTEX_BASE_GRAPH_EDGE_HPP
-#define VORTEX_BASE_GRAPH_EDGE_HPP
+#ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP
+#define VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP
 
 #include <memory>
 #include <memory_resource>
@@ -100,4 +100,4 @@ inline constexpr auto ToEdge(const Edge<N...>& e) {
 }
 // LCOV_EXCL_STOP
 }  // namespace vortex::graph
-#endif  // VORTEX_BASE_GRAPH_EDGE_HPP
+#endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP

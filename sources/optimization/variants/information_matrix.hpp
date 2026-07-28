@@ -8,7 +8,7 @@
 
 #include <variant>
 
-#include "base/math.hpp"
+#include "foundation/math/math.hpp"
 
 namespace vortex::graph::optimization {
 namespace variants {

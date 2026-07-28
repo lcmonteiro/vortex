@@ -7,10 +7,10 @@
 /// library-b2o. Include this to get the `vortex::dual::number<T>` type
 /// together with all arithmetic and math operations.
 /// ===========================================================================
-#ifndef VORTEX_DUAL_DUAL_HPP
-#define VORTEX_DUAL_DUAL_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_DUAL_HPP
+#define VORTEX_FOUNDATION_DUAL_DUAL_HPP
 
-#include "dual/number.hpp"
-#include "dual/operations.hpp"
+#include "foundation/dual/number.hpp"
+#include "foundation/dual/operations.hpp"
 
-#endif  // VORTEX_DUAL_DUAL_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_DUAL_HPP

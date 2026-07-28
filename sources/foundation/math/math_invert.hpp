@@ -1,12 +1,12 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.math_base component
+/// @brief vortex.math.invert component
 /// ===========================================================================
-#ifndef VORTEX_BASE_MATH_INVERT_HPP
-#define VORTEX_BASE_MATH_INVERT_HPP
+#ifndef VORTEX_FOUNDATION_MATH_MATH_INVERT_HPP
+#define VORTEX_FOUNDATION_MATH_MATH_INVERT_HPP
 
-#include "base/math.hpp"
+#include "foundation/math/math.hpp"
 #include "helpers/contracts.hpp"
 
 namespace vortex::math {
@@ -42,4 +42,4 @@ inline auto invert_cholesky(Matrix& matrix) -> bool {
 }
 
 }  // namespace vortex::math
-#endif  // VORTEX_BASE_MATH_INVERT_HPP
+#endif  // VORTEX_FOUNDATION_MATH_MATH_INVERT_HPP
