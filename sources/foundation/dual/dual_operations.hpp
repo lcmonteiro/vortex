@@ -3,8 +3,8 @@
 ///
 /// @brief vortex.dual.operations component
 /// ===========================================================================
-#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_HPP
-#define VORTEX_FOUNDATION_DUAL_OPERATIONS_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_DUAL_OPERATIONS_HPP
+#define VORTEX_FOUNDATION_DUAL_DUAL_OPERATIONS_HPP
 #include "foundation/dual/operations/abs.hpp"
 #include "foundation/dual/operations/atan2.hpp"
 #include "foundation/dual/operations/cos.hpp"
@@ -21,4 +21,4 @@
 #include "foundation/dual/operations/sin.hpp"
 #include "foundation/dual/operations/sqrt.hpp"
 
-#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_DUAL_OPERATIONS_HPP

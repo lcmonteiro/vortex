@@ -13,29 +13,6 @@
 namespace vortex::graph::optimization {
 
 /// ===========================================================================
-/// @brief Linear solver that solves h * x = b by explicitly inverting h via
-/// Cholesky decomposition.
-/// ===========================================================================
-class CholeskyInversionLinearSolver : public LinearSolver {
- public:
-  /// @brief Solves a linear system like h * x = b via Cholesky inversion
-  /// (computes h^-1 then multiplies by b).
-  /// It is assumed that matrix shapes are correct.
-  /// @param h Coef matrix.
-  /// @param b Column matrix.
-  /// @param x [OUT] Result matrix.
-  template <class Matrix, class Vector>
-  auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {
-    auto h_tmp = Matrix{h};
-    if (not math::invert_cholesky(h_tmp)) {
-      return false;
-    }
-    x = h_tmp * b;
-    return true;
-  }
-};
-
-/// ===========================================================================
 /// @brief Linear solver that solves h * x = b using Cholesky factorization
 /// (L * L^T = h) followed by forward/backward substitution.
 /// ===========================================================================
