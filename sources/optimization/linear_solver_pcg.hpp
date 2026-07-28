@@ -6,7 +6,6 @@
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP
 
-#include "foundation/math/math_invert.hpp"
 #include "optimization/linear_solver.hpp"
 
 namespace vortex::graph::optimization {
