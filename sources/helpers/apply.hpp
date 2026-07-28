@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helper.apply component
+/// @brief vortex.helpers.apply component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_APPLY_HPP
 #define VORTEX_HELPERS_APPLY_HPP

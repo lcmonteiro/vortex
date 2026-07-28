@@ -16,28 +16,27 @@
 namespace vortex::graph::optimization {
 
 /// ===========================================================================
-/// @brief DefaultConfig: Defines the default configuration for graph
-/// optimization.
+/// @brief Default configuration for graph optimization.
 /// ===========================================================================
 struct DefaultConfig : graph::DefaultConfig {
-  ///< Capacity of the backlog buffer.
+  /// @brief Capacity of the backlog buffer.
   static constexpr size_t BacklogCapacity = 3;
 
-  ///< Maximum system capacity (internal matrices and vectors).
+  /// @brief Maximum system capacity (internal matrices and vectors).
   static constexpr size_t SystemCapacity = 0x200U;
 
-  ///< Data type for numerical values.
+  /// @brief Data type for numerical values.
   using Number = double;
 
-  ///< Default optimization algorithm.
+  /// @brief Default optimization algorithm.
   template <class Graph, class GraphSolver>
   using Algorithm = LevenbergAlgorithm<Graph, GraphSolver>;
 
-  ///< Default graph solver.
+  /// @brief Default graph solver.
   template <class Graph, class LinearSolver>
   using GraphSolver = BlockGraphSolver<Graph, LinearSolver>;
 
-  ///< Default linear solver.
+  /// @brief Default linear solver.
   using LinearSolver = DefaultLinearSolver;
 };
 

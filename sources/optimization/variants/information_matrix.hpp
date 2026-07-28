@@ -33,10 +33,10 @@ using if_vector = std::enable_if_t<math::IsVector<Type>::value, bool>;
 /// (Dimension*Dimension).
 template <class Number, size_t Dimension>
 struct IdentityInformationOption {
-  /// @brief Constuctor of an information matrix that is an identity matrix.
+  /// @brief Constructor of an information matrix that is an identity matrix.
   IdentityInformationOption() : matrix_{Dimension} {};
 
-  /// @brief Gets the matrix isntance.
+  /// @brief Gets the matrix instance.
   /// @return The matrix instance.
   const auto& get() const { return matrix_; }
 
@@ -55,13 +55,13 @@ struct IdentityInformationOption {
 /// (Dimension*Dimension).
 template <class Number, size_t Dimension>
 struct DiagonalInformationOption {
-  /// @brief Constuctor of an information matrix that is a diagonal matrix.
+  /// @brief Constructor of an information matrix that is a diagonal matrix.
   DiagonalInformationOption() : matrix_{math::IdentityMatrix<Number>(Dimension)} {};
 
   /// @brief Sets the value of the information matrix based on another matrix.
-  /// @tparam M Type of the vector.
-  /// @tparam  This method is only enabled for Matrix types.
+  /// @tparam Matrix The matrix type.
   /// @param matrix The matrix containing the values to set the information to.
+  /// @note Only enabled for matrix types.
   template <class Matrix, if_matrix<Matrix> = true>
   auto set(const Matrix& matrix) -> void {
     matrix_ = matrix;
@@ -69,10 +69,10 @@ struct DiagonalInformationOption {
 
   /// @brief Sets the value of the information matrix diagonal based on a
   /// vector.
-  /// @tparam V Type of the vector.
-  /// @tparam  This method is only enabled for Vector types.
+  /// @tparam Vector The vector type.
   /// @param vector The vector containing the values to set the information
   /// diagonal to.
+  /// @note Only enabled for vector types.
   template <class Vector, if_vector<Vector> = true>
   auto set(const Vector& vector) -> void {
     math::diagonal(matrix_) = vector;
@@ -80,18 +80,20 @@ struct DiagonalInformationOption {
 
   /// @brief Sets the value of the information matrix diagonal based on a group
   /// of values.
-  /// @tparam ...T Type of the values.
-  /// @param ...values The values.
+  /// @tparam Type Type of the first value.
+  /// @tparam Types Types of the remaining values.
+  /// @param value The first value.
+  /// @param values The remaining values.
   template <class Type, class... Types>
   auto set(const Type& value, const Types&... values) -> void {
-    /// Ensure the number or received argument match the matrix dimension.
+    // Ensure the number of received arguments matches the matrix dimension.
     static_assert((1 + sizeof...(Types)) == Dimension,
                   "The number of values must match the square matrix dimension.");
 
     math::diagonal(matrix_) = {value, values...};
   }
 
-  /// @brief Gets the matrix isntance.
+  /// @brief Gets the matrix instance.
   /// @return The matrix instance.
   const auto& get() const { return matrix_; }
 
@@ -113,13 +115,13 @@ struct DiagonalInformationOption {
 /// (Dimension*Dimension).
 template <class Number, size_t Dimension>
 struct SymmetricInformationOption {
-  /// @brief Constuctor of an information matrix.
+  /// @brief Constructor of an information matrix.
   SymmetricInformationOption() : matrix_{math::IdentityMatrix<Number>(Dimension)} {};
 
   /// @brief Sets the value of the information matrix based on another matrix.
-  /// @tparam M Type of the vector.
-  /// @tparam  This method is only enabled for Matrix types.
+  /// @tparam Matrix The matrix type.
   /// @param matrix The matrix containing the values to set the information to.
+  /// @note Only enabled for matrix types.
   template <class Matrix, if_matrix<Matrix> = true>
   auto set(const Matrix& matrix) -> void {
     matrix_ = matrix;
@@ -146,8 +148,10 @@ constexpr size_t kIdentityMatrix = 0;
 constexpr size_t kDiagonalMatrix = 1;
 constexpr size_t kSymmetricMatrix = 2;
 
-/// @brief Information Matrix Variant
-/// @tparam Derived
+/// @brief Information matrix variant.
+/// @tparam Derived The derived edge type.
+/// @tparam Config The edge configuration.
+/// @tparam Dimension The information matrix dimension.
 template <class Derived, class Config, size_t Dimension>
 struct InformationVariant {
   using Number = typename Config::Number;
@@ -159,7 +163,7 @@ struct InformationVariant {
 
   /// @brief Constructor of the InformationVariant, according to the option set
   /// in Derived::kInformation.
-  /// @warning Asserts if the value set in Derived::kInformationis valid.
+  /// @warning Asserts if the value set in Derived::kInformation is valid.
   constexpr InformationVariant()
       : matrix_(std::variant_alternative_t<Derived::kInformation, MatrixVariant>{}) {
     static_assert(Derived::kInformation >= kIdentityMatrix, "kInformation >= kIdentityMatrix");
@@ -167,24 +171,24 @@ struct InformationVariant {
     static_assert(Derived::kInformation <= kSymmetricMatrix, "kInformation <= kSymmetricMatrix");
   }
 
-  /// @brief Gets the pointer of the active information matrix
-  /// @return Information matrix pointer
+  /// @brief Gets the pointer of the active information matrix.
+  /// @return Information matrix pointer.
   constexpr auto* operator->() { return &get(); }
 
-  /// @brief Gets the pointer of the active information matrix
-  /// @return Information matrix pointer
+  /// @brief Gets the pointer of the active information matrix.
+  /// @return Information matrix pointer.
   constexpr auto* operator->() const { return &get(); }
 
-  /// @brief Gets the reference of the active information matrix
-  /// @return Information matrix reference
+  /// @brief Gets the reference of the active information matrix.
+  /// @return Information matrix reference.
   constexpr auto& get() { return std::get<Derived::kInformation>(matrix_); }
 
-  /// @brief Gets the reference of the active information matrix
-  /// @return Information matrix reference
+  /// @brief Gets the reference of the active information matrix.
+  /// @return Information matrix reference.
   constexpr auto& get() const { return std::get<Derived::kInformation>(matrix_); }
 
  private:
-  /// @brief Holds the informarion matrix.
+  /// @brief Holds the information matrix.
   MatrixVariant matrix_;
 };
 

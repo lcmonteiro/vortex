@@ -1,8 +1,15 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.multiplies component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_MULTIPLIES_HPP
+#define VORTEX_DUAL_OPERATIONS_MULTIPLIES_HPP
 
 #include "dual/operations/base.hpp"
 
 namespace vortex::dual {
+/// @brief Multiplication operation.
 struct multiplies : binary_operation<multiplies> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
@@ -22,8 +29,11 @@ struct multiplies : binary_operation<multiplies> {
   }
 };
 
+/// @brief Multiplies two operands, propagating derivatives.
 template <class T, class U, multiplies::enable_t<T, U> = 0>
 inline auto operator*(const T& n1, const U& n2) {
   return std::invoke(multiplies{}, n1, n2);
 }
 }  // namespace vortex::dual
+
+#endif  // VORTEX_DUAL_OPERATIONS_MULTIPLIES_HPP

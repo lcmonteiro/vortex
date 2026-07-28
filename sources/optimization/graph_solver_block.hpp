@@ -11,9 +11,9 @@
 #include "optimization/graph_solver.hpp"
 namespace vortex::graph::optimization {
 
-/// ============================================================================
-/// @brief Block graph solver
-/// ============================================================================
+/// ===========================================================================
+/// @brief Block graph solver.
+/// ===========================================================================
 template <class Graph, class LinearSolver>
 class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
  public:
@@ -92,13 +92,15 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   auto b() const -> const Vector& { return b_; }
 
   /// @brief Get hessian matrix
-  const auto& h() const { return h_; }
+  auto h() const -> const Matrix& { return h_; }
 
   /// @brief Algorithm solve
   /// @return a boolean value whether it was solved or an algorithm error
   auto solve() -> bool { return Base::lsolver_.solve(h_, b_, x_); }
 
  protected:
+  /// @brief Functor that accumulates a Hessian block update into the system
+  /// matrix, honoring the solver's full or triangular storage requirement.
   struct UpdateHBlock {
     template <class Ni, class Nj, class H>
     auto operator()(const Ni& node_i, const Nj& node_j, const H& update) -> void {
@@ -135,6 +137,8 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
     }
     BlockGraphSolver* self;
   };
+  /// @brief Functor that accumulates a gradient block update into the system
+  /// right-hand-side vector.
   struct UpdateBBlock {
     template <class N, class B>
     auto operator()(const N& node, const B& update) -> void {

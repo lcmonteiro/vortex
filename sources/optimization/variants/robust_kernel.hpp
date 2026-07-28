@@ -16,18 +16,18 @@ namespace variants {
 /// ===========================================================================
 template <class Number>
 struct NullKernel {
-  /// @brief Update the chi-squared value
-  /// @param chi2 The chi-squared value
+  /// @brief Updates the chi-squared value.
+  /// @param chi2 The chi-squared value.
   auto update(Number chi2) -> void { chi2_ = chi2; }
 
-  /// @brief Gets the chi-squared value
-  /// @return chi-squared value
+  /// @brief Gets the chi-squared value.
+  /// @return The chi-squared value.
   auto chi2() const { return chi2_; }
 
-  /// @brief Robustify information
-  /// @tparam Information
-  /// @param information
-  /// @return The robustified Version
+  /// @brief Robustifies the information matrix.
+  /// @tparam Information The information matrix type.
+  /// @param information The information matrix.
+  /// @return The robustified information.
   template <class Information>
   const auto& robustify(const Information& information) {
     return information;
@@ -37,6 +37,9 @@ struct NullKernel {
   Number chi2_;
 };
 
+/// @brief Huber robust kernel: down-weights large residuals to reduce the
+/// influence of outliers.
+/// @tparam Number Scalar type used for the kernel computation.
 template <class Number>
 struct HuberKernel {
   /// @brief Setter for robust kernel delta.
@@ -50,8 +53,8 @@ struct HuberKernel {
   /// @return The current delta value.
   auto delta() const -> Number { return delta_; }
 
-  /// @brief Update the internal state
-  /// @param chi2 The chi-squared value
+  /// @brief Updates the internal state.
+  /// @param chi2 The chi-squared value.
   auto update(Number chi2) -> void {
     if (chi2 <= delta_sqr_) {
       rho_ = chi2;
@@ -63,14 +66,14 @@ struct HuberKernel {
     }
   };
 
-  /// @brief Gets the chi-squared value
-  /// @return chi-squared value
+  /// @brief Gets the chi-squared value.
+  /// @return The chi-squared value.
   auto chi2() const { return rho_; }
 
-  /// @brief Robustify information
-  /// @tparam Information
-  /// @param information
-  /// @return The robustified Version
+  /// @brief Robustifies the information matrix.
+  /// @tparam Information The information matrix type.
+  /// @param information The information matrix.
+  /// @return The robustified information.
   template <class Information>
   auto robustify(const Information& information) {
     return rho_prime_ * information;
@@ -87,12 +90,13 @@ struct HuberKernel {
 /// @brief Robust Kernels Alternatives
 /// ===========================================================================
 
-/// @brief Robust Kernel Options
+/// @brief Robust kernel options.
 constexpr size_t kNullKernel = 0;
 constexpr size_t kHuberKernel = 1;
 
-/// @brief Robust Kernel Variant
-/// @tparam Derived
+/// @brief Robust kernel variant.
+/// @tparam Derived The derived edge type.
+/// @tparam Config The edge configuration.
 template <class Derived, class Config>
 struct KernelVariant {
   using Number = typename Config::Number;
@@ -103,13 +107,13 @@ struct KernelVariant {
     static_assert(Derived::kKernel <= kHuberKernel, "kKernel <= kHuberKernel");
   }
 
-  /// @brief gets the pointer of the active kernel
-  /// @return kernel pointer
+  /// @brief Gets the pointer of the active kernel.
+  /// @return Kernel pointer.
   constexpr auto* operator->() { return &get(); }
   constexpr auto* operator->() const { return &get(); }
 
-  /// @brief gets the reference of the active kernel
-  /// @return kernel reference
+  /// @brief Gets the reference of the active kernel.
+  /// @return Kernel reference.
   constexpr auto& get() { return std::get<Derived::kKernel>(storage_); }
   constexpr auto& get() const { return std::get<Derived::kKernel>(storage_); }
 

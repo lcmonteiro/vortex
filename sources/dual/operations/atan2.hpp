@@ -1,4 +1,10 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.atan2 component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_ATAN2_HPP
+#define VORTEX_DUAL_OPERATIONS_ATAN2_HPP
 
 #include <cmath>
 #include <functional>
@@ -36,8 +42,11 @@ inline auto atan2_impl(const T& y, const U& x) {
 }  // namespace vortex::dual
 
 namespace std {
+/// @brief Computes atan2(y, x) for dual operands.
 template <class T, class U, vortex::dual::atan2::enable_t<T, U> = 0>
 inline auto atan2(const T& y, const U& x) {
   return std::invoke(vortex::dual::atan2{}, y, x);
 }
 }  // namespace std
+
+#endif  // VORTEX_DUAL_OPERATIONS_ATAN2_HPP

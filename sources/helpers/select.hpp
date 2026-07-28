@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helper.select component
+/// @brief vortex.helpers.select component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_SELECT_HPP
 #define VORTEX_HELPERS_SELECT_HPP
@@ -10,7 +10,6 @@
 
 namespace vortex::helpers {
 
-/// @enum Option
 /// @brief Defines options for selecting between different configurations.
 enum class Option {
   kAll,   ///< Select both right and left configurations.
@@ -18,13 +17,13 @@ enum class Option {
   kRight  ///< Select only the right configuration.
 };
 
-/// @brief  This provides a compile-time constant for a given Option value.
+/// @brief This provides a compile-time constant for a given Option value.
 ///
 /// @tparam value The option value to be wrapped as a compile-time constant.
 template <Option value>
 using OptionConstant = std::integral_constant<Option, value>;
 
-/// @brief Selects between rightd and leftd configurations based on the
+/// @brief Selects between right and left configurations based on the
 /// given option.
 ///
 /// @tparam value The option specifying which configuration(s) to select.

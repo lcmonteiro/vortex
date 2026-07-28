@@ -15,12 +15,14 @@
 #include "helpers/shared.hpp"
 namespace vortex::graph {
 /// ===========================================================================
-/// @class Node
 /// @brief A graph node that can manage edges of different types.
-/// @tparam Edges... - Variadic template representing different edge types the
-/// node can manage. The Node class stores edges of various types in sets, one
-/// set per edge type. It supports linking, unlinking, and applying functions to
-/// all edges or edges of a specific type. Nodes can be enabled/disabled.
+///
+/// The Node class stores edges of various types in sets, one set per edge type.
+/// It supports linking, unlinking, and applying functions to all edges or edges
+/// of a specific type. Nodes can be enabled/disabled.
+///
+/// @tparam Edges Variadic template representing the different edge types the
+/// node can manage.
 /// ===========================================================================
 template <class... Edges>
 class Node {
@@ -35,9 +37,9 @@ class Node {
   Node(const Key&, std::pmr::memory_resource* const memory)
       : disable_{}, edges_{helpers::build<TupleSetShared>(memory)} {}
 
-  /// @brief Apply a function to all edges
-  /// @tparam F - function type
-  /// @param func - function reference
+  /// @brief Applies a function to all edges.
+  /// @tparam F Function type.
+  /// @param func Function reference.
   template <class F>
   auto apply(F&& func) -> void {
     helpers::apply([&](auto& data) { helpers::apply(std::forward<F>(func), data); }, edges_);
@@ -71,9 +73,9 @@ class Node {
   /// be enabled.
   auto disable(bool value) -> void { disable_ = value; }
 
-  /// @brief Link and unlink edges
-  /// @tparam T - edge type
-  /// @param edge
+  /// @brief Links and unlinks edges.
+  /// @tparam T Edge type.
+  /// @param edge The edge to link.
   template <class T>
   auto link(const helpers::Shared<T>& edge) -> void {
     std::ignore = std::get<SetShared<T>>(edges_).insert(edge);
@@ -97,7 +99,7 @@ class Node {
 };
 
 /// ===========================================================================
-/// Indentity Helper Function
+/// Identity Helper Function
 /// ===========================================================================
 // LCOV_EXCL_START
 template <class... E>

@@ -17,8 +17,7 @@
 namespace vortex::graph::optimization {
 
 /// ===========================================================================
-/// Default Config
-/// @brief this is a default configuration used on LevenbergAlgorithm
+/// @brief Default configuration used by LevenbergAlgorithm.
 /// ===========================================================================
 struct LevenbergConfig {
   static constexpr auto LambdaInit{0.0};
@@ -34,7 +33,7 @@ inline constexpr auto Constant(Type v) -> Type {
 }
 
 /// ===========================================================================
-/// LevenbergAlgorithm
+/// @brief Levenberg-Marquardt optimization algorithm.
 /// ===========================================================================
 template <class Graph, class GraphSolver, class Config = LevenbergConfig>
 class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
@@ -67,8 +66,8 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
     return {};
   }
 
-  /// @brief Algorithm solve
-  /// @return a boolean value whether it was solved or an algorithm error
+  /// @brief Performs a Levenberg-Marquardt solve iteration.
+  /// @return Whether the optimization converged, or an algorithm error.
   template <bool first_iteration, bool last_iteration>
   auto solve() -> std::expected<bool, AlgorithmError> {
     if constexpr (first_iteration) {
@@ -128,8 +127,8 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   auto lambda() const -> Number { return lambda_; }
 
  protected:
-  /// @brief computes the initial lambda or return the one from config
-  /// @return lambda
+  /// @brief Computes the initial lambda or returns the one from config.
+  /// @return The initial lambda value.
   auto computeLambdaInit() {
     if constexpr (Config::LambdaInit > 0) {
       return Constant<Number>(Config::LambdaInit);
@@ -138,8 +137,8 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
     }
   }
 
-  /// @brief computes the scaler for the chi2 difference
-  /// @return scaler
+  /// @brief Computes the scaler for the chi2 difference.
+  /// @return The scaler value.
   auto computeScale() -> Number { return math::dot(solver_.x(), (solver_.x() * lambda_) + solver_.b()); }
 
   /// @brief Increases lambda aggressively when the step fails.

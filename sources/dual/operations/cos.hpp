@@ -1,4 +1,10 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.cos component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_COS_HPP
+#define VORTEX_DUAL_OPERATIONS_COS_HPP
 
 #include <cmath>
 #include <functional>
@@ -6,6 +12,7 @@
 #include "dual/operations/base.hpp"
 
 namespace vortex::dual {
+/// @brief Cosine operation.
 struct cos : unary_operation<cos> {
   template <class T>
   auto value(const T& v) const {
@@ -19,8 +26,11 @@ struct cos : unary_operation<cos> {
 }  // namespace vortex::dual
 
 namespace std {
+/// @brief Computes the cosine of a dual number.
 template <class T, vortex::dual::cos::enable_t<T> = 0>
 inline auto cos(const T& n) {
   return std::invoke(vortex::dual::cos{}, n);
 }
 }  // namespace std
+
+#endif  // VORTEX_DUAL_OPERATIONS_COS_HPP

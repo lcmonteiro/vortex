@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helper.memory component
+/// @brief vortex.helpers.memory component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_MEMORY_HPP
 #define VORTEX_HELPERS_MEMORY_HPP
@@ -49,22 +49,23 @@ class MemoryBoundedResource : public std::pmr::memory_resource {
   /// @brief Compares this memory resource with another.
   /// @param other The other memory resource.
   /// @return true if the resources are the same object.
-  auto do_is_equal(const memory_resource& other) const noexcept -> bool override { return this == &other; }
+  auto do_is_equal(const memory_resource& other) const noexcept -> bool override {
+    return this == &other;
+  }
 
  private:
   std::pmr::memory_resource* upstream_;
 };
 
-/// @brief RAII guard that temporarily installs a thread-local
-///        std::pmr::memory_resource, restoring the previous one on
-///        destruction. Supports nesting (LIFO).
+/// @brief RAII guard that temporarily installs a thread-local std::pmr::memory_resource, restoring
+/// the previous one on destruction. Supports nesting (LIFO).
 ///
-/// @note  Not thread-safe to share a single MemoryScope instance across
-///        threads — each thread has its own independent active resource,
-///        and each MemoryScope must be constructed/destroyed on the same
-///        thread.
-/// @note  The caller is responsible for ensuring the pointed-to resource
-///        outlives the MemoryScope.
+/// Not thread-safe to share a single MemoryScope instance across threads — each thread has its own
+/// independent active resource, and each MemoryScope must be constructed/destroyed on the same
+/// thread.
+///
+/// The caller is responsible for ensuring the pointed-to resource
+/// outlives the MemoryScope.
 class MemoryScope final {
  public:
   using Resource = std::pmr::memory_resource;
@@ -81,8 +82,9 @@ class MemoryScope final {
   MemoryScope(MemoryScope&&) = delete;
   auto operator=(MemoryScope&&) -> MemoryScope& = delete;
 
-  /// Returns the resource currently active on this thread.
-  /// Never null (falls back to std::pmr::get_default_resource()).
+  /// @brief Returns the resource currently active on this thread.
+  /// @return The active resource. Never null (falls back to
+  /// std::pmr::get_default_resource()).
   static auto GetResource() noexcept -> Resource* { return Current(); }
 
  private:

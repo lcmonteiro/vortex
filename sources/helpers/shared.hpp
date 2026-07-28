@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helper.shared component
+/// @brief vortex.helpers.shared component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_SHARED_HPP
 #define VORTEX_HELPERS_SHARED_HPP

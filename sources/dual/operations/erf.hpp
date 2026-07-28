@@ -1,9 +1,16 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.erf component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_ERF_HPP
+#define VORTEX_DUAL_OPERATIONS_ERF_HPP
 #include <cmath>
 
 #include "dual/operations/base.hpp"
 
 namespace vortex::dual {
+/// @brief Error-function operation.
 struct erf : unary_operation<erf> {
   template <class T>
   auto value(const T& v) const {
@@ -19,6 +26,7 @@ struct erf : unary_operation<erf> {
   static constexpr T two_over_sqrt_pi = T{1.12837916709551257389615890312154517L};
 };
 
+/// @brief Complementary error-function operation.
 struct erfc : unary_operation<erfc> {
   template <class T>
   auto value(const T& v) const {
@@ -37,12 +45,16 @@ struct erfc : unary_operation<erfc> {
 }  // namespace vortex::dual
 
 namespace std {
+/// @brief Computes the error function of a dual number.
 template <class T, vortex::dual::erf::enable_t<T> = 0>
 inline auto erf(const T& n) {
   return std::invoke(vortex::dual::erf{}, n);
 }
+/// @brief Computes the complementary error function of a dual number.
 template <class T, vortex::dual::erfc::enable_t<T> = 0>
 inline auto erfc(const T& n) {
   return std::invoke(vortex::dual::erfc{}, n);
 }
 }  // namespace std
+
+#endif  // VORTEX_DUAL_OPERATIONS_ERF_HPP

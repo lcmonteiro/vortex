@@ -1,9 +1,15 @@
-
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.plus component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_PLUS_HPP
+#define VORTEX_DUAL_OPERATIONS_PLUS_HPP
 
 #include "dual/operations/base.hpp"
 
 namespace vortex::dual {
+/// @brief Addition operation.
 struct plus : binary_operation<plus> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
@@ -23,8 +29,11 @@ struct plus : binary_operation<plus> {
   }
 };
 
+/// @brief Adds two operands, propagating derivatives.
 template <class T, class U, plus::enable_t<T, U> = 0>
 inline auto operator+(const T& n1, const U& n2) {
   return std::invoke(plus{}, n1, n2);
 }
 }  // namespace vortex::dual
+
+#endif  // VORTEX_DUAL_OPERATIONS_PLUS_HPP

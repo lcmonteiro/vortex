@@ -9,26 +9,20 @@
 #include <utility>
 
 namespace vortex::helpers {
-///
 /// @brief Identity metafunction that returns the type T unchanged.
-///
 template <class T>
 struct Identity {
   using type = T;
 };
 
-///
 /// @brief Valid metafunction that checks if a set of types is valid (i.e., can be instantiated).
-///
 template <class...>
 struct Valid : Identity<int> {};
 
 template <class... Ts>
 using if_valid = typename Valid<Ts...>::type;
 
-///
-/// @brief utils traits for conditionally removing functions
-///
+/// @brief Utility traits for conditionally removing functions.
 template <class T>
 inline constexpr bool is_lvalue_reference = std::is_lvalue_reference<T>::value;
 template <class T, class U>
@@ -48,10 +42,8 @@ using if_set_like = typename Valid<           //
     decltype(std::end(std::declval<T>())),    //
     std::enable_if_t<is_same<typename T::key_type, typename T::value_type>>>::type;
 
-///
-/// @brief Adjusts the reference type (to a lvalue reference) of an object based
+/// @brief Adjusts the reference type (to an lvalue reference) of an object based
 /// on the traits of a specified type.
-///
 template <class T>
 constexpr auto lreference(T&& x) noexcept -> T& {
   return static_cast<T&>(x);

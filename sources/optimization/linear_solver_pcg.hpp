@@ -11,6 +11,13 @@
 
 namespace vortex::graph::optimization {
 
+/// ===========================================================================
+/// @brief Preconditioned Conjugate Gradient (PCG) linear solver for h * x = b.
+///
+/// @tparam Number           Scalar type used for the computation.
+/// @tparam ResidualExponent Base-10 exponent of the convergence residual limit.
+/// @tparam IterationsLimit  Maximum number of PCG iterations.
+/// ===========================================================================
 template <class Number, int ResidualExponent = -6, size_t IterationsLimit = 1000>
 class PCGLinearSolver : public LinearSolver {
  public:
@@ -19,12 +26,12 @@ class PCGLinearSolver : public LinearSolver {
   const size_t iterations_limit = IterationsLimit;
   const Number residual_limit = Number{std::pow(Number{10}, Number{ResidualExponent})};
 
-  /// @brief Solves a linear system like h * x = b using Preconditioned
-  /// Conjugate Gradient method
-  /// It is assumed that matrix shapes are correct
-  /// @param h coef matrix
-  /// @param b column matrix
-  /// @param x [OUT] result matrix
+  /// @brief Solves a linear system like h * x = b using the Preconditioned
+  /// Conjugate Gradient method.
+  /// It is assumed that matrix shapes are correct.
+  /// @param h Coef matrix.
+  /// @param b Column matrix.
+  /// @param x [OUT] Result matrix.
   template <class Matrix, class Vector>
   auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {
     const auto diag_inv = 1.0 / diagonal(h);

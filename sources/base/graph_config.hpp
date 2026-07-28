@@ -10,8 +10,7 @@
 namespace vortex::graph {
 
 /// ===========================================================================
-/// Default Graph Config
-/// @brief this is a default configuration use on Graph
+/// @brief Default configuration used on Graph.
 /// ===========================================================================
 struct DefaultConfig {
   /// @brief Initial size of the cache in bytes.
@@ -25,7 +24,7 @@ struct DefaultConfig {
   /// @brief Data type for node keys.
   using Key = size_t;
 
-  ///@brief Data type for node containers.
+  /// @brief Data type for node containers.
   template <class K, class V>
   using Map = std::pmr::map<K, V>;
 

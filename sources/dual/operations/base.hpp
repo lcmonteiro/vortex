@@ -1,4 +1,10 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.base component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_BASE_HPP
+#define VORTEX_DUAL_OPERATIONS_BASE_HPP
 
 #include <cassert>
 #include <iterator>
@@ -8,6 +14,8 @@
 
 namespace vortex::dual {
 
+/// @brief Value/derivative pair for a single active index of a dual number.
+/// @tparam T Underlying scalar type.
 template <class T>
 struct duo {
   duo(const number<T>& n, std::size_t i) : v{n.value()}, d{n.dvalue(i)} {}
@@ -15,6 +23,12 @@ struct duo {
   const T& d;
 };
 
+/// @brief CRTP base for unary dual-number operations.
+///
+/// The derived type provides `value` and `dvalue`; this base evaluates the
+/// operation on the scalar value and propagates the operand's derivatives via
+/// the chain rule.
+/// @tparam Derived The concrete unary operation type.
 template <class Derived>
 struct unary_operation {
   template <class T>
@@ -44,6 +58,13 @@ struct unary_operation {
   }
 };
 
+/// @brief CRTP base for binary dual-number operations.
+///
+/// The derived type provides `value` and `dvalue` overloads; this base merges
+/// the active derivative indices of the two operands and propagates their
+/// derivatives via the chain rule. Overloads accept a dual number combined
+/// with either another dual number or a plain scalar.
+/// @tparam Derived The concrete binary operation type.
 template <class Derived>
 struct binary_operation {
   template <class T1, class T2>
@@ -156,3 +177,5 @@ struct binary_operation {
   }
 };
 }  // namespace vortex::dual
+
+#endif  // VORTEX_DUAL_OPERATIONS_BASE_HPP

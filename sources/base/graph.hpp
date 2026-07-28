@@ -47,7 +47,6 @@ inline constexpr auto ToTypes(const Types<T...>& t) {
 // LCOV_EXCL_STOP
 
 /// ===========================================================================
-/// @class Graph
 /// @brief Represents a graph with customizable node and edge types, and
 /// flexible configuration options.
 ///
@@ -64,7 +63,7 @@ inline constexpr auto ToTypes(const Types<T...>& t) {
 template <class Tnodes, class Tedges, class Config = DefaultConfig>
 class Graph {
  protected:
-  /// concepts
+  // concepts
   template <class T>
   using if_node = helpers::if_valid<decltype(ToNode(std::declval<T>()))>;
 
@@ -77,7 +76,7 @@ class Graph {
   template <class F, class N>
   using if_predicate = helpers::if_valid<std::enable_if_t<std::is_invocable_v<F, Shared<N>&>>>;
 
-  /// types
+  // types
   using Key = typename Config::Key;
 
   template <class K, class V>
@@ -129,7 +128,7 @@ class Graph {
   auto operator=(const Graph&) -> Graph& = delete;
   auto operator=(Graph&&) -> Graph& = delete;
 
-  /// @brief Graph destructor
+  /// @brief Graph destructor.
   ~Graph() { destroy(); }
 
   /// @defgroup BuildFunctions Build Functions
@@ -276,7 +275,7 @@ class Graph {
   }
 
   /// @defgroup UnlinkFunctions Unlink Functions
-  /// @brief Functions to unlink unlink/delete edges from nodes.
+  /// @brief Functions to unlink/delete edges from nodes.
   /// These functions provide utilities for unlinking nodes from the graph
   /// based on their keys or by iterating through all nodes of a specified type.
   /// @param N The type of the node to unlink.
@@ -414,9 +413,9 @@ class Graph {
   /// @param T The type of the node or edge to be toggled.
   /// @param Fn The type of function used for conditional toggling.
   /// @param key The identifier of the node or edge to be toggled.
-  /// @param Enabled The constant indicating that the operation will on enabled
-  /// nodes or edges.
-  /// @param Disabled The constant indicating that the operation will on
+  /// @param Enabled The constant indicating that the operation will act on
+  /// enabled nodes or edges.
+  /// @param Disabled The constant indicating that the operation will act on
   /// disabled nodes or edges.
   template <class T, if_node<T> = 0>
   auto toggle(const Enabled) -> void {
@@ -523,7 +522,7 @@ class Graph {
   }
 
   /// @brief Provides the memory resource in use.
-  /// @return a memory resource pointer
+  /// @return A memory resource pointer.
   auto memory() const { return memory_; }
 
  protected:

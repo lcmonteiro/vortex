@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helper.types component
+/// @brief vortex.helpers.types component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_TYPES_HPP
 #define VORTEX_HELPERS_TYPES_HPP
@@ -9,11 +9,12 @@
 
 namespace vortex::helpers {
 
-/// @brief Types Container
-/// This template class `Types` is used to store and manipulate a list of types
-/// passed as template arguments (`Ts...`). It provides several helper methods
-/// to operate on the type list, such as concatenation, applying templates,
-/// and accessing individual types.
+/// @brief Container that stores and manipulates a compile-time list of types.
+///
+/// This template class `Types` stores a list of types passed as template
+/// arguments (`Ts...`). It provides several helper aliases to operate on the
+/// type list, such as concatenation, applying templates, and accessing
+/// individual types.
 template <class... Ts>
 class Types {
   template <class>

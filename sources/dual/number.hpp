@@ -1,4 +1,10 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.number component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_NUMBER_HPP
+#define VORTEX_DUAL_NUMBER_HPP
 
 #include <array>
 #include <cassert>
@@ -14,6 +20,13 @@ using make_sequence = std::make_index_sequence<N>;
 template <std::size_t... I>
 using sequence = std::index_sequence<I...>;
 
+/// @brief Forward-mode dual number carrying a scalar value and its partial
+/// derivatives.
+///
+/// The derivative components are stored sparsely: `dindex_` lists the active
+/// derivative indices and `dvalue_` holds the corresponding derivative values.
+///
+/// @tparam T Underlying scalar type.
 template <class T>
 struct number {
   using index_t = std::size_t;
@@ -27,11 +40,16 @@ struct number {
   number(const number&) = default;
   number(number&&) = default;
 
+  /// @brief Constructs a constant dual number with a zero derivative.
+  /// @param value The scalar value.
   explicit number(const value_t& value)
       : value_{value},  //
         dindex_{},      //
         dvalue_{} {}
 
+  /// @brief Constructs an independent variable seeded at the given index.
+  /// @param value The scalar value.
+  /// @param index Derivative index assigned to this variable (derivative 1).
   explicit number(const value_t& value, index_t index)
       : value_{value}, dindex_{index}, dvalue_(index + 1, value_t{0}) {
     assert(index < kMaxIndex);
@@ -43,25 +61,39 @@ struct number {
 
   operator const value_t&() const { return value_; }
 
+  /// @brief Sets the scalar value.
+  /// @param v The new scalar value.
   auto value(const value_t& v) -> void { value_ = v; }
 
+  /// @brief Gets the scalar value.
+  /// @return The scalar value.
   auto value() const -> const value_t& { return value_; }
 
+  /// @brief Gets the active derivative indices.
+  /// @return The list of active derivative indices.
   auto dindex() const -> const dindex_t& { return dindex_; }
 
+  /// @brief Gets the derivative values.
+  /// @return The derivative value components.
   auto dvalue() const -> const dvalue_t& { return dvalue_; }
 
+  /// @brief Gets a single derivative component.
+  /// @param i Derivative index.
+  /// @return The derivative value at index @p i.
   auto dvalue(index_t i) const -> const value_t& {
     assert(i < dvalue_.size());
     return dvalue_[i];
   }
 
+  /// @brief Gets the number of derivative components.
+  /// @return The size of the derivative storage.
   auto size() const -> std::size_t { return dvalue_.size(); }
 
  protected:
-  number(const value_t& value,    //
-         const dindex_t& dindex,  //
-         const dvalue_t& dvalue)
+  number(const value_t& value,    //< The scalar value.
+         const dindex_t& dindex,  //< The active derivative indices.
+         const dvalue_t& dvalue   //< The derivative values.
+         )
       : value_{value}, dindex_{dindex}, dvalue_{dvalue} {}
   template <class Derived>
   friend struct unary_operation;
@@ -74,24 +106,37 @@ struct number {
   dvalue_t dvalue_{};
 };
 
+/// @brief Compares two dual numbers by their scalar value.
 template <class T>
 inline auto operator<(const number<T>& n1, const number<T>& n2) -> bool {
   return n1.value() < n2.value();
 }
+/// @brief Compares a dual number and a scalar by value.
 template <class T>
 inline auto operator<(const number<T>& n1, const T& n2) -> bool {
   return n1.value() < n2;
 }
+/// @brief Compares a scalar and a dual number by value.
 template <class T>
 inline auto operator<(const T& n1, const number<T>& n2) -> bool {
   return n1 < n2.value();
 }
 
+/// @brief Creates a dual number seeded as an independent variable.
+/// @tparam U Scalar type.
+/// @param init Initial scalar value.
+/// @param i Derivative index assigned to the variable.
+/// @return The constructed dual number.
 template <class U>
 inline auto make_number(const U& init, std::size_t i = 0) {
   return number{init, i};
 }
 
+/// @brief Creates a vector of dual numbers, each seeded at its own index.
+/// @tparam U Scalar type.
+/// @param n Number of elements.
+/// @param value Initial scalar value for every element.
+/// @return A vector of independent dual variables.
 template <class U>
 inline auto make_vector(std::size_t n, const U& value) {
   auto vector = std::vector<number<U>>{};
@@ -102,6 +147,11 @@ inline auto make_vector(std::size_t n, const U& value) {
   return vector;
 }
 
+/// @brief Creates an array of `N` dual numbers, each seeded at its own index.
+/// @tparam N Number of elements.
+/// @tparam U Scalar type.
+/// @param init Initial scalar value for every element.
+/// @return An array of independent dual variables.
 template <size_t N, class U, std::size_t... I>
 inline auto make_array(const U& init, sequence<I...> = {}) {
   if constexpr (sizeof...(I) != N) {
@@ -110,6 +160,11 @@ inline auto make_array(const U& init, sequence<I...> = {}) {
     return std::array{number{init, I}...};
   }
 }
+/// @brief Creates an array of dual numbers from existing scalar values.
+/// @tparam U Scalar type.
+/// @tparam N Number of elements.
+/// @param container Scalar values to seed as independent variables.
+/// @return An array of independent dual variables.
 template <class U, size_t N>
 inline auto make_array(const std::array<U, N>& container) {
   auto array = std::array<number<U>, N>{};
@@ -134,3 +189,5 @@ template <class T>
 constexpr bool is_number_like_v = is_number_like<T>::value;
 
 }  // namespace vortex::dual
+
+#endif  // VORTEX_DUAL_NUMBER_HPP

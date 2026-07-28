@@ -1,5 +1,6 @@
 /// ===========================================================================
 /// @file
+///
 /// @brief vortex.helpers.contracts component
 ///
 /// Runtime contract checks used across the vortex helpers.
