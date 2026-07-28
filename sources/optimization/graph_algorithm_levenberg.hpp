@@ -12,12 +12,11 @@
 #include <cmath>
 #include <expected>
 
-#include "sources/base/math.hpp"
-#include "sources/helpers/compat.hpp"
-#include "sources/optimization/graph_algorithm.hpp"
+#include "base/math.hpp"
+#include "helpers/compat.hpp"
+#include "optimization/graph_algorithm.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 
 /// ===========================================================================
 /// Default Config
@@ -172,7 +171,6 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   Number current_chi_;
 };
 
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_ALGORITHM_LEVENBERG_HPP

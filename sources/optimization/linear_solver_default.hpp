@@ -8,11 +8,10 @@
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP
 
-#include "sources/base/math_solver.hpp"
-#include "sources/optimization/linear_solver.hpp"
+#include "base/math_solver.hpp"
+#include "optimization/linear_solver.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 
 class DefaultLinearSolver : public LinearSolver {
  public:
@@ -27,7 +26,6 @@ class DefaultLinearSolver : public LinearSolver {
   }
 };
 
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP

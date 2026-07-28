@@ -8,13 +8,12 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 
-#include "sources/base/graph.hpp"
-#include "sources/base/math.hpp"
-#include "sources/helpers/compat.hpp"
-#include "sources/optimization/graph_config.hpp"
+#include "base/graph.hpp"
+#include "base/math.hpp"
+#include "helpers/compat.hpp"
+#include "optimization/graph_config.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 
 using graph::SharedRevision;
 using graph::Types;
@@ -147,7 +146,6 @@ class Node : public detail::TypesBuild<graph::Node, Edges> {
   SharedRevision revision_;
 };
 
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_NODE_HPP

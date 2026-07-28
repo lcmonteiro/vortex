@@ -8,11 +8,10 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_SOLVER_BLOCK_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_SOLVER_BLOCK_HPP
 
-#include "sources/base/math.hpp"
-#include "sources/optimization/graph_operations.hpp"
-#include "sources/optimization/graph_solver.hpp"
-namespace vortex::graph {
-namespace optimization {
+#include "base/math.hpp"
+#include "optimization/graph_operations.hpp"
+#include "optimization/graph_solver.hpp"
+namespace vortex::graph::optimization {
 
 /// ============================================================================
 /// @brief Block graph solver
@@ -153,7 +152,6 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   Diagonal h_diagonal_backup_;
 };
 
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_SOLVER_BLOCK_HPP

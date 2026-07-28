@@ -4,7 +4,7 @@
 #include <iterator>
 #include <tuple>
 
-#include "sources/dual/number.hpp"
+#include "dual/number.hpp"
 
 namespace vortex::dual {
 

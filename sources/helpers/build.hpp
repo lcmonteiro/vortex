@@ -8,7 +8,7 @@
 #ifndef VORTEX_HELPERS_BUILD_HPP
 #define VORTEX_HELPERS_BUILD_HPP
 
-#include "sources/helpers/traits.hpp"
+#include "helpers/traits.hpp"
 
 namespace vortex::graph {
 namespace detail {

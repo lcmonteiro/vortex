@@ -12,9 +12,9 @@
 #include <set>
 #include <tuple>
 
-#include "sources/helpers/apply.hpp"
-#include "sources/helpers/build.hpp"
-#include "sources/helpers/shared.hpp"
+#include "helpers/apply.hpp"
+#include "helpers/build.hpp"
+#include "helpers/shared.hpp"
 namespace vortex::graph {
 /// ===========================================================================
 /// @class Node

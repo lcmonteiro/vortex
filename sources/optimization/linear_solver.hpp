@@ -8,10 +8,9 @@
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP
 
-#include "sources/base/math.hpp"
+#include "base/math.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 
 class LinearSolver {
  public:
@@ -31,7 +30,6 @@ class LinearSolver {
   bool solve(const Matrix& h, const Vector& b, Vector& x);
 };
 
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP

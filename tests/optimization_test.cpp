@@ -10,7 +10,7 @@
 
 namespace {
 
-using namespace vortex_test;
+using namespace vortex::test;
 
 class SlamOptimizationTest : public ::testing::Test {
  protected:

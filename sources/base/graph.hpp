@@ -12,18 +12,18 @@
 #include <optional>
 #include <tuple>
 
-#include "sources/base/graph_config.hpp"
-#include "sources/base/graph_edge.hpp"
-#include "sources/base/graph_node.hpp"
-#include "sources/helpers/apply.hpp"
-#include "sources/helpers/build.hpp"
-#include "sources/helpers/memory.hpp"
-#include "sources/helpers/move.hpp"
-#include "sources/helpers/revision.hpp"
-#include "sources/helpers/select.hpp"
-#include "sources/helpers/shared.hpp"
-#include "sources/helpers/traits.hpp"
-#include "sources/helpers/types.hpp"
+#include "base/graph_config.hpp"
+#include "base/graph_edge.hpp"
+#include "base/graph_node.hpp"
+#include "helpers/apply.hpp"
+#include "helpers/build.hpp"
+#include "helpers/memory.hpp"
+#include "helpers/move.hpp"
+#include "helpers/revision.hpp"
+#include "helpers/select.hpp"
+#include "helpers/shared.hpp"
+#include "helpers/traits.hpp"
+#include "helpers/types.hpp"
 
 namespace vortex::graph {
 /// ===========================================================================

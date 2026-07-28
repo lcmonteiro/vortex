@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <utility>
 
-#include "sources/helpers/traits.hpp"
+#include "helpers/traits.hpp"
 
 namespace vortex::graph {
 namespace detail {

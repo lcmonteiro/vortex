@@ -3,7 +3,7 @@
 #include <cmath>
 #include <functional>
 
-#include "sources/dual/operations/base.hpp"
+#include "dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief atan2(y, x) with n1 == y and n2 == x.

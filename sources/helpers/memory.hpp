@@ -10,7 +10,7 @@
 #include <memory>
 #include <memory_resource>
 
-#include "sources/helpers/compat.hpp"
+#include "helpers/compat.hpp"
 
 namespace vortex::graph {
 namespace detail {

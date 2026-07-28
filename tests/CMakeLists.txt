@@ -5,6 +5,6 @@ add_executable(vortex_tests
   optimization_test.cpp)
 
 target_link_libraries(vortex_tests PRIVATE vortex::vortex gtest_main)
-target_include_directories(vortex_tests PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(vortex_tests PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/sources)
 
 gtest_discover_tests(vortex_tests)

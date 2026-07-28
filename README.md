@@ -121,7 +121,7 @@ target_link_libraries(my_app PRIVATE vortex::vortex)
 ```
 
 ```cpp
-#include "sources/vortex.hpp"   // pulls in graph::optimization
+#include "vortex.hpp"   // pulls in graph::optimization
 ```
 
 ---
@@ -137,7 +137,7 @@ and [tests/optimization_test.cpp](tests/optimization_test.cpp).
 #include <memory_resource>
 #include "tests/fixtures/simple_slam_problem.hpp"
 
-using namespace vortex_test;
+using namespace vortex::test;
 
 SlamGraph g{std::pmr::new_delete_resource()};
 

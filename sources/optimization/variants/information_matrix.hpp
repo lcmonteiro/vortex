@@ -10,10 +10,9 @@
 
 #include <variant>
 
-#include "sources/base/math.hpp"
+#include "base/math.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 namespace variants {
 
 /// @brief Can be used to enable methods where a matrix is needed.
@@ -192,7 +191,6 @@ struct InformationVariant {
 };
 
 }  // namespace variants
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_VARIANTS_INFORMATION_MATRIX_HPP

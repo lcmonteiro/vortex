@@ -8,11 +8,10 @@
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP
 
-#include "sources/base/math_invert.hpp"
-#include "sources/optimization/linear_solver.hpp"
+#include "base/math_invert.hpp"
+#include "optimization/linear_solver.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 
 template <class Number, int ResidualExponent = -6, size_t IterationsLimit = 1000>
 class PCGLinearSolver : public LinearSolver {
@@ -61,7 +60,6 @@ class PCGLinearSolver : public LinearSolver {
   }
 };
 
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP

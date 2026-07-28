@@ -9,14 +9,13 @@
 #define VORTEX_OPTIMIZATION_GRAPH_HPP
 #include <expected>
 
-#include "sources/base/graph.hpp"
-#include "sources/base/math.hpp"
-#include "sources/optimization/graph_config.hpp"
-#include "sources/optimization/graph_edge.hpp"
-#include "sources/optimization/graph_node.hpp"
+#include "base/graph.hpp"
+#include "base/math.hpp"
+#include "optimization/graph_config.hpp"
+#include "optimization/graph_edge.hpp"
+#include "optimization/graph_node.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 using graph::OptionalShared;
 using graph::Shared;
 
@@ -175,7 +174,6 @@ template <class T, class... A>
 auto Build(std::pmr::memory_resource* const memory, A&&... args) {
   return Shared<T>(memory, memory, std::forward<A>(args)...);
 }
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_HPP

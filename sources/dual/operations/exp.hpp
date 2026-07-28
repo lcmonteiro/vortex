@@ -3,7 +3,7 @@
 #include <cmath>
 #include <functional>
 
-#include "sources/dual/operations/base.hpp"
+#include "dual/operations/base.hpp"
 
 namespace vortex::dual {
 struct exp : unary_operation<exp> {

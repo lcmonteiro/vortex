@@ -1,7 +1,7 @@
 #pragma once
 #include <cmath>
 
-#include "sources/dual/operations/base.hpp"
+#include "dual/operations/base.hpp"
 
 namespace vortex::dual {
 struct erf : unary_operation<erf> {

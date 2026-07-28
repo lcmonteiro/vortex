@@ -8,5 +8,5 @@
 /// ===========================================================================
 #ifndef VORTEX_VORTEX_HPP
 #define VORTEX_VORTEX_HPP
-#include "sources/optimization/graph.hpp"
+#include "optimization/graph.hpp"
 #endif  // VORTEX_VORTEX_HPP

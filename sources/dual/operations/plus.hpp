@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "sources/dual/operations/base.hpp"
+#include "dual/operations/base.hpp"
 
 namespace vortex::dual {
 struct plus : binary_operation<plus> {

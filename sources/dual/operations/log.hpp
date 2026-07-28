@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "sources/dual/operations/base.hpp"
+#include "dual/operations/base.hpp"
 
 namespace vortex::dual {
 struct log : unary_operation<log> {

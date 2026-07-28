@@ -12,8 +12,8 @@
 #include <memory_resource>
 #include <tuple>
 
-#include "sources/helpers/apply.hpp"
-#include "sources/helpers/shared.hpp"
+#include "helpers/apply.hpp"
+#include "helpers/shared.hpp"
 namespace vortex::graph {
 
 /// ===========================================================================

@@ -8,15 +8,14 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP
 
-#include "sources/base/graph_config.hpp"
-#include "sources/optimization/graph_algorithm_levenberg.hpp"
-#include "sources/optimization/graph_solver_block.hpp"
-#include "sources/optimization/linear_solver_cholesky.hpp"
-#include "sources/optimization/linear_solver_default.hpp"
-#include "sources/optimization/linear_solver_pcg.hpp"
+#include "base/graph_config.hpp"
+#include "optimization/graph_algorithm_levenberg.hpp"
+#include "optimization/graph_solver_block.hpp"
+#include "optimization/linear_solver_cholesky.hpp"
+#include "optimization/linear_solver_default.hpp"
+#include "optimization/linear_solver_pcg.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 
 /// ===========================================================================
 /// @brief DefaultConfig: Defines the default configuration for graph
@@ -44,7 +43,6 @@ struct DefaultConfig : graph::DefaultConfig {
   using LinearSolver = DefaultLinearSolver;
 };
 
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP

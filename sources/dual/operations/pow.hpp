@@ -3,7 +3,7 @@
 #include <cmath>
 #include <functional>
 
-#include "sources/dual/operations/base.hpp"
+#include "dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief pow(base, exponent) with n1 == base and n2 == exponent.

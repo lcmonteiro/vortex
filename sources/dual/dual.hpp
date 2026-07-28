@@ -8,5 +8,5 @@
 /// ===========================================================================
 #pragma once
 
-#include "sources/dual/number.hpp"
-#include "sources/dual/operations.hpp"
+#include "dual/number.hpp"
+#include "dual/operations.hpp"

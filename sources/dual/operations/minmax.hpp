@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sources/dual/operations/base.hpp"
+#include "dual/operations/base.hpp"
 
 namespace vortex::dual {
 struct min : binary_operation<min> {

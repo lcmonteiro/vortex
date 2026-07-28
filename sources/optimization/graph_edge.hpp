@@ -15,18 +15,17 @@
 #include <iterator>
 #include <vector>
 
-#include "sources/base/graph.hpp"
-#include "sources/base/math.hpp"
-#include "sources/dual/dual.hpp"
-#include "sources/helpers/index.hpp"
-#include "sources/helpers/invoke.hpp"
-#include "sources/optimization/graph_config.hpp"
-#include "sources/optimization/graph_operations.hpp"
-#include "sources/optimization/variants/information_matrix.hpp"
-#include "sources/optimization/variants/robust_kernel.hpp"
+#include "base/graph.hpp"
+#include "base/math.hpp"
+#include "dual/dual.hpp"
+#include "helpers/index.hpp"
+#include "helpers/invoke.hpp"
+#include "optimization/graph_config.hpp"
+#include "optimization/graph_operations.hpp"
+#include "optimization/variants/information_matrix.hpp"
+#include "optimization/variants/robust_kernel.hpp"
 
-namespace vortex::graph {
-namespace optimization {
+namespace vortex::graph::optimization {
 using detail::Types;
 
 /// ===========================================================================
@@ -328,7 +327,6 @@ class Edge : public detail::TypesBuild<graph::Edge, Nodes> {
   JacobianTuple jacobian_{};
 };
 
-}  // namespace optimization
-}  // namespace vortex::graph
+}  // namespace vortex::graph::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP

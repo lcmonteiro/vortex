@@ -12,9 +12,9 @@
 
 #include <type_traits>
 
-#include "sources/optimization/graph.hpp"
+#include "optimization/graph.hpp"
 
-namespace vortex_test {
+namespace vortex::test {
 
 namespace go = vortex::graph::optimization;
 
@@ -40,8 +40,7 @@ struct Pose : go::Node<Pose, 2, Pointd, go::Edges<PoseLocation, PoseDistance>> {
   /// works both for the real optimizer step and for dual-number seeding.
   template <class Delta>
   auto plus(const Delta& delta) {
-    using Scalar = std::decay_t<decltype(this->estimation().x + delta[0])>;
-    return Point2<Scalar>{this->estimation().x + delta[0], this->estimation().y + delta[1]};
+    return Point2{this->estimation().x + delta[0], this->estimation().y + delta[1]};
   }
 };
 
@@ -51,7 +50,7 @@ struct PoseDistance : go::Edge<PoseDistance, 2, Pointd, go::Nodes<Pose, Pose>> {
   using Base::Base;
 
   template <class T>
-  auto error(const Point2<T>& a, const Point2<T>& b) -> typename Base::template Error<T> {
+  auto error(const Point2<T>& a, const Point2<T>& b) -> Error<T> {
     return {(b.x - a.x) - this->measurement().x, (b.y - a.y) - this->measurement().y};
   }
 };
@@ -62,7 +61,7 @@ struct PoseLocation : go::Edge<PoseLocation, 2, Pointd, go::Nodes<Pose>> {
   using Base::Base;
 
   template <class T>
-  auto error(const Point2<T>& a) -> typename Base::template Error<T> {
+  auto error(const Point2<T>& a) -> Error<T> {
     return {a.x - this->measurement().x, a.y - this->measurement().y};
   }
 };
@@ -73,6 +72,6 @@ struct SlamGraph : go::Graph<go::Nodes<Pose>, go::Edges<PoseDistance, PoseLocati
   using Base::Base;
 };
 
-}  // namespace vortex_test
+}  // namespace vortex::test
 
 #endif  // VORTEX_TESTS_FIXTURES_SIMPLE_SLAM_PROBLEM_HPP

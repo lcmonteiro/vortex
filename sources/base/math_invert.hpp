@@ -8,8 +8,8 @@
 #ifndef VORTEX_BASE_MATH_INVERT_HPP
 #define VORTEX_BASE_MATH_INVERT_HPP
 
-#include "sources/base/math.hpp"
-#include "sources/helpers/compat.hpp"
+#include "base/math.hpp"
+#include "helpers/compat.hpp"
 
 namespace vortex::math {
 

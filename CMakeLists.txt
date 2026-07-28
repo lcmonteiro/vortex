@@ -39,7 +39,7 @@ find_library(BLAS_LIB NAMES blas libblas.so.3 PATHS /lib/x86_64-linux-gnu)
 # ---------------------------------------------------------------------------
 add_library(vortex STATIC sources/vortex.cpp)
 target_compile_features(vortex PUBLIC cxx_std_23)
-target_include_directories(vortex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(vortex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/sources)
 target_include_directories(vortex SYSTEM PUBLIC ${blaze_SOURCE_DIR})
 target_link_libraries(vortex PUBLIC ${LAPACK_LIB} ${BLAS_LIB})
 add_library(vortex::vortex ALIAS vortex)
