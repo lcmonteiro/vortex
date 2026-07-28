@@ -6,7 +6,6 @@
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_CHOLESKY_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_CHOLESKY_HPP
 
-#include "foundation/math/math_invert.hpp"
 #include "foundation/math/math_solver.hpp"
 #include "optimization/linear_solver.hpp"
 
