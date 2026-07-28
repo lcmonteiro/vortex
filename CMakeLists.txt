@@ -23,12 +23,12 @@ FetchContent_Declare(
   blaze
   GIT_REPOSITORY https://bitbucket.org/blaze-lib/blaze.git
   GIT_TAG v3.8.2
-  GIT_SHALLOW TRUE)
-# Blaze's own CMake pulls in extra tooling; we only need the headers.
-FetchContent_GetProperties(blaze)
-if(NOT blaze_POPULATED)
-  FetchContent_Populate(blaze)
-endif()
+  GIT_SHALLOW TRUE
+  # Blaze's own CMake pulls in extra tooling and we only need the headers.
+  # Pointing SOURCE_SUBDIR at a non-existent directory makes
+  # FetchContent_MakeAvailable download/populate Blaze without configuring it.
+  SOURCE_SUBDIR do-not-build)
+FetchContent_MakeAvailable(blaze)
 
 # LAPACK / BLAS are required by the Blaze dense solvers (sysv/potrf/potrs).
 find_library(LAPACK_LIB NAMES lapack liblapack.so.3 PATHS /lib/x86_64-linux-gnu)
