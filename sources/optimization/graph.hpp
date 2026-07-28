@@ -9,6 +9,7 @@
 
 #include "base/graph.hpp"
 #include "base/math.hpp"
+#include "helpers/memory.hpp"
 #include "optimization/graph_config.hpp"
 #include "optimization/graph_edge.hpp"
 #include "optimization/graph_node.hpp"
@@ -64,19 +65,26 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
   /// @param reset Whether to reset the algorithm state.
   /// @return The number of completed iterations or an unexpected error.
   auto optimize(size_t iterations, bool reset = true) -> std::expected<size_t, AlgorithmError> {
+    // Route transient dual-number (Jacobian) allocations through the graph's
+    // memory arena for the duration of the optimization.
+    const helpers::MemoryScope scope{this->memory()};
+
+    // Special case: if no iterations are requested, return immediately.
     if (0 == iterations) {
       return 0;
     }
 
+    // Check if the graph has changed since the last optimization.
     const auto graph_changed = not this->revision()->equal(optimizer_revision_);
     const auto result_init = algorithm_.init(reset or graph_changed);
     if (not result_init) {
       return std::unexpected(result_init.error());
     }
 
+    // Update the optimizer revision to match the current graph revision.
     optimizer_revision_.reset(*this->revision());
 
-    // special case, when the first is equal to the last iteration
+    // Special case: if only one iteration is requested, perform it and return.
     if (1 == iterations) {
       auto result_solve = algorithm_.template solve<true, true>();
       if (not result_solve) {
@@ -85,7 +93,7 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
       return iterations;
     }
 
-    // normal case, when we have first and last iteration
+    // Perform the first iteration, which may have special initialization logic.
     auto result_first = algorithm_.template solve<true, false>();
     if (not result_first) {
       return std::unexpected(result_first.error());
@@ -94,6 +102,7 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
       return 1;
     }
 
+    // Perform the intermediate iterations, which may have different logic than the first and last.
     for (size_t it = 1; it < (iterations - 1); ++it) {
       auto result_next = algorithm_.template solve<false, false>();
       if (not result_next) {
@@ -104,6 +113,7 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
       }
     }
 
+    // Perform the last iteration, which may have special finalization logic.
     auto result_last = algorithm_.template solve<false, true>();
     if (not result_last) {
       return std::unexpected(result_last.error());

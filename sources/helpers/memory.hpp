@@ -70,16 +70,20 @@ class MemoryScope final {
  public:
   using Resource = std::pmr::memory_resource;
 
+  /// @brief Constructs a MemoryScope, setting the active resource for the current thread.
+  /// @param resource The memory resource to set as active.
   explicit MemoryScope(Resource* const resource) noexcept : previous_(Current()) {
     VORTEX_PRECONDITION(resource != nullptr, "MemoryScope requires a non-null resource");
     Current() = resource;
   }
 
+  /// @brief Destroys the MemoryScope, restoring the previous active resource.
   ~MemoryScope() noexcept { Current() = previous_; }
 
+  /// @brief Deleted copy and move constructors and assignment operators to prevent copying/moving.
   MemoryScope(const MemoryScope&) = delete;
-  auto operator=(const MemoryScope&) -> MemoryScope& = delete;
   MemoryScope(MemoryScope&&) = delete;
+  auto operator=(const MemoryScope&) -> MemoryScope& = delete;
   auto operator=(MemoryScope&&) -> MemoryScope& = delete;
 
   /// @brief Returns the resource currently active on this thread.
@@ -88,6 +92,8 @@ class MemoryScope final {
   static auto GetResource() noexcept -> Resource* { return Current(); }
 
  private:
+  /// @brief Returns a reference to the thread-local pointer to the current resource.
+  /// @return Reference to the thread-local pointer.
   static auto Current() noexcept -> Resource*& {
     thread_local Resource* res = std::pmr::get_default_resource();
     return res;
