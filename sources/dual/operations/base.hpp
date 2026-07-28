@@ -50,7 +50,7 @@ struct unary_operation {
   template <class T>
   auto dvalue(const number<T>& n) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(n.size(), T{0});
+    auto dv = dvalue_t(n.size(), T{0}, helpers::MemoryScope::GetResource());
     for (const auto i : n.dindex()) {
       dv[i] = self()->dvalue(duo(n, i));
     }
@@ -105,7 +105,7 @@ struct binary_operation {
   template <class T>
   auto dvalues(const number<T>& n, const T& v) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(n.size(), T{0});
+    auto dv = dvalue_t(n.size(), T{0}, helpers::MemoryScope::GetResource());
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(duo(n, i), v);
     }
@@ -115,7 +115,7 @@ struct binary_operation {
   template <class T>
   auto dvalues(const T& v, const number<T>& n) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(n.size(), T{0});
+    auto dv = dvalue_t(n.size(), T{0}, helpers::MemoryScope::GetResource());
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(v, duo(n, i));
     }
@@ -128,8 +128,8 @@ struct binary_operation {
     using dindex_t = typename number<T>::dindex_t;
     using dvalue_t = typename number<T>::dvalue_t;
     const auto ds = std::max(n1.size(), n2.size());
-    auto dv = dvalue_t(ds, T{0});
-    auto di = dindex_t{};
+    auto dv = dvalue_t(ds, T{0}, helpers::MemoryScope::GetResource());
+    auto di = dindex_t(helpers::MemoryScope::GetResource());
     di.reserve(ds);
     merge_index(
         n1.dindex(), n2.dindex(),

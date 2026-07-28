@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 
+#include "helpers/memory.hpp"
+
 namespace vortex::dual {
 
 template <std::size_t N>
@@ -31,27 +33,32 @@ template <class T>
 struct number {
   using index_t = std::size_t;
   using value_t = T;
-  using dindex_t = std::vector<index_t>;
-  using dvalue_t = std::vector<value_t>;
+  using dindex_t = std::pmr::vector<index_t>;
+  using dvalue_t = std::pmr::vector<value_t>;
 
   static constexpr auto kMaxIndex = 100000;
 
   number() = default;
-  number(const number&) = default;
+  number(const number& other)
+      : value_{other.value_},
+        dindex_{other.dindex_, resource()},
+        dvalue_{other.dvalue_, resource()} {}
   number(number&&) = default;
 
   /// @brief Constructs a constant dual number with a zero derivative.
   /// @param value The scalar value.
   explicit number(const value_t& value)
       : value_{value},  //
-        dindex_{},      //
-        dvalue_{} {}
+        dindex_{resource()},
+        dvalue_{resource()} {}
 
   /// @brief Constructs an independent variable seeded at the given index.
   /// @param value The scalar value.
   /// @param index Derivative index assigned to this variable (derivative 1).
   explicit number(const value_t& value, index_t index)
-      : value_{value}, dindex_{index}, dvalue_(index + 1, value_t{0}) {
+      : value_{value},
+        dindex_({index}, resource()),
+        dvalue_(index + 1, value_t{0}, resource()) {
     assert(index < kMaxIndex);
     dvalue_.back() = value_t{1};
   }
@@ -94,16 +101,20 @@ struct number {
          const dindex_t& dindex,  //< The active derivative indices.
          const dvalue_t& dvalue   //< The derivative values.
          )
-      : value_{value}, dindex_{dindex}, dvalue_{dvalue} {}
+      : value_{value}, dindex_{dindex, resource()}, dvalue_{dvalue, resource()} {}
   template <class Derived>
   friend struct unary_operation;
   template <class Derived>
   friend struct binary_operation;
 
  private:
+  static auto resource() noexcept -> std::pmr::memory_resource* {
+    return helpers::MemoryScope::GetResource();
+  }
+
   value_t value_{};
-  dindex_t dindex_{};
-  dvalue_t dvalue_{};
+  dindex_t dindex_{resource()};
+  dvalue_t dvalue_{resource()};
 };
 
 /// @brief Compares two dual numbers by their scalar value.
