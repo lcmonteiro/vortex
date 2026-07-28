@@ -1,0 +1,26 @@
+#pragma once
+
+#include <cmath>
+#include <functional>
+
+#include "dual/operations/base.hpp"
+
+namespace vortex::dual {
+struct cos : unary_operation<cos> {
+  template <class T>
+  auto value(const T& v) const {
+    return std::cos(v);
+  }
+  template <class T>
+  auto dvalue(const duo<T>& n) const {
+    return -std::sin(n.v) * n.d;
+  }
+};
+}  // namespace vortex::dual
+
+namespace std {
+template <class T, vortex::dual::cos::enable_t<T> = 0>
+inline auto cos(const T& n) {
+  return std::invoke(vortex::dual::cos{}, n);
+}
+}  // namespace std
