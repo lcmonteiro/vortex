@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helper.invoke component
+/// @brief vortex.helpers.invoke component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_INVOKE_HPP
 #define VORTEX_HELPERS_INVOKE_HPP
@@ -21,6 +21,9 @@ constexpr auto invoke(Fcall&& call, Fargs&& args, std::index_sequence<Is...>) ->
 }
 }  // namespace details
 
+/// @brief Compile-time carrier of a std::index_sequence<0..N-1> used to expand
+/// an indexed argument pack into a call.
+/// @tparam N Number of indices to expand.
 template <size_t N>
 struct Expand {
   static constexpr auto value = std::make_index_sequence<N>{};

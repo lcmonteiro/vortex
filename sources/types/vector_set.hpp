@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.type.vector_set component
+/// @brief vortex.types.vector_set component
 /// ===========================================================================
 #ifndef VORTEX_TYPES_VECTOR_SET_HPP
 #define VORTEX_TYPES_VECTOR_SET_HPP

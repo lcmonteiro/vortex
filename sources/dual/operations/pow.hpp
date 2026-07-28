@@ -1,4 +1,10 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.pow component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_POW_HPP
+#define VORTEX_DUAL_OPERATIONS_POW_HPP
 
 #include <cmath>
 #include <functional>
@@ -29,8 +35,11 @@ struct power : binary_operation<power> {
 }  // namespace vortex::dual
 
 namespace std {
+/// @brief Computes base raised to exponent for dual operands.
 template <class T, class U, vortex::dual::power::enable_t<T, U> = 0>
 inline auto pow(const T& base, const U& exponent) {
   return std::invoke(vortex::dual::power{}, base, exponent);
 }
 }  // namespace std
+
+#endif  // VORTEX_DUAL_OPERATIONS_POW_HPP

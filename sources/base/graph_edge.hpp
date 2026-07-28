@@ -15,15 +15,15 @@
 namespace vortex::graph {
 
 /// ===========================================================================
-/// @class Edge
 /// @brief A graph edge element that connects multiple nodes.
-/// @tparam Nodes... - Variadic template representing the types of nodes
-/// connected by this edge.
 ///
 /// The Edge class connects nodes of various types in a graph. Each node is
 /// stored as a shared reference, allowing for efficient memory management.
 /// Functions can be applied to all connected nodes or to specific nodes by type
 /// or index. The edge can also be enabled or disabled.
+///
+/// @tparam Nodes Variadic template representing the types of nodes connected by
+/// this edge.
 /// ===========================================================================
 template <class... Nodes>
 class Edge {
@@ -33,25 +33,25 @@ class Edge {
   explicit Edge(const helpers::Shared<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
   // Move and copy constructors purposely omitted
 
-  /// @brief Get node by type
-  /// @tparam T - node type
-  /// @return shared node
+  /// @brief Gets a node by type.
+  /// @tparam T Node type.
+  /// @return The shared node.
   template <class T>
   const auto& node() const {
     return std::get<helpers::Shared<T>>(nodes_);
   }
 
-  /// @brief Get node by index
-  /// @tparam I - index
-  /// @return shared node
+  /// @brief Gets a node by index.
+  /// @tparam I Index.
+  /// @return The shared node.
   template <size_t I>
   const auto& node() const {
     return std::get<I>(nodes_);
   }
 
-  /// @brief Apply a function to all nodes
-  /// @tparam F - function type
-  /// @param func - function reference
+  /// @brief Applies a function to all nodes.
+  /// @tparam F Function type.
+  /// @param func Function reference.
   template <class F>
   auto apply(F&& func) -> void {
     helpers::apply(std::forward<F>(func), nodes_);
@@ -91,7 +91,7 @@ class Edge {
 };
 
 /// ===========================================================================
-/// Indentity Helper Function
+/// Identity Helper Function
 /// ===========================================================================
 // LCOV_EXCL_START
 template <class... N>

@@ -8,14 +8,13 @@
 #include <cstddef>
 namespace vortex::helpers {
 
-/// Revision Type
 /// @brief This struct is used to manage revision numbers for objects.
 struct Revision {
   Revision() = default;
   ~Revision() = default;
   Revision(const Revision&) = delete;
   Revision(Revision&&) = default;
-  
+
   auto operator=(const Revision&) -> Revision& = delete;
   auto operator=(Revision&&) -> Revision& = default;
 

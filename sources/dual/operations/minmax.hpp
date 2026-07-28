@@ -1,8 +1,15 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.minmax component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_MINMAX_HPP
+#define VORTEX_DUAL_OPERATIONS_MINMAX_HPP
 
 #include "dual/operations/base.hpp"
 
 namespace vortex::dual {
+/// @brief Minimum operation.
 struct min : binary_operation<min> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
@@ -21,6 +28,7 @@ struct min : binary_operation<min> {
     return (v1 <= n2.v) ? T{0} : n2.d;
   }
 };
+/// @brief Maximum operation.
 struct max : binary_operation<max> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
@@ -42,12 +50,14 @@ struct max : binary_operation<max> {
 }  // namespace vortex::dual
 
 namespace std {
+/// @brief Returns the smaller of two operands, propagating derivatives.
 template <class T,  //
           class U,  //
           vortex::dual::min::enable_t<T, U> = 0>
 inline auto min(const T& n1, const U& n2) {
   return std::invoke(vortex::dual::min{}, n1, n2);
 }
+/// @brief Returns the larger of two operands, propagating derivatives.
 template <class T,  //
           class U,  //
           vortex::dual::max::enable_t<T, U> = 0>
@@ -55,3 +65,5 @@ inline auto max(const T& n1, const U& n2) {
   return std::invoke(vortex::dual::max{}, n1, n2);
 }
 }  // namespace std
+
+#endif  // VORTEX_DUAL_OPERATIONS_MINMAX_HPP

@@ -1,8 +1,15 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.minus component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_MINUS_HPP
+#define VORTEX_DUAL_OPERATIONS_MINUS_HPP
 
 #include "dual/operations/base.hpp"
 
 namespace vortex::dual {
+/// @brief Subtraction operation.
 struct minus : binary_operation<minus> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
@@ -22,8 +29,11 @@ struct minus : binary_operation<minus> {
   }
 };
 
+/// @brief Subtracts two operands, propagating derivatives.
 template <class T, class U, minus::enable_t<T, U> = 0>
 inline auto operator-(const T& n1, const U& n2) {
   return std::invoke(minus{}, n1, n2);
 }
 }  // namespace vortex::dual
+
+#endif  // VORTEX_DUAL_OPERATIONS_MINUS_HPP

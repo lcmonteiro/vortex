@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helper.move component
+/// @brief vortex.helpers.move component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_MOVE_HPP
 #define VORTEX_HELPERS_MOVE_HPP
@@ -22,7 +22,7 @@ inline auto get_value(const V& value) -> decltype(auto) {
   return value;
 }
 
-/// @brief move all elements of specified type
+/// @brief Moves all elements of the specified type.
 template <class T, class Fn>
 inline auto move_all(T& source, T& destination, Fn&& execute) -> void {
   apply(std::forward<Fn>(execute), source);
@@ -38,7 +38,7 @@ inline auto move_all(T& source, T& destination, Fn&& execute) -> void {
   }
 }
 
-/// @brief move all elements via condition
+/// @brief Moves all elements matching a condition.
 template <class T, class Fn1, class Fn2>
 inline auto move_if(T& source, T& destination, Fn1&& evaluate, Fn2&& execute) -> void {
   auto& ref_evaluate = lreference<Fn1>(std::forward<Fn1>(evaluate));
@@ -54,7 +54,7 @@ inline auto move_if(T& source, T& destination, Fn1&& evaluate, Fn2&& execute) ->
   }
 }
 
-/// @brief move elements by key
+/// @brief Moves an element by key.
 template <class T, class Key, class Fn>
 inline auto move(T& source, T& destination, const Key& key, Fn&& execute) -> void {
   auto& ref_execute = lreference<Fn>(std::forward<Fn>(execute));

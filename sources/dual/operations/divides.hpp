@@ -1,8 +1,15 @@
-#pragma once
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex.dual.operations.divides component
+/// ===========================================================================
+#ifndef VORTEX_DUAL_OPERATIONS_DIVIDES_HPP
+#define VORTEX_DUAL_OPERATIONS_DIVIDES_HPP
 
 #include "dual/operations/base.hpp"
 
 namespace vortex::dual {
+/// @brief Division operation.
 struct divides : binary_operation<divides> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
@@ -22,8 +29,11 @@ struct divides : binary_operation<divides> {
   }
 };
 
+/// @brief Divides two operands, propagating derivatives.
 template <class T, class U, divides::enable_t<T, U> = 0>
 inline auto operator/(const T& n1, const U& n2) {
   return std::invoke(divides{}, n1, n2);
 }
 }  // namespace vortex::dual
+
+#endif  // VORTEX_DUAL_OPERATIONS_DIVIDES_HPP

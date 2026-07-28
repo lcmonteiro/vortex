@@ -1,3 +1,8 @@
+/// ===========================================================================
+/// @file
+///
+/// @brief vortex library
+/// ===========================================================================
 #include "vortex.hpp"
-/// @brief Without a single src(*.cpp) file the build won't evaluate pedantic
-/// errors correctly
+// Without a single source (*.cpp) file the build won't evaluate pedantic
+// errors correctly.

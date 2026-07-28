@@ -18,13 +18,13 @@ using graph::SharedRevision;
 using graph::Types;
 
 /// ===========================================================================
-/// @brief Type Container: A utility template to define edges types.
+/// @brief Utility alias to define the edge types of a node.
 /// ===========================================================================
 template <class... Ts>
 using Edges = Types<Ts...>;
 
 /// ===========================================================================
-/// @brief Node: Represents a graph node used for estimations.
+/// @brief Represents a graph node used for estimations.
 ///
 /// @tparam Derived      The derived node type.
 /// @tparam MaxDimension The maximum dimension of the node.
@@ -35,7 +35,7 @@ using Edges = Types<Ts...>;
 template <class Derived, size_t MaxDimension, class Type, class Edges, class Config = DefaultConfig>
 class Node : public helpers::TypesBuild<graph::Node, Edges> {
  public:
-  /// @brief helper alises
+  /// @brief Helper aliases.
   static constexpr size_t kMaxDimension{MaxDimension};
 
   using Number = typename Config::Number;
@@ -50,7 +50,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   /// @brief Node constructor.
   /// @param memory Memory resource.
   /// @param key Node identifier.
-  /// @param revision Node revision tracker
+  /// @param revision Node revision tracker.
   Node(const SharedRevision& revision, const Key& key, std::pmr::memory_resource* const memory)
       : Base{key, memory},
         dimension_{kMaxDimension},
@@ -64,7 +64,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
       : Node(SharedRevision{memory}, memory, key) {}
 
   /// @brief Gets the node dimension.
-  /// @return  The current dimension.
+  /// @return The current dimension.
   auto dimension() const -> size_t { return dimension_; }
 
   /// @brief Sets the node dimension.
@@ -78,7 +78,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   /// @return The current estimation.
   auto estimation() const -> const Type& { return estimation_; }
 
-  /// @brief Set estimation.
+  /// @brief Sets estimation.
   /// @param value The new estimation.
   auto estimation(const Type& value) -> void {
     estimation_ = value;
@@ -89,7 +89,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   /// @return The identifier value.
   auto key() const -> const Key& { return key_; }
 
-  /// @brief Backlog handing functions
+  /// @brief Backlog handling functions.
   auto push() -> void { backlog_.push(estimation_); }
   auto pull() -> void { estimation(backlog_.back()); }
 
@@ -103,7 +103,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
 
   /// @brief Graph solver support information.
   /// This has the internal position that should be only accessed by
-  /// BlockGraphSolver type
+  /// BlockGraphSolver type.
   class Position {
     template <class, class>
     friend class BlockGraphSolver;
@@ -116,9 +116,9 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
     size_t value_{0};
   } position;
 
-  /// @brief Updates the estimation
-  /// @tparam Delta
-  /// @param delta to be added to the current estimation
+  /// @brief Updates the estimation.
+  /// @tparam Delta The delta type.
+  /// @param delta The delta to be added to the current estimation.
   template <class Delta>
   auto updateEstimation(const Delta delta) -> void {
     VORTEX_PRECONDITION(std::size(delta) == dimension(),

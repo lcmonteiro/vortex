@@ -11,13 +11,16 @@
 
 namespace vortex::graph::optimization {
 
+/// ===========================================================================
+/// @brief Default linear solver for the system h * x = b.
+/// ===========================================================================
 class DefaultLinearSolver : public LinearSolver {
  public:
-  /// @brief Solves a linear system like h * x = b
-  /// It is assumed that matrix shapes are correct
-  /// @param h coef matrix
-  /// @param b column matrix
-  /// @param x [OUT] result matrix
+  /// @brief Solves a linear system like h * x = b.
+  /// It is assumed that matrix shapes are correct.
+  /// @param h Coef matrix.
+  /// @param b Column matrix.
+  /// @param x [OUT] Result matrix.
   template <class Matrix, class Vector>
   auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {
     return math::solve_ldlt(h, b, x);

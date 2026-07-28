@@ -11,7 +11,6 @@
 namespace vortex::math {
 /// ===========================================================================
 /// Matrix & Vector Types
-/// @brief math base interface types
 /// ===========================================================================
 using blaze::columnMajor;
 using blaze::columnVector;
@@ -41,7 +40,6 @@ using HybridVector = blaze::HybridVector<Type, Size, TF>;
 
 /// ===========================================================================
 /// Matrix Type Adapters
-/// @brief math base matrix adapters
 /// ===========================================================================
 template <class MatrixType>
 using SymmetricMatrix = blaze::SymmetricMatrix<MatrixType>;
@@ -50,8 +48,7 @@ template <class MatrixType>
 using DiagonalMatrix = blaze::DiagonalMatrix<MatrixType>;
 
 /// ===========================================================================
-/// Type identifiers
-/// @brief Type identifiers.
+/// Type Identifiers
 /// ===========================================================================
 
 /// @brief Check if the given type is a matrix.
@@ -66,7 +63,6 @@ using IsVector = blaze::IsVector<Type>;
 
 /// ===========================================================================
 /// Forward Operations
-/// @brief math base required operations
 /// ===========================================================================
 using blaze::column;
 using blaze::diagonal;

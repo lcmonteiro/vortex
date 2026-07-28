@@ -46,22 +46,22 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   using KernelVariant = variants::KernelVariant<Derived, Config>;
 
  public:
-  ///< The dimension of the edge.
+  /// @brief The dimension of the edge.
   static constexpr size_t kDimension = Dimension;
 
-  ///< Default information matrix type.
+  /// @brief Default information matrix type.
   static constexpr size_t kInformation = variants::kIdentityMatrix;
 
-  /// @brief information matrix alternatives
+  /// @brief Information matrix alternatives.
   using InformationVariant = variants::InformationVariant<Derived, Config, Dimension>;
 
-  ///< Default kernel type.
+  /// @brief Default kernel type.
   static constexpr size_t kKernel = variants::kNullKernel;
 
-  /// @brief robust kernel alternatives.
+  /// @brief Robust kernel alternatives.
   using KernelTypes = variants::KernelVariant<Derived, Config>;
 
-  ///< Helper alises types.
+  /// @brief Helper alias types.
   template <size_t I>
   using Node = helpers::TypesElementBuild<I, Nodes>;
   using Number = typename Config::Number;
@@ -102,27 +102,27 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     information_->set(std::forward<T>(value), std::forward<Ts>(values)...);
   }
 
-  /// @brief Get the informaion matrix.
+  /// @brief Gets the information matrix.
   /// @return The information matrix.
   const auto& information() const { return information_->get(); }
 
-  /// @brief Gets the chi-squared value
-  /// @return chi-squared value
+  /// @brief Gets the chi-squared value.
+  /// @return The chi-squared value.
   auto chi2() const -> Number { return kernel_->chi2(); }
 
-  /// @brief Gets the current error value
-  /// @return error value
+  /// @brief Gets the current error value.
+  /// @return The error value.
   const auto& error() const { return error_; }
 
-  /// @brief Robust Kernel Public Accessor
+  /// @brief Robust kernel public accessor.
   struct KernelVariantAcessor {
     explicit KernelVariantAcessor(KernelVariant& variant) : variant_{variant} {}
 
-    /// @brief Sets the robust kernel delta
-    /// @param delta The new delta value.
+    /// @brief Sets the robust kernel delta.
+    /// @param value The new delta value.
     auto delta(const Number value) -> void { variant_->delta(value); }
 
-    /// @brief Gets the robust kernel delta
+    /// @brief Gets the robust kernel delta.
     auto delta() const -> Number { return variant_->delta(); }
 
    private:
@@ -145,16 +145,16 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
                             JacobiansUpdateCallback{self()});
   }
 
-  /// @brief apply a function to each H block
-  /// @param callable function that receives the nodes and the block value
+  /// @brief Applies a function to each H block.
+  /// @param callable Function that receives the nodes and the block value.
   template <class Fn>
   auto forEachHBlock(Fn&& callable) -> void {
     helpers::for_each_pair(helpers::Indexes<Base::NNodes>{},
                           HBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
 
-  /// @brief apply a function to each B block
-  /// @param callable function that receives the nodes and the block value
+  /// @brief Applies a function to each B block.
+  /// @param callable Function that receives the nodes and the block value.
   template <class Fn>
   auto forEachBBlock(Fn&& callable) -> void {
     helpers::for_each(helpers::Indexes<Base::NNodes>{},
@@ -162,11 +162,11 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   }
 
  protected:
-  /// @brief Jacobian Types and values.
-  /// We have two jacobian types the normal version and the transpose
+  /// @brief Jacobian types and values.
+  /// We have two jacobian types: the normal version and the transpose
   /// version to minimize math operations.
-  /// @note we will assume the transpose version has included the information.
-  /// matrix
+  /// @note The transpose version is assumed to already include the
+  /// information matrix.
   template <typename Node>
   using JacobianTransposeMatrix =
       math::HybridMatrix<Number, Node::kMaxDimension, kDimension, math::rowMajor>;
@@ -255,7 +255,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     }
   };
 
-  /// @brief Updates the two jabobian forms.
+  /// @brief Updates the two jacobian forms.
   struct JacobiansUpdateCallback {
     Derived* self;
 

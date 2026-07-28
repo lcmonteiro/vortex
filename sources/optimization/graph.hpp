@@ -30,7 +30,7 @@ using graph::SharedRevision;
 /// ===========================================================================
 template <class Nodes, class Edges, class Config = DefaultConfig>
 class Graph : public graph::Graph<Nodes, Edges, Config> {
-  /// @brief Helper alises types
+  /// @brief Helper alias types.
   using LSolver = typename Config::LinearSolver;
   using GSolver = typename Config::template GraphSolver<Graph, LSolver>;
   using Algorithm = typename Config::template Algorithm<Graph, GSolver>;
@@ -59,10 +59,10 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
     return Base::template build<T>(std::forward<A>(args)...);
   }
 
-  /// @brief Run the graph optimization algorithm
+  /// @brief Runs the graph optimization algorithm.
   /// @param iterations The number of iterations to run.
   /// @param reset Whether to reset the algorithm state.
-  /// @return the number of completed iterations or an unexpected error
+  /// @return The number of completed iterations or an unexpected error.
   auto optimize(size_t iterations, bool reset = true) -> std::expected<size_t, AlgorithmError> {
     if (0 == iterations) {
       return 0;
@@ -127,19 +127,19 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
   }
 
   /// @brief Computes the error vectors of all edges in the activeSet, and
-  /// caches them
+  /// caches them.
   auto updateErrors() -> void {
     ForEach<Edges>(*this, [](auto& edge) { edge->updateError(); }, Enabled{});
   }
 
-  /// @brief Computes cached chi2 of the active portion of the graph
+  /// @brief Computes cached chi2 of the active portion of the graph.
   auto computeChi2() const -> Number {
     Number chi = 0;
     ForEach<Edges>(*this, [&](auto& edge) { chi += edge->chi2(); }, Enabled{});
     return chi;
   }
 
-  /// @brief Update the estimate of the active nodes
+  /// @brief Updates the estimate of the active nodes.
   auto updateEstimations(const Vector& x) -> void {
     size_t idx = 0;
     ForEach<Nodes>(

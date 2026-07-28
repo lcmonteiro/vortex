@@ -12,14 +12,18 @@
 
 namespace vortex::graph::optimization {
 
+/// ===========================================================================
+/// @brief Linear solver that solves h * x = b by explicitly inverting h via
+/// Cholesky decomposition.
+/// ===========================================================================
 class CholeskyInversionLinearSolver : public LinearSolver {
  public:
   /// @brief Solves a linear system like h * x = b via Cholesky inversion
-  /// (computes h^-1 then multiplies by b)
-  /// It is assumed that matrix shapes are correct
-  /// @param h coef matrix
-  /// @param b column matrix
-  /// @param x [OUT] result matrix
+  /// (computes h^-1 then multiplies by b).
+  /// It is assumed that matrix shapes are correct.
+  /// @param h Coef matrix.
+  /// @param b Column matrix.
+  /// @param x [OUT] Result matrix.
   template <class Matrix, class Vector>
   auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {
     auto h_tmp = Matrix{h};
@@ -31,15 +35,19 @@ class CholeskyInversionLinearSolver : public LinearSolver {
   }
 };
 
+/// ===========================================================================
+/// @brief Linear solver that solves h * x = b using Cholesky factorization
+/// (L * L^T = h) followed by forward/backward substitution.
+/// ===========================================================================
 class CholeskyLinearSolver : public LinearSolver {
  public:
   /// @brief Solves a linear system like h * x = b using Cholesky factorization
   /// (L * L^T = h) followed by forward/backward substitution.
   /// It is assumed that matrix shapes are correct and h is symmetric
   /// positive-definite (lower triangular storage).
-  /// @param h coef matrix
-  /// @param b column matrix
-  /// @param x [OUT] result matrix. On success contains the solution. On
+  /// @param h Coef matrix.
+  /// @param b Column matrix.
+  /// @param x [OUT] Result matrix. On success contains the solution. On
   ///   failure x is unmodified.
   template <class Matrix, class Vector>
   auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {

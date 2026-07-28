@@ -1,7 +1,7 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helper.index component
+/// @brief vortex.helpers.index component
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_INDEX_HPP
 #define VORTEX_HELPERS_INDEX_HPP
@@ -31,6 +31,8 @@ auto for_each_pair(F&& fn, std::index_sequence<Is...>) -> void {
 }
 }  // namespace details
 
+/// @brief Compile-time carrier of a std::index_sequence<0..N-1>.
+/// @tparam N Number of indices in the sequence.
 template <size_t N>
 struct Indexes {
   static constexpr auto value = std::make_index_sequence<N>{};

@@ -1,5 +1,6 @@
 /// ===========================================================================
 /// @file
+///
 /// @brief vortex.helpers.numeric component
 ///
 /// Small standard-library based numeric utilities.

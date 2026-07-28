@@ -10,10 +10,20 @@
 
 namespace vortex::graph::optimization {
 
-/// ============================================================================
-/// @brief
-/// ============================================================================
+/// ===========================================================================
+/// @brief Error codes reported by the optimization algorithm.
+/// ===========================================================================
 enum class AlgorithmError { FAIL, NUMERIC_LIMIT };
+
+/// ===========================================================================
+/// @brief Base class for optimization algorithms operating on a graph.
+///
+/// Owns the graph and its solver and provides the common initialization shared
+/// by concrete algorithms (e.g. LevenbergAlgorithm).
+///
+/// @tparam Graph       The graph type to optimize.
+/// @tparam GraphSolver The graph solver type used to build and solve the system.
+/// ===========================================================================
 template <class Graph, class GraphSolver>
 class Algorithm {
  public:
