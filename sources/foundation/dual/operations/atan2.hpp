@@ -3,13 +3,13 @@
 ///
 /// @brief vortex.dual.operations.atan2 component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_ATAN2_HPP
-#define VORTEX_DUAL_OPERATIONS_ATAN2_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_ATAN2_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_ATAN2_HPP
 
 #include <cmath>
 #include <functional>
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief atan2(y, x) with n1 == y and n2 == x.
@@ -49,4 +49,4 @@ inline auto atan2(const T& y, const U& x) {
 }
 }  // namespace std
 
-#endif  // VORTEX_DUAL_OPERATIONS_ATAN2_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_ATAN2_HPP

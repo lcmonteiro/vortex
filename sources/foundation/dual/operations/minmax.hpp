@@ -3,10 +3,10 @@
 ///
 /// @brief vortex.dual.operations.minmax component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_MINMAX_HPP
-#define VORTEX_DUAL_OPERATIONS_MINMAX_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_MINMAX_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_MINMAX_HPP
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Minimum operation.
@@ -66,4 +66,4 @@ inline auto max(const T& n1, const U& n2) {
 }
 }  // namespace std
 
-#endif  // VORTEX_DUAL_OPERATIONS_MINMAX_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_MINMAX_HPP

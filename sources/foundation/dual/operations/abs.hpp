@@ -3,12 +3,12 @@
 ///
 /// @brief vortex.dual.operations.abs component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_ABS_HPP
-#define VORTEX_DUAL_OPERATIONS_ABS_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_ABS_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_ABS_HPP
 
 #include <cmath>
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 
@@ -35,4 +35,4 @@ inline auto abs(const T& n) {
 }
 }  // namespace std
 
-#endif  // VORTEX_DUAL_OPERATIONS_ABS_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_ABS_HPP

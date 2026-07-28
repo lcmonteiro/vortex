@@ -3,10 +3,10 @@
 ///
 /// @brief vortex.dual.operations.plus component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_PLUS_HPP
-#define VORTEX_DUAL_OPERATIONS_PLUS_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_PLUS_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_PLUS_HPP
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Addition operation.
@@ -36,4 +36,4 @@ inline auto operator+(const T& n1, const U& n2) {
 }
 }  // namespace vortex::dual
 
-#endif  // VORTEX_DUAL_OPERATIONS_PLUS_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_PLUS_HPP

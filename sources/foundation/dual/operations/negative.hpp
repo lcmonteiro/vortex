@@ -3,10 +3,10 @@
 ///
 /// @brief vortex.dual.operations.negative component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_NEGATIVE_HPP
-#define VORTEX_DUAL_OPERATIONS_NEGATIVE_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_NEGATIVE_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_NEGATIVE_HPP
 
-#include "dual/operations/base.hpp"
+#include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Negation operation.
@@ -28,4 +28,4 @@ inline auto operator-(const T& n) {
 }
 }  // namespace vortex::dual
 
-#endif  // VORTEX_DUAL_OPERATIONS_NEGATIVE_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_NEGATIVE_HPP

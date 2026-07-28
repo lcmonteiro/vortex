@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-#include "dual/dual.hpp"
+#include "foundation/dual/dual.hpp"
 
 namespace {
 

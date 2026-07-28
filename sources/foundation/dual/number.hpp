@@ -3,8 +3,8 @@
 ///
 /// @brief vortex.dual.number component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_NUMBER_HPP
-#define VORTEX_DUAL_NUMBER_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_NUMBER_HPP
+#define VORTEX_FOUNDATION_DUAL_NUMBER_HPP
 
 #include <array>
 #include <cassert>
@@ -201,4 +201,4 @@ constexpr bool is_number_like_v = is_number_like<T>::value;
 
 }  // namespace vortex::dual
 
-#endif  // VORTEX_DUAL_NUMBER_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_NUMBER_HPP

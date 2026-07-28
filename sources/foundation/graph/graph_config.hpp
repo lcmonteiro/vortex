@@ -1,10 +1,10 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.graph_engine.common component
+/// @brief vortex.graph.config component
 /// ===========================================================================
-#ifndef VORTEX_BASE_GRAPH_CONFIG_HPP
-#define VORTEX_BASE_GRAPH_CONFIG_HPP
+#ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_CONFIG_HPP
+#define VORTEX_FOUNDATION_GRAPH_GRAPH_CONFIG_HPP
 #include <map>
 #include <set>
 namespace vortex::graph {
@@ -34,4 +34,4 @@ struct DefaultConfig {
 };
 
 }  // namespace vortex::graph
-#endif  // VORTEX_BASE_GRAPH_CONFIG_HPP
+#endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_CONFIG_HPP

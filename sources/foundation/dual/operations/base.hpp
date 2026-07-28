@@ -3,14 +3,14 @@
 ///
 /// @brief vortex.dual.operations.base component
 /// ===========================================================================
-#ifndef VORTEX_DUAL_OPERATIONS_BASE_HPP
-#define VORTEX_DUAL_OPERATIONS_BASE_HPP
+#ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
+#define VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 
 #include <cassert>
 #include <iterator>
 #include <tuple>
 
-#include "dual/number.hpp"
+#include "foundation/dual/number.hpp"
 
 namespace vortex::dual {
 
@@ -178,4 +178,4 @@ struct binary_operation {
 };
 }  // namespace vortex::dual
 
-#endif  // VORTEX_DUAL_OPERATIONS_BASE_HPP
+#endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
