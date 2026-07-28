@@ -53,28 +53,28 @@ class Edge {
   /// @tparam F - function type
   /// @param func - function reference
   template <class F>
-  void apply(F&& func) {
+  auto apply(F&& func) -> void {
     helpers::apply(std::forward<F>(func), nodes_);
   }
 
   template <class F>
-  void apply(F&& func) const {
+  auto apply(F&& func) const -> void {
     helpers::apply(std::forward<F>(func), nodes_);
   }
 
   template <class T, class F>
-  void apply(F&& func) {
+  auto apply(F&& func) -> void {
     std::forward<F>(func)(node<T>(nodes_));
   }
 
   template <class T, class F>
-  void apply(F&& func) const {
+  auto apply(F&& func) const -> void {
     std::forward<F>(func)(node<T>(nodes_));
   }
 
   /// @brief Checks if the edge is disable.
   /// @return `true` if disable otherwise `false`.
-  bool disable() const { return disable_; }
+  auto disable() const -> bool { return disable_; }
 
  protected:
   template <class, class, class>
@@ -83,7 +83,7 @@ class Edge {
   /// @brief Disables or enables the edge.
   /// @param value If `true`, the edge will be disabled;
   /// if `false`, it will be enabled.
-  void disable(bool value) { disable_ = value; }
+  auto disable(bool value) -> void { disable_ = value; }
 
  private:
   bool disable_{};

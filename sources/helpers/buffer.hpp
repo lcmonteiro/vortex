@@ -1,23 +1,6 @@
 /// ===========================================================================
 /// @file
 /// @brief vortex.helpers.buffer component
-///
-/// A fixed-capacity ("static") ring buffer backed by std::array. It retains the
-/// most recent `Capacity` elements: pushing into a full buffer evicts the
-/// oldest element. Single-threaded only — no locking, no atomics.
-///
-/// Inspired by a classic std::array-backed FIFO buffer. Because the backing
-/// store is std::array<T, Capacity>, T must be default-constructible
-/// (std::array value-initializes every slot up front, including the ones that
-/// are not logically "in the queue" yet). In exchange the implementation is
-/// simple and easy to audit; use a raw-storage version if T has no default
-/// constructor.
-///
-/// - Not thread-safe. External synchronization is required for concurrent use.
-/// - Copyable if T is copyable, movable if T is movable (std::array provides
-///   both element-wise as long as T supports them).
-/// - push()/emplace() evict the oldest element when the buffer is full.
-/// - pop_back() returns std::nullopt when the buffer is empty.
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_BUFFER_HPP
 #define VORTEX_HELPERS_BUFFER_HPP
@@ -59,8 +42,8 @@ class Buffer {
   Buffer() = default;
   Buffer(const Buffer&) = default;
   Buffer(Buffer&&) = default;
-  Buffer& operator=(const Buffer&) = default;
-  Buffer& operator=(Buffer&&) = default;
+  auto operator=(const Buffer&) -> Buffer& = default;
+  auto operator=(Buffer&&) -> Buffer& = default;
   ~Buffer() = default;
 
   /// @brief Checks whether the buffer holds no elements.
@@ -76,7 +59,7 @@ class Buffer {
   /// @tparam Args Constructor argument types for T.
   /// @param args Arguments forwarded to T's constructor.
   template <class... Args>
-  void push(Args&&... args) {
+  auto push(Args&&... args) -> void {
     data_[head_] = T(std::forward<Args>(args)...);
     advance_head();
   }

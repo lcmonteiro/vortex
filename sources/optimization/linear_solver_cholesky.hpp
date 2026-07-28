@@ -21,7 +21,7 @@ class CholeskyInversionLinearSolver : public LinearSolver {
   /// @param b column matrix
   /// @param x [OUT] result matrix
   template <class Matrix, class Vector>
-  bool solve(const Matrix& h, const Vector& b, Vector& x) {
+  auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {
     auto h_tmp = Matrix{h};
     if (not math::invert_cholesky(h_tmp)) {
       return false;
@@ -42,7 +42,7 @@ class CholeskyLinearSolver : public LinearSolver {
   /// @param x [OUT] result matrix. On success contains the solution. On
   ///   failure x is unmodified.
   template <class Matrix, class Vector>
-  bool solve(const Matrix& h, const Vector& b, Vector& x) {
+  auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {
     return math::solve_cholesky(h, b, x);
   }
 };

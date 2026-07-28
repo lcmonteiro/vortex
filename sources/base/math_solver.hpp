@@ -29,7 +29,7 @@ namespace vortex::math {
 /// ===========================================================================
 template <class Matrix, class Vector,
           blaze::EnableIf_t<blaze::IsColumnMajorMatrix_v<Matrix>>* = nullptr>
-inline bool solve_ldlt(const Matrix& h, const Vector& b, Vector& x) {
+inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
   VORTEX_PRECONDITION(h.rows() == b.size(), "incompatible matrix and vector");
 
@@ -76,7 +76,7 @@ inline bool solve_ldlt(const Matrix& h, const Vector& b, Vector& x) {
 /// ===========================================================================
 template <class Matrix, class Vector,
           blaze::EnableIf_t<blaze::IsColumnMajorMatrix_v<Matrix>>* = nullptr>
-inline bool solve_cholesky(const Matrix& h, const Vector& b, Vector& x) {
+inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool {
   VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
   VORTEX_PRECONDITION(h.rows() == b.size(), "incompatible matrix and vector");
 

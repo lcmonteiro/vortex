@@ -26,8 +26,8 @@ class GraphSolver {
   GraphSolver(const GraphSolver&) = delete;
   GraphSolver(GraphSolver&&) = default;
 
-  GraphSolver& operator=(const GraphSolver&) = delete;
-  GraphSolver& operator=(GraphSolver&&) = delete;
+  auto operator=(const GraphSolver&) -> GraphSolver& = delete;
+  auto operator=(GraphSolver&&) -> GraphSolver& = delete;
 
   /// @brief Initializes the GraphSolver.
   ///
@@ -36,7 +36,7 @@ class GraphSolver {
   /// implementation).
   /// @return Returns a boolean indicating the success (true) or failure (false)
   /// of the initialization.
-  bool init(bool) { return lsolver_.init(); }
+  auto init(bool) -> bool { return lsolver_.init(); }
 
  protected:
   Graph& graph_;

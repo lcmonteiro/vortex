@@ -53,7 +53,7 @@ using if_set_like = typename Valid<           //
 /// on the traits of a specified type.
 ///
 template <class T>
-constexpr T& lreference(T&& x) noexcept {
+constexpr auto lreference(T&& x) noexcept -> T& {
   return static_cast<T&>(x);
 }
 

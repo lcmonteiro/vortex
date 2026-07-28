@@ -86,11 +86,11 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
 
   /// @brief Gets measurement.
   /// @return The current measurement value.
-  const Measurement& measurement() const { return measurement_; }
+  auto measurement() const -> const Measurement& { return measurement_; }
 
   /// @brief Sets measurement.
   /// @param value The new measurement value.
-  void measurement(const Measurement& value) { measurement_ = value; }
+  auto measurement(const Measurement& value) -> void { measurement_ = value; }
 
   /// @brief Set information matrix. Must be called with at least one argument.
   /// @tparam T Type of the first value.
@@ -98,7 +98,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   /// @param value The matrix to set the information matrix to.
   /// @param ...values The other values.
   template <class T, class... Ts>
-  void information(T&& value, Ts&&... values) {
+  auto information(T&& value, Ts&&... values) -> void {
     information_->set(std::forward<T>(value), std::forward<Ts>(values)...);
   }
 
@@ -108,7 +108,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
 
   /// @brief Gets the chi-squared value
   /// @return chi-squared value
-  Number chi2() const { return kernel_->chi2(); }
+  auto chi2() const -> Number { return kernel_->chi2(); }
 
   /// @brief Gets the current error value
   /// @return error value
@@ -120,17 +120,17 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
 
     /// @brief Sets the robust kernel delta
     /// @param delta The new delta value.
-    void delta(const Number value) { variant_->delta(value); }
+    auto delta(const Number value) -> void { variant_->delta(value); }
 
     /// @brief Gets the robust kernel delta
-    Number delta() const { return variant_->delta(); }
+    auto delta() const -> Number { return variant_->delta(); }
 
    private:
     KernelVariant& variant_;
   } kernel{kernel_};
 
   /// @brief Updates the error value and chi-squared value.
-  void updateError() {
+  auto updateError() -> void {
     const auto residual = helpers::invoke(
         ErrorCall{self()},           // Invoke the error function of the derived edge
         EstimationCallback{self()},  // Get the estimation values of the connected nodes
@@ -140,7 +140,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   }
 
   /// @brief Updates the jacobian values for all nodes.
-  void updateJacobians() {
+  auto updateJacobians() -> void {
     helpers::for_each(helpers::Indexes<Base::NNodes>{},
                             JacobiansUpdateCallback{self()});
   }
@@ -148,7 +148,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   /// @brief apply a function to each H block
   /// @param callable function that receives the nodes and the block value
   template <class Fn>
-  void forEachHBlock(Fn&& callable) {
+  auto forEachHBlock(Fn&& callable) -> void {
     helpers::for_each_pair(helpers::Indexes<Base::NNodes>{},
                           HBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
@@ -156,7 +156,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   /// @brief apply a function to each B block
   /// @param callable function that receives the nodes and the block value
   template <class Fn>
-  void forEachBBlock(Fn&& callable) {
+  auto forEachBBlock(Fn&& callable) -> void {
     helpers::for_each(helpers::Indexes<Base::NNodes>{},
                      BBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
@@ -208,7 +208,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
  private:
   /// @brief Helper function for casting to derived type.
   /// @return A pointer to derived type.
-  Derived* self() { return static_cast<Derived*>(this); }
+  auto self() -> Derived* { return static_cast<Derived*>(this); }
 
   /// @brief Invoke the error function
   struct ErrorCall {
@@ -223,7 +223,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   struct EstimationCallback {
     Derived* self;
     template <size_t I>
-    constexpr decltype(auto) operator()() {
+    constexpr auto operator()() -> decltype(auto) {
       return GetNode<I>(*self)->estimation();
     }
   };
@@ -265,7 +265,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     }
 
     template <size_t I>
-    void operator()() {
+    auto operator()() -> void {
       auto& jacobian = std::get<I>(self->jacobian_);
       auto& jacobian_transpose = std::get<I>(self->jacobian_transpose_);
       jacobian = self->template jacobian<I>();
@@ -280,7 +280,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     Fn callback;
 
     template <size_t I>
-    void operator()() {
+    auto operator()() -> void {
       auto& node = GetNode<I>(*self);
       if (not node->disable()) {
         const auto block = std::get<I>(self->jacobian_transpose_) * self->error_;
@@ -296,7 +296,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     Fn callback;
 
     template <size_t I, size_t J>
-    void operator()() {
+    auto operator()() -> void {
       auto& node_i = GetNode<I>(*self);
       auto& node_j = GetNode<J>(*self);
       if ((not node_i->disable()) and (not node_j->disable())) {

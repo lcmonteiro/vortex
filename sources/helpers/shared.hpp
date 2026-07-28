@@ -28,21 +28,21 @@ class Shared {
       : ptr_{std::allocate_shared<Type>(std::pmr::polymorphic_allocator<Type>{memory},
                                         std::forward<Args>(args)...)} {}
   Shared(const Shared& other) = default;
-  Shared& operator=(const Shared& other) = default;
+  auto operator=(const Shared& other) -> Shared& = default;
   Shared(Shared&& other) = default;
-  Shared& operator=(Shared&& other) = default;
+  auto operator=(Shared&& other) -> Shared& = default;
   ~Shared() = default;
 
   /// @brief Accessor for the managed object.
-  Type* get() const { return ptr_.get(); }
-  Type& value() const { return *ptr_; }
+  auto get() const -> Type* { return ptr_.get(); }
+  auto value() const -> Type& { return *ptr_; }
 
   /// @brief Operators.
-  Type& operator*() const { return *ptr_; }
-  Type* operator->() const { return ptr_.get(); }
+  auto operator*() const -> Type& { return *ptr_; }
+  auto operator->() const -> Type* { return ptr_.get(); }
 
-  friend bool operator<(const Shared& lhs, const Shared& rhs) { return lhs.ptr_ < rhs.ptr_; }
-  friend bool operator==(const Shared& lhs, const Shared& rhs) { return lhs.ptr_ == rhs.ptr_; }
+  friend auto operator<(const Shared& lhs, const Shared& rhs) -> bool { return lhs.ptr_ < rhs.ptr_; }
+  friend auto operator==(const Shared& lhs, const Shared& rhs) -> bool { return lhs.ptr_ == rhs.ptr_; }
 
  private:
   std::shared_ptr<Type> ptr_;
@@ -54,7 +54,7 @@ class Shared {
 /// @param b Second Shared object.
 /// @return True if both Shared objects manage the same object, false otherwise.
 template <class T1, class T2>
-inline bool equal(const Shared<T1>& a, const Shared<T2>& b) {
+inline auto equal(const Shared<T1>& a, const Shared<T2>& b) -> bool {
   if constexpr (std::is_same_v<T1, T2>) {
     return a == b;
   } else {

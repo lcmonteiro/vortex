@@ -18,14 +18,14 @@ class LinearSolver {
 
   /// @brief Linear Solver initialization
   /// @return
-  bool init() { return true; }
+  auto init() -> bool { return true; }
 
   /// @brief Solves a linear system like h * x = b
   /// @param h coef matrix
   /// @param b column matrix
   /// @param x [OUT] result matrix
   template <class Matrix, class Vector>
-  bool solve(const Matrix& h, const Vector& b, Vector& x);
+  auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool;
 };
 
 }  // namespace vortex::graph::optimization

@@ -63,7 +63,7 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
   /// @param iterations The number of iterations to run.
   /// @param reset Whether to reset the algorithm state.
   /// @return the number of completed iterations or an unexpected error
-  std::expected<size_t, AlgorithmError> optimize(size_t iterations, bool reset = true) {
+  auto optimize(size_t iterations, bool reset = true) -> std::expected<size_t, AlgorithmError> {
     if (0 == iterations) {
       return 0;
     }
@@ -116,31 +116,31 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
   /// @brief Functions for managing node estimations in the graph.
   ///
   /// This group includes functions to push, pull and revert estimations.
-  void push() {
+  auto push() -> void {
     ForEach<Nodes>(*this, [](auto& node) { node->push(); }, Enabled{});
   }
-  void pull() {
+  auto pull() -> void {
     ForEach<Nodes>(*this, [](auto& node) { node->pull(); }, Enabled{});
   }
-  void revert(size_t n = 1) {
+  auto revert(size_t n = 1) -> void {
     ForEach<Nodes>(*this, [&](auto& node) { node->revert(n); }, Enabled{});
   }
 
   /// @brief Computes the error vectors of all edges in the activeSet, and
   /// caches them
-  void updateErrors() {
+  auto updateErrors() -> void {
     ForEach<Edges>(*this, [](auto& edge) { edge->updateError(); }, Enabled{});
   }
 
   /// @brief Computes cached chi2 of the active portion of the graph
-  Number computeChi2() const {
+  auto computeChi2() const -> Number {
     Number chi = 0;
     ForEach<Edges>(*this, [&](auto& edge) { chi += edge->chi2(); }, Enabled{});
     return chi;
   }
 
   /// @brief Update the estimate of the active nodes
-  void updateEstimations(const Vector& x) {
+  auto updateEstimations(const Vector& x) -> void {
     size_t idx = 0;
     ForEach<Nodes>(
         *this,

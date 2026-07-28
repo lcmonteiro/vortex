@@ -63,7 +63,7 @@ struct DiagonalInformationOption {
   /// @tparam  This method is only enabled for Matrix types.
   /// @param matrix The matrix containing the values to set the information to.
   template <class Matrix, if_matrix<Matrix> = true>
-  void set(const Matrix& matrix) {
+  auto set(const Matrix& matrix) -> void {
     matrix_ = matrix;
   }
 
@@ -74,7 +74,7 @@ struct DiagonalInformationOption {
   /// @param vector The vector containing the values to set the information
   /// diagonal to.
   template <class Vector, if_vector<Vector> = true>
-  void set(const Vector& vector) {
+  auto set(const Vector& vector) -> void {
     math::diagonal(matrix_) = vector;
   }
 
@@ -83,7 +83,7 @@ struct DiagonalInformationOption {
   /// @tparam ...T Type of the values.
   /// @param ...values The values.
   template <class Type, class... Types>
-  void set(const Type& value, const Types&... values) {
+  auto set(const Type& value, const Types&... values) -> void {
     /// Ensure the number or received argument match the matrix dimension.
     static_assert((1 + sizeof...(Types)) == Dimension,
                   "The number of values must match the square matrix dimension.");
@@ -121,7 +121,7 @@ struct SymmetricInformationOption {
   /// @tparam  This method is only enabled for Matrix types.
   /// @param matrix The matrix containing the values to set the information to.
   template <class Matrix, if_matrix<Matrix> = true>
-  void set(const Matrix& matrix) {
+  auto set(const Matrix& matrix) -> void {
     matrix_ = matrix;
   }
 

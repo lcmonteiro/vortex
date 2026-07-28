@@ -5,7 +5,6 @@
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_MEMORY_HPP
 #define VORTEX_HELPERS_MEMORY_HPP
-#include <memory>
 #include <memory_resource>
 
 #include "helpers/contracts.hpp"
@@ -34,9 +33,8 @@ class MemoryBoundedResource : public std::pmr::memory_resource {
   /// @return Pointer to allocated memory.
   ///
   /// Triggers VORTEX_PRECONDITION if bytes > MaxAllocSize.
-  void* do_allocate(size_t bytes, size_t alignment) override {
-    VORTEX_PRECONDITION(bytes <= MaxAllocSize,
-                          "Allocation exceeds maximum allowed size (check CacheBlockMaxSize)");
+  auto do_allocate(size_t bytes, size_t alignment) -> void* override {
+    VORTEX_PRECONDITION(bytes <= MaxAllocSize, "Allocation exceeds maximum allowed");
     return upstream_->allocate(bytes, alignment);
   }
 
@@ -44,14 +42,14 @@ class MemoryBoundedResource : public std::pmr::memory_resource {
   /// @param p Pointer to memory to deallocate.
   /// @param bytes Size of the allocation (must match original size).
   /// @param alignment Alignment of the original allocation.
-  void do_deallocate(void* p, size_t bytes, size_t alignment) override {
+  auto do_deallocate(void* p, size_t bytes, size_t alignment) -> void override {
     upstream_->deallocate(p, bytes, alignment);
   }
 
   /// @brief Compares this memory resource with another.
   /// @param other The other memory resource.
   /// @return true if the resources are the same object.
-  bool do_is_equal(const memory_resource& other) const noexcept override { return this == &other; }
+  auto do_is_equal(const memory_resource& other) const noexcept -> bool override { return this == &other; }
 
  private:
   std::pmr::memory_resource* upstream_;
@@ -72,16 +70,16 @@ class MemoryScope final {
   using Resource = std::pmr::memory_resource;
 
   explicit MemoryScope(Resource* const resource) noexcept : previous_(Current()) {
-    assert(resource != nullptr && "MemoryScope requires a non-null resource");
+    VORTEX_PRECONDITION(resource != nullptr, "MemoryScope requires a non-null resource");
     Current() = resource;
   }
 
   ~MemoryScope() noexcept { Current() = previous_; }
 
   MemoryScope(const MemoryScope&) = delete;
-  MemoryScope& operator=(const MemoryScope&) = delete;
+  auto operator=(const MemoryScope&) -> MemoryScope& = delete;
   MemoryScope(MemoryScope&&) = delete;
-  MemoryScope& operator=(MemoryScope&&) = delete;
+  auto operator=(MemoryScope&&) -> MemoryScope& = delete;
 
   /// Returns the resource currently active on this thread.
   /// Never null (falls back to std::pmr::get_default_resource()).

@@ -18,7 +18,7 @@ template <class Number>
 struct NullKernel {
   /// @brief Update the chi-squared value
   /// @param chi2 The chi-squared value
-  void update(Number chi2) { chi2_ = chi2; }
+  auto update(Number chi2) -> void { chi2_ = chi2; }
 
   /// @brief Gets the chi-squared value
   /// @return chi-squared value
@@ -41,18 +41,18 @@ template <class Number>
 struct HuberKernel {
   /// @brief Setter for robust kernel delta.
   /// @param value New delta value.
-  void delta(Number value) {
+  auto delta(Number value) -> void {
     delta_ = value;
     delta_sqr_ = value * value;
   }
 
   /// @brief Getter for robust kernel delta.
   /// @return The current delta value.
-  Number delta() const { return delta_; }
+  auto delta() const -> Number { return delta_; }
 
   /// @brief Update the internal state
   /// @param chi2 The chi-squared value
-  void update(Number chi2) {
+  auto update(Number chi2) -> void {
     if (chi2 <= delta_sqr_) {
       rho_ = chi2;
       rho_prime_ = 1.;

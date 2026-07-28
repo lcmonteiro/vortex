@@ -19,7 +19,7 @@ class DefaultLinearSolver : public LinearSolver {
   /// @param b column matrix
   /// @param x [OUT] result matrix
   template <class Matrix, class Vector>
-  bool solve(const Matrix& h, const Vector& b, Vector& x) {
+  auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {
     return math::solve_ldlt(h, b, x);
   }
 };

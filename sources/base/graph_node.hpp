@@ -39,28 +39,28 @@ class Node {
   /// @tparam F - function type
   /// @param func - function reference
   template <class F>
-  void apply(F&& func) {
+  auto apply(F&& func) -> void {
     helpers::apply([&](auto& data) { helpers::apply(std::forward<F>(func), data); }, edges_);
   }
 
   template <class F>
-  void apply(F&& func) const {
+  auto apply(F&& func) const -> void {
     helpers::apply([&](auto& data) { helpers::apply(std::forward<F>(func), data); }, edges_);
   }
 
   template <class T, class F>
-  void apply(F&& func) {
+  auto apply(F&& func) -> void {
     helpers::apply(std::forward<F>(func), std::get<SetShared<T>>(edges_));
   }
 
   template <class T, class F>
-  void apply(F&& func) const {
+  auto apply(F&& func) const -> void {
     helpers::apply(std::forward<F>(func), std::get<SetShared<T>>(edges_));
   }
 
   /// @brief Checks if the node is disable.
   /// @return `true` if disable otherwise `false`.
-  bool disable() const { return disable_; }
+  auto disable() const -> bool { return disable_; }
 
  protected:
   template <class, class, class>
@@ -69,25 +69,25 @@ class Node {
   /// @brief Disables or enables the node.
   /// @param value If `true`, the node will be disabled; if `false`, it will
   /// be enabled.
-  void disable(bool value) { disable_ = value; }
+  auto disable(bool value) -> void { disable_ = value; }
 
   /// @brief Link and unlink edges
   /// @tparam T - edge type
   /// @param edge
   template <class T>
-  void link(const helpers::Shared<T>& edge) {
+  auto link(const helpers::Shared<T>& edge) -> void {
     std::ignore = std::get<SetShared<T>>(edges_).insert(edge);
   }
 
   template <class T>
-  void unlink(const helpers::Shared<T>& edge) {
+  auto unlink(const helpers::Shared<T>& edge) -> void {
     std::ignore = std::get<SetShared<T>>(edges_).erase(edge);
   }
   template <class T>
-  void unlink() {
+  auto unlink() -> void {
     std::get<SetShared<T>>(edges_).clear();
   }
-  void unlink() {
+  auto unlink() -> void {
     helpers::apply([&](auto& set) { set.clear(); }, edges_);
   }
 
