@@ -20,15 +20,15 @@ class Algorithm {
   explicit Algorithm(Graph& graph) : graph_{graph}, solver_(graph) {}
 
   Algorithm(const Algorithm&) = delete;
-  Algorithm& operator=(const Algorithm&) = delete;
+  auto operator=(const Algorithm&) -> Algorithm& = delete;
   Algorithm(Algorithm&&) = default;
-  Algorithm& operator=(Algorithm&&) = delete;
+  auto operator=(Algorithm&&) -> Algorithm& = delete;
 
   ~Algorithm() = default;
 
   /// @brief Algorithm initialization.
   /// @return Nothing or an algorithm error.
-  std::expected<void, AlgorithmError> init(bool reset) {
+  auto init(bool reset) -> std::expected<void, AlgorithmError> {
     auto result = solver_.init(reset);
     if (not result) {
       return std::unexpected(AlgorithmError::FAIL);
@@ -38,7 +38,7 @@ class Algorithm {
   /// @brief Algorithm solve
   /// @return a boolean value whether it was solved or an algorithm error
   template <bool first_iteration, bool last_iteration>
-  std::expected<bool, AlgorithmError> solve();
+  auto solve() -> std::expected<bool, AlgorithmError>;
 
  protected:
   Graph& graph_;

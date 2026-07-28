@@ -26,7 +26,7 @@ class PCGLinearSolver : public LinearSolver {
   /// @param b column matrix
   /// @param x [OUT] result matrix
   template <class Matrix, class Vector>
-  bool solve(const Matrix& h, const Vector& b, Vector& x) {
+  auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool {
     const auto diag_inv = 1.0 / diagonal(h);
     auto r = Vector(b - (h * x));
     auto z = Vector(diag_inv * r);

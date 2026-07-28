@@ -34,14 +34,14 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   }
   ~BlockGraphSolver() = default;
   BlockGraphSolver(const BlockGraphSolver&) = delete;
-  BlockGraphSolver& operator=(const BlockGraphSolver&) = delete;
+  auto operator=(const BlockGraphSolver&) -> BlockGraphSolver& = delete;
   BlockGraphSolver(BlockGraphSolver&&) = default;
-  BlockGraphSolver& operator=(BlockGraphSolver&&) = default;
+  auto operator=(BlockGraphSolver&&) -> BlockGraphSolver& = default;
 
   /// @brief this function build the system stucture
   ///  - matrix and vector shapes
   ///  - update nodes positions
-  bool buildStructure() {
+  auto buildStructure() -> bool {
     auto total_dimension = size_t{0};
 
     ForEach<Nodes>(
@@ -61,7 +61,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   }
 
   /// @brief this function compute system matrix
-  void buildSystem() {
+  auto buildSystem() -> void {
     this->h_.reset();
     this->b_.reset();
 
@@ -77,31 +77,31 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
 
   /// @brief this function updates the system matrix diagonal
   /// @param update value that will be added
-  void updateDiagonal(Number update) {
+  auto updateDiagonal(Number update) -> void {
     h_diagonal_backup_ = math::diagonal(h_);
     math::diagonal(h_) += update;
   }
 
   /// @brief this function restores the system matrix diagonal
-  void restoreDiagonal() { math::diagonal(h_) = h_diagonal_backup_; }
+  auto restoreDiagonal() -> void { math::diagonal(h_) = h_diagonal_backup_; }
 
   /// @brief Get solution vector
-  const Vector& x() const { return x_; }
+  auto x() const -> const Vector& { return x_; }
 
   /// @brief Get right hand side of the system
-  const Vector& b() const { return b_; }
+  auto b() const -> const Vector& { return b_; }
 
   /// @brief Get hessian matrix
   const auto& h() const { return h_; }
 
   /// @brief Algorithm solve
   /// @return a boolean value whether it was solved or an algorithm error
-  bool solve() { return Base::lsolver_.solve(h_, b_, x_); }
+  auto solve() -> bool { return Base::lsolver_.solve(h_, b_, x_); }
 
  protected:
   struct UpdateHBlock {
     template <class Ni, class Nj, class H>
-    void operator()(const Ni& node_i, const Nj& node_j, const H& update) {
+    auto operator()(const Ni& node_i, const Nj& node_j, const H& update) -> void {
       if constexpr (LinearSolver::kRequiresFullMatrix) {
         symmetric(node_i, node_j, update);
       } else {
@@ -109,7 +109,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
       }
     }
     template <class Ni, class Nj, class H>
-    void symmetric(const Ni& node_i, const Nj& node_j, const H& update) {
+    auto symmetric(const Ni& node_i, const Nj& node_j, const H& update) -> void {
       const auto position_i = node_i->position();
       const auto position_j = node_j->position();
       const auto dimension_i = node_i->dimension();
@@ -121,7 +121,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
       }
     }
     template <class Ni, class Nj, class H>
-    void triangular(const Ni& node_i, const Nj& node_j, const H& update) {
+    auto triangular(const Ni& node_i, const Nj& node_j, const H& update) -> void {
       const auto position_i = node_i->position();
       const auto position_j = node_j->position();
       const auto dimension_i = node_i->dimension();
@@ -137,7 +137,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   };
   struct UpdateBBlock {
     template <class N, class B>
-    void operator()(const N& node, const B& update) {
+    auto operator()(const N& node, const B& update) -> void {
       math::subvector(self->b_, node->position(), node->dimension()) -= update;
     }
     BlockGraphSolver* self;

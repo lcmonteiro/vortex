@@ -29,7 +29,7 @@ struct LevenbergConfig {
   static constexpr auto RhoEpsilon{1e-9};
 };
 template <class Type>
-inline constexpr Type Constant(Type v) {
+inline constexpr auto Constant(Type v) -> Type {
   return v;
 }
 
@@ -46,13 +46,13 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
       : Base(graph), lambda_{-1.}, lambda_factor_{2.}, current_chi_{0.} {}
   ~LevenbergAlgorithm() = default;
   LevenbergAlgorithm(const LevenbergAlgorithm&) = delete;
-  LevenbergAlgorithm& operator=(const LevenbergAlgorithm&) = delete;
+  auto operator=(const LevenbergAlgorithm&) -> LevenbergAlgorithm& = delete;
   LevenbergAlgorithm(LevenbergAlgorithm&&) = default;
-  LevenbergAlgorithm& operator=(LevenbergAlgorithm&&) = default;
+  auto operator=(LevenbergAlgorithm&&) -> LevenbergAlgorithm& = default;
 
   /// @brief Algorithm initialization
   /// @return nothing or an algorithm error
-  std::expected<void, AlgorithmError> init(bool reset) {
+  auto init(bool reset) -> std::expected<void, AlgorithmError> {
     auto result = Base::init(reset);
     if (not result) {
       return result;
@@ -70,7 +70,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   /// @brief Algorithm solve
   /// @return a boolean value whether it was solved or an algorithm error
   template <bool first_iteration, bool last_iteration>
-  std::expected<bool, AlgorithmError> solve() {
+  auto solve() -> std::expected<bool, AlgorithmError> {
     if constexpr (first_iteration) {
       graph_.updateErrors();
       solver_.buildSystem();
@@ -125,7 +125,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
   /// @brief Retrieves the lambda value from the algorithm.
   /// @return The lambda value of type `Number`.
-  Number lambda() const { return lambda_; }
+  auto lambda() const -> Number { return lambda_; }
 
  protected:
   /// @brief computes the initial lambda or return the one from config
@@ -140,10 +140,10 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
   /// @brief computes the scaler for the chi2 difference
   /// @return scaler
-  Number computeScale() { return math::dot(solver_.x(), (solver_.x() * lambda_) + solver_.b()); }
+  auto computeScale() -> Number { return math::dot(solver_.x(), (solver_.x() * lambda_) + solver_.b()); }
 
   /// @brief Increases lambda aggressively when the step fails.
-  void increaseLambdaAggressive() {
+  auto increaseLambdaAggressive() -> void {
     lambda_ *= lambda_factor_;
     lambda_factor_ *= 2;
   }
@@ -151,7 +151,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   /// @brief Adjusts lambda adaptively when the step succeeds.
   /// Scales lambda based on the `rho` value, ensuring smooth convergence.
   /// @param rho Gain ratio, indicating how much to scale lambda.
-  void adjustLambdaAdaptive(Number rho) {
+  auto adjustLambdaAdaptive(Number rho) -> void {
     constexpr Number alpha_min = Constant<Number>(Config::LowerScale);
     constexpr Number alpha_max = Constant<Number>(Config::UpperScale);
     const Number alpha = 1. - helpers::int_pow<3>((2 * rho) - 1);

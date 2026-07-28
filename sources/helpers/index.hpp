@@ -16,7 +16,7 @@ namespace vortex::helpers {
 
 namespace details {
 template <size_t... Es, class F, size_t... Is>
-void for_each(F&& fn, std::index_sequence<Is...>) {
+auto for_each(F&& fn, std::index_sequence<Is...>) -> void {
   auto& ref_func = lreference<F>(std::forward<F>(fn));
   if constexpr (std::is_invocable_v<F, size_t>) {
     (ref_func.operator()(Es..., Is), ...);
@@ -25,7 +25,7 @@ void for_each(F&& fn, std::index_sequence<Is...>) {
   }
 }
 template <class F, size_t... Is>
-void for_each_pair(F&& fn, std::index_sequence<Is...>) {
+auto for_each_pair(F&& fn, std::index_sequence<Is...>) -> void {
   auto& ref_func = lreference<F>(std::forward<F>(fn));
   (for_each<Is>(ref_func, std::make_index_sequence<Is + 1>{}), ...);
 }
@@ -37,12 +37,12 @@ struct Indexes {
 };
 
 template <size_t N, class F>
-void for_each(Indexes<N>, F&& fn) {
+auto for_each(Indexes<N>, F&& fn) -> void {
   details::for_each(std::forward<F>(fn), Indexes<N>::value);
 }
 
 template <size_t N, class F>
-void for_each_pair(Indexes<N>, F&& fn) {
+auto for_each_pair(Indexes<N>, F&& fn) -> void {
   details::for_each_pair(std::forward<F>(fn), Indexes<N>::value);
 }
 

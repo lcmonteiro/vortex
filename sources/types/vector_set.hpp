@@ -7,8 +7,6 @@
 #define VORTEX_TYPES_VECTOR_SET_HPP
 #include <algorithm>
 #include <iterator>
-#include <memory>
-#include <memory_resource>
 #include <utility>
 #include <vector>
 
@@ -55,7 +53,7 @@ class VectorSet : private std::pmr::vector<Value> {
   /// @param value The value to insert.
   /// @return A pair mirroring @c std::set::insert; the bool is always true (the
   /// caller guarantees uniqueness).
-  std::pair<iterator, bool> insert(const value_type& value) {
+  auto insert(const value_type& value) -> std::pair<iterator, bool> {
     VORTEX_PRECONDITION(find(value) == Base::end(), "value already present in set");
     Base::push_back(value);
     return {std::prev(Base::end()), true};
@@ -66,7 +64,7 @@ class VectorSet : private std::pmr::vector<Value> {
   /// @param first Begin of the range to append.
   /// @param last End of the range to append.
   template <class InputIt>
-  void insert(InputIt first, InputIt last) {
+  auto insert(InputIt first, InputIt last) -> void {
     std::for_each(first, last, [this](const value_type& value) { std::ignore = insert(value); });
   }
 
@@ -75,7 +73,7 @@ class VectorSet : private std::pmr::vector<Value> {
   /// @param args Constructor arguments forwarded to @c value_type.
   /// @return A pair mirroring @c std::set::emplace; the bool is always true.
   template <class... Args>
-  std::pair<iterator, bool> emplace(Args&&... args) {
+  auto emplace(Args&&... args) -> std::pair<iterator, bool> {
     std::ignore = Base::emplace_back(std::forward<Args>(args)...);
     return {std::prev(Base::end()), true};
   }
@@ -86,7 +84,7 @@ class VectorSet : private std::pmr::vector<Value> {
   /// @note Survivors are relocated with move-assignment (order-preserving);
   /// relocating @c Shared by move steals its pointer, avoiding the atomic
   /// reference-count churn of a copy-shift.
-  size_type erase(const value_type& value) {
+  auto erase(const value_type& value) -> size_type {
     const auto last = std::remove(Base::begin(), Base::end(), value);
     const auto removed = std::distance(last, Base::end());
     std::ignore = Base::erase(last, Base::end());
@@ -96,11 +94,11 @@ class VectorSet : private std::pmr::vector<Value> {
   /// @brief Finds the element equal to @p value.
   /// @param value The value to search for.
   /// @return An iterator to the element, or @c end() if not present.
-  iterator find(const value_type& value) { return std::find(Base::begin(), Base::end(), value); }
+  auto find(const value_type& value) -> iterator { return std::find(Base::begin(), Base::end(), value); }
 
   /// @brief Swaps contents with another set.
   /// @param other The set to swap with.
-  void swap(VectorSet& other) { Base::swap(other); }
+  auto swap(VectorSet& other) -> void { Base::swap(other); }
 };
 
 }  // namespace vortex::graph

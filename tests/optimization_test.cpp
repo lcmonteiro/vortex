@@ -16,7 +16,7 @@ class SlamOptimizationTest : public ::testing::Test {
  protected:
   using Key = SlamGraph::Key;
 
-  void SetUp() override {
+  auto SetUp() -> void override {
     p1_ = g_.build<Pose>(Key{1});
     p2_ = g_.build<Pose>(Key{2});
     p3_ = g_.build<Pose>(Key{3});
@@ -25,7 +25,7 @@ class SlamOptimizationTest : public ::testing::Test {
     l1_ = g_.build<PoseLocation>(*p1_);
   }
 
-  void TearDown() override { g_.destroy(); }
+  auto TearDown() -> void override { g_.destroy(); }
 
   SlamGraph g_{std::pmr::new_delete_resource()};
   go::OptionalShared<Pose> p1_;

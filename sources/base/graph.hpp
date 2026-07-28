@@ -126,8 +126,8 @@ class Graph {
 
   Graph(const Graph&) = delete;
   Graph(Graph&&) = delete;
-  Graph& operator=(const Graph&) = delete;
-  Graph& operator=(Graph&&) = delete;
+  auto operator=(const Graph&) -> Graph& = delete;
+  auto operator=(Graph&&) -> Graph& = delete;
 
   /// @brief Graph destructor
   ~Graph() { destroy(); }
@@ -212,7 +212,7 @@ class Graph {
   /// operation.
   /// @param option The constant indicating the selection criteria.
   template <class T, class Fn, Option value = Option::kAll, if_node<T> = 0>
-  void apply(Fn&& func, const OptionConstant<value> option = All{}) const {
+  auto apply(Fn&& func, const OptionConstant<value> option = All{}) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (const MapShared<T>& map : select<T>(nodes_enable_, nodes_disable_, option)) {
       helpers::apply(ref_func, map);
@@ -220,7 +220,7 @@ class Graph {
   }
 
   template <class T, class Fn, Option value = Option::kAll, if_edge<T> = 0>
-  void apply(Fn&& func, const OptionConstant<value> option = All{}) const {
+  auto apply(Fn&& func, const OptionConstant<value> option = All{}) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (const SetShared<T>& set : select<T>(edges_enable_, edges_disable_, option)) {
       helpers::apply(ref_func, set);
@@ -228,12 +228,12 @@ class Graph {
   }
 
   template <class T, class Fn, Option value = Option::kAll, if_types<T> = 0>
-  void apply(Fn&& func, const OptionConstant<value> option = All{}) const {
+  auto apply(Fn&& func, const OptionConstant<value> option = All{}) const -> void {
     apply(std::forward<Fn>(func), T{}, option);
   }
 
   template <class Fn, Option value = Option::kAll>
-  void apply(Fn&& func, const OptionConstant<value> option = All{}) const {
+  auto apply(Fn&& func, const OptionConstant<value> option = All{}) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     apply<Nodes>(ref_func, option);
     apply<Edges>(ref_func, option);
@@ -251,7 +251,7 @@ class Graph {
   /// the search.
   /// @param option The constant indicating the selection criteria for nodes.
   template <class N, Option value = Option::kAll, if_node<N> = 0>
-  OptionalShared<N> find(const Key& key, const OptionConstant<value> option = All{}) const {
+  auto find(const Key& key, const OptionConstant<value> option = All{}) const -> OptionalShared<N> {
     const auto& nodes{select<N>(nodes_enable_, nodes_disable_, option)};
     for (const MapShared<N>& map : nodes) {
       if (auto found = map.find(key); found != std::end(map)) {
@@ -262,7 +262,7 @@ class Graph {
   }
 
   template <class N, class Fn, Option value = Option::kAll, if_node<N> = 0, if_predicate<Fn, N> = 0>
-  OptionalShared<N> find(Fn&& evaluate, const OptionConstant<value> option = All{}) const {
+  auto find(Fn&& evaluate, const OptionConstant<value> option = All{}) const -> OptionalShared<N> {
     auto& ref_evaluate = helpers::lreference<Fn>(std::forward<Fn>(evaluate));
     const auto& nodes{select<N>(nodes_enable_, nodes_disable_, option)};
     for (const MapShared<N>& map : nodes) {
@@ -286,7 +286,7 @@ class Graph {
   /// @param key The key used to locate a specific node for unlinking.
   /// @param option The constant indicating the selection criteria for nodes.
   template <class N, Option value = Option::kAll, if_node<N> = 0>
-  void unlink(Key key, const OptionConstant<value> option = All{}) {
+  auto unlink(Key key, const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       if (auto iter = map.find(key); iter != map.end()) {
         unlinkNode(std::get<Shared<N>>(*iter));
@@ -297,7 +297,7 @@ class Graph {
   }
 
   template <class N, class E, Option value = Option::kAll, if_node<N> = 0, if_edge<E> = 0>
-  void unlink(Key key, const OptionConstant<value> option = All{}) {
+  auto unlink(Key key, const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       if (auto iter = map.find(key); iter != map.end()) {
         unlinkNode<E>(std::get<Shared<N>>(*iter));
@@ -308,7 +308,7 @@ class Graph {
   }
 
   template <class N, class E, Option value = Option::kAll, if_node<N> = 0, if_types<E> = 0>
-  void unlink(Key key, const OptionConstant<value> option = All{}) {
+  auto unlink(Key key, const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       if (auto iter = map.find(key); iter != map.end()) {
         unlinkNode(std::get<Shared<N>>(*iter), E{});
@@ -319,7 +319,7 @@ class Graph {
   }
 
   template <class N, Option value = Option::kAll, if_node<N> = 0>
-  void unlink(const OptionConstant<value> option = All{}) {
+  auto unlink(const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (const auto& node : map) {
         unlinkNode(std::get<Shared<N>>(node));
@@ -329,7 +329,7 @@ class Graph {
   }
 
   template <class N, class E, Option value = Option::kAll, if_node<N> = 0, if_edge<E> = 0>
-  void unlink(const OptionConstant<value> option = All{}) {
+  auto unlink(const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (const auto& node : map) {
         unlinkNode<E>(std::get<Shared<N>>(node));
@@ -339,7 +339,7 @@ class Graph {
   }
 
   template <class N, class E, Option value = Option::kAll, if_node<N> = 0, if_types<E> = 0>
-  void unlink(const OptionConstant<value> option = All{}) {
+  auto unlink(const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (const auto& node : map) {
         unlinkNode(std::get<Shared<N>>(node), E{});
@@ -362,7 +362,7 @@ class Graph {
   /// destruction process.
   /// @param option The constant indicating the selection criteria for nodes.
   template <class N, Option value = Option::kAll, if_node<N> = 0>
-  void destroy(Key key, const OptionConstant<value> option = All{}) {
+  auto destroy(Key key, const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       if (auto iter = map.find(key); iter != map.end()) {
         unlinkNode(std::get<Shared<N>>(*iter));
@@ -374,7 +374,7 @@ class Graph {
   }
 
   template <class N, Option value = Option::kAll, if_node<N> = 0>
-  void destroy(const OptionConstant<value> option = All{}) {
+  auto destroy(const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (const auto& node : map) {
         unlinkNode(std::get<Shared<N>>(node));
@@ -385,7 +385,7 @@ class Graph {
   }
 
   template <class N, class Fn, Option value = Option::kAll, if_node<N> = 0, if_predicate<Fn, N> = 0>
-  void destroy(Fn&& func, const OptionConstant<value> option = All{}) {
+  auto destroy(Fn&& func, const OptionConstant<value> option = All{}) -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (auto iter = map.begin(); iter != map.end();) {
@@ -401,7 +401,7 @@ class Graph {
   }
 
   template <Option value = Option::kAll>
-  void destroy(const OptionConstant<value> option = All{}) {
+  auto destroy(const OptionConstant<value> option = All{}) -> void {
     destroy(Nodes{}, option);
   }
 
@@ -419,21 +419,21 @@ class Graph {
   /// @param Disabled The constant indicating that the operation will on
   /// disabled nodes or edges.
   template <class T, if_node<T> = 0>
-  void toggle(const Enabled) {
+  auto toggle(const Enabled) -> void {
     helpers::move_all(get<T>(nodes_enable_), get<T>(nodes_disable_),
                      [](const auto& node) { node->disable(true); });
     revision_->update();
   }
 
   template <class T, if_node<T> = 0>
-  void toggle(const Disabled) {
+  auto toggle(const Disabled) -> void {
     helpers::move_all(get<T>(nodes_disable_), get<T>(nodes_enable_),
                      [](const auto& node) { node->disable(false); });
     revision_->update();
   }
 
   template <class E, class T, if_node<T> = 0, if_edge<E> = 0>
-  void toggle(const Shared<T>& node, const Enabled) {
+  auto toggle(const Shared<T>& node, const Enabled) -> void {
     node->template apply<E>([this](const auto& edge) {
       helpers::move(get<E>(edges_enable_), get<E>(edges_disable_), edge,
                    [](const auto& e) { e->disable(true); });
@@ -441,7 +441,7 @@ class Graph {
   }
 
   template <class E, class T, if_node<T> = 0, if_edge<E> = 0>
-  void toggle(const Shared<T>& node, const Disabled) {
+  auto toggle(const Shared<T>& node, const Disabled) -> void {
     node->template apply<E>([this](const auto& edge) {
       helpers::move(get<E>(edges_disable_), get<E>(edges_enable_), edge,
                    [](const auto& e) { e->disable(false); });
@@ -449,76 +449,76 @@ class Graph {
   }
 
   template <class T, class Fn, if_node<T> = 0, if_predicate<Fn, T> = 0>
-  void toggle(Fn&& func, const Enabled) {
+  auto toggle(Fn&& func, const Enabled) -> void {
     helpers::move_if(get<T>(nodes_enable_), get<T>(nodes_disable_), std::forward<Fn>(func),
                     [](const auto& node) { node->disable(true); });
     revision_->update();
   }
 
   template <class T, class Fn, if_node<T> = 0, if_predicate<Fn, T> = 0>
-  void toggle(Fn&& func, const Disabled) {
+  auto toggle(Fn&& func, const Disabled) -> void {
     helpers::move_if(get<T>(nodes_disable_), get<T>(nodes_enable_), std::forward<Fn>(func),
                     [](const auto& node) { node->disable(false); });
     revision_->update();
   }
 
   template <class T, if_node<T> = 0>
-  void toggle(const Key& key, const Enabled) {
+  auto toggle(const Key& key, const Enabled) -> void {
     helpers::move(get<T>(nodes_enable_), get<T>(nodes_disable_), key,
                  [](const auto& node) { node->disable(true); });
     revision_->update();
   }
 
   template <class T, if_node<T> = 0>
-  void toggle(const Key& key, const Disabled) {
+  auto toggle(const Key& key, const Disabled) -> void {
     helpers::move(get<T>(nodes_disable_), get<T>(nodes_enable_), key,
                  [](const auto& node) { node->disable(false); });
     revision_->update();
   }
 
   template <class T, if_edge<T> = 0>
-  void toggle(const Enabled) {
+  auto toggle(const Enabled) -> void {
     helpers::move_all(get<T>(edges_enable_), get<T>(edges_disable_),
                      [](const auto& edge) { edge->disable(true); });
   }
 
   template <class T, if_edge<T> = 0>
-  void toggle(const Disabled) {
+  auto toggle(const Disabled) -> void {
     helpers::move_all(get<T>(edges_disable_), get<T>(edges_enable_),
                      [](const auto& edge) { edge->disable(false); });
   }
 
   template <class T, if_edge<T> = 0>
-  void toggle(const Shared<T>& edge, const Enabled) {
+  auto toggle(const Shared<T>& edge, const Enabled) -> void {
     helpers::move(get<T>(edges_enable_), get<T>(edges_disable_), edge,
                  [](const auto& e) { e->disable(true); });
   }
 
   template <class T, if_edge<T> = 0>
-  void toggle(const Shared<T>& edge, const Disabled) {
+  auto toggle(const Shared<T>& edge, const Disabled) -> void {
     helpers::move(get<T>(edges_disable_), get<T>(edges_enable_), edge,
                  [](const auto& e) { e->disable(false); });
   }
 
   template <class T, class Fn, if_edge<T> = 0, if_predicate<Fn, T> = 0>
-  void toggle(Fn&& func, const Enabled) {
+  auto toggle(Fn&& func, const Enabled) -> void {
     helpers::move_if(get<T>(edges_enable_), get<T>(edges_disable_), std::forward<Fn>(func),
                     [](const auto& edge) { edge->disable(true); });
   }
 
   template <class T, class Fn, if_edge<T> = 0, if_predicate<Fn, T> = 0>
-  void toggle(Fn&& func, const Disabled) {
+  auto toggle(Fn&& func, const Disabled) -> void {
     helpers::move_if(get<T>(edges_disable_), get<T>(edges_enable_), std::forward<Fn>(func),
                     [](const auto& edge) { edge->disable(false); });
   }
 
   template <class E, Option value, if_types<E> = 0>
-  void toggle(const OptionConstant<value> option) {
+  auto toggle(const OptionConstant<value> option) -> void {
     toggle(E{}, option);
   }
 
   template <class E, class T, Option value, if_types<E> = 0>
-  void toggle(T&& variant, const OptionConstant<value> option) {
+  auto toggle(T&& variant, const OptionConstant<value> option) -> void {
     toggle(E{}, option, std::forward<T>(variant));
   }
 
@@ -567,17 +567,17 @@ class Graph {
   }
 
   template <class T>
-  void linkEdge(TupleSetShared& edges, const Shared<T>& edge) {
+  auto linkEdge(TupleSetShared& edges, const Shared<T>& edge) -> void {
     std::ignore = get<T>(edges).insert(edge);
   }
 
   template <class T>
-  void unlinkEdge(TupleSetShared& edges, const Shared<T>& edge) {
+  auto unlinkEdge(TupleSetShared& edges, const Shared<T>& edge) -> void {
     std::ignore = get<T>(edges).erase(edge);
   }
 
   template <class N>
-  void unlinkNode(const Shared<N>& node) {
+  auto unlinkNode(const Shared<N>& node) -> void {
     node->apply([&](auto& e) {
       e->apply([&](const auto& n) {
         if (not equal(node, n)) {
@@ -591,7 +591,7 @@ class Graph {
   }
 
   template <class E, class N>
-  void unlinkNode(const Shared<N>& node) {
+  auto unlinkNode(const Shared<N>& node) -> void {
     node->template apply<E>([&](auto e) {
       e->apply([&](const auto& n) {
         if (not equal(node, n)) {
@@ -605,7 +605,7 @@ class Graph {
   }
 
   template <class N, class... T>
-  void unlinkNode(const Shared<N>& node, Types<T...>) {
+  auto unlinkNode(const Shared<N>& node, Types<T...>) -> void {
     (unlinkNode<T>(node), ...);
   }
 
@@ -615,24 +615,24 @@ class Graph {
   }
 
   template <class Fn, class... T, Option value>
-  void apply(Fn&& func, Types<T...>, const OptionConstant<value> option) {
+  auto apply(Fn&& func, Types<T...>, const OptionConstant<value> option) -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     (apply<T>(ref_func, option), ...);
   }
 
   template <class Fn, class... T, Option value>
-  void apply(Fn&& func, Types<T...>, const OptionConstant<value> option) const {
+  auto apply(Fn&& func, Types<T...>, const OptionConstant<value> option) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     (apply<T>(ref_func, option), ...);
   }
 
   template <class... T, Option value>
-  void destroy(Types<T...>, const OptionConstant<value> option) {
+  auto destroy(Types<T...>, const OptionConstant<value> option) -> void {
     (destroy<T>(option), ...);
   }
 
   template <class... E, Option value, class... Ts>
-  void toggle(Types<E...>, const OptionConstant<value> option, Ts&&... args) {
+  auto toggle(Types<E...>, const OptionConstant<value> option, Ts&&... args) -> void {
     (toggle<E>(helpers::lreference<Ts>(args)..., option), ...);
   }
 

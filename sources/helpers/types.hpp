@@ -30,7 +30,7 @@ class Types {
   template <template <class...> class T, template <class> class W>
   using WrapType = T<W<Ts>...>;
 
-  template <size_t index>
+  template <std::size_t index>
   using ElementType = std::tuple_element_t<index, Type<std::tuple>>;
 
   template <class T>
@@ -43,7 +43,7 @@ using TypesBuild = typename Ts::template Type<B>;
 template <template <class...> class B, template <class> class W, class Ts>
 using TypesWrapBuild = typename Ts::template WrapType<B, W>;
 
-template <size_t index, class Ts>
+template <std::size_t index, class Ts>
 using TypesElementBuild = typename Ts::template ElementType<index>;
 
 }  // namespace vortex::helpers

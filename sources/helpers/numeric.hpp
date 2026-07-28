@@ -17,7 +17,7 @@ namespace vortex::helpers {
 /// @param value The value to convert.
 /// @return The value converted to the target type.
 template <class To, class From>
-constexpr To narrow_cast(From&& value) noexcept {
+constexpr auto narrow_cast(From&& value) noexcept -> To {
   return static_cast<To>(std::forward<From>(value));
 }
 
@@ -27,7 +27,7 @@ constexpr To narrow_cast(From&& value) noexcept {
 /// @param base The base value.
 /// @return base raised to the given exponent.
 template <unsigned Exponent, class T>
-constexpr T int_pow(T base) {
+constexpr auto int_pow(T base) -> T {
   T result{1};
   for (unsigned i = 0; i < Exponent; ++i) {
     result *= base;

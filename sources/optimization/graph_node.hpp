@@ -65,35 +65,35 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
 
   /// @brief Gets the node dimension.
   /// @return  The current dimension.
-  size_t dimension() const { return dimension_; }
+  auto dimension() const -> size_t { return dimension_; }
 
   /// @brief Sets the node dimension.
   /// @param value The new dimension.
-  void dimension(size_t value) {
+  auto dimension(size_t value) -> void {
     dimension_ = value;
     revision_->update();
   }
 
   /// @brief Gets estimation.
   /// @return The current estimation.
-  const Type& estimation() const { return estimation_; }
+  auto estimation() const -> const Type& { return estimation_; }
 
   /// @brief Set estimation.
   /// @param value The new estimation.
-  void estimation(const Type& value) {
+  auto estimation(const Type& value) -> void {
     estimation_ = value;
     self()->postEstimation();
   }
 
   /// @brief Gets the key (identifier).
   /// @return The identifier value.
-  const Key& key() const { return key_; }
+  auto key() const -> const Key& { return key_; }
 
   /// @brief Backlog handing functions
-  void push() { backlog_.push(estimation_); }
-  void pull() { estimation(backlog_.back()); }
+  auto push() -> void { backlog_.push(estimation_); }
+  auto pull() -> void { estimation(backlog_.back()); }
 
-  void revert(size_t n = 1) {
+  auto revert(size_t n = 1) -> void {
     const size_t drop = backlog_.size() > 1 ? std::min(n, backlog_.size() - 1) : 0;
     for (size_t i = 0; i < drop; ++i) {
       backlog_.pop();
@@ -110,7 +110,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
 
    protected:
     auto operator()() { return value_; }
-    void operator()(size_t value) { value_ = value; }
+    auto operator()(size_t value) -> void { value_ = value; }
 
    private:
     size_t value_{0};
@@ -120,7 +120,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   /// @tparam Delta
   /// @param delta to be added to the current estimation
   template <class Delta>
-  void updateEstimation(const Delta delta) {
+  auto updateEstimation(const Delta delta) -> void {
     VORTEX_PRECONDITION(std::size(delta) == dimension(),
                           "delta update size do not match with node dimension");
     estimation(self()->plus(delta));
@@ -129,10 +129,10 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
  protected:
   /// @brief Helper function for casting to derived type.
   /// @return A pointer to derived type.
-  Derived* self() { return static_cast<Derived*>(this); }
+  auto self() -> Derived* { return static_cast<Derived*>(this); }
 
   /// @brief Runs after a new estimation is set.
-  void postEstimation() {}
+  auto postEstimation() -> void {}
 
  private:
   using Backlog = helpers::Buffer<Type, Config::BacklogCapacity>;

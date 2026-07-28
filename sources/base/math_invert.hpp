@@ -20,7 +20,7 @@ namespace vortex::math {
 /// The function does not throw exceptions.
 /// ===========================================================================
 template <class Matrix, blaze::EnableIf_t<blaze::IsColumnMajorMatrix_v<Matrix> >* = nullptr>
-inline bool invert_cholesky(Matrix& matrix) {
+inline auto invert_cholesky(Matrix& matrix) -> bool {
   VORTEX_PRECONDITION(matrix.rows() == matrix.columns(), "non-square matrix");
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(matrix.rows());
   const auto lda = blaze::numeric_cast<blaze::blas_int_t>(matrix.spacing());

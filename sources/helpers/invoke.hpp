@@ -15,7 +15,7 @@ namespace vortex::helpers {
 
 namespace details {
 template <class Fcall, class Fargs, size_t... Is>
-constexpr decltype(auto) invoke(Fcall&& call, Fargs&& args, std::index_sequence<Is...>) {
+constexpr auto invoke(Fcall&& call, Fargs&& args, std::index_sequence<Is...>) -> decltype(auto) {
   auto& ref_args = lreference<Fargs>(std::forward<Fargs>(args));
   return std::forward<Fcall>(call)(ref_args.template operator()<Is>()...);
 }
@@ -27,7 +27,7 @@ struct Expand {
 };
 
 template <size_t N, class Fcall, class Fargs>
-decltype(auto) invoke(Fcall&& call, Fargs args, Expand<N> expand) {
+auto invoke(Fcall&& call, Fargs args, Expand<N> expand) -> decltype(auto) {
   return details::invoke(std::forward<Fcall>(call), std::forward<Fargs>(args), expand.value);
 }
 
