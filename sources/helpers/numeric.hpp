@@ -8,6 +8,7 @@
 #ifndef VORTEX_HELPERS_NUMERIC_HPP
 #define VORTEX_HELPERS_NUMERIC_HPP
 
+#include <cstddef>
 #include <utility>
 
 namespace vortex::helpers {
@@ -22,6 +23,14 @@ constexpr auto narrow_cast(From&& value) noexcept -> To {
   return static_cast<To>(std::forward<From>(value));
 }
 
+namespace details {
+/// @brief Multiplies @p base by itself once per element of the index sequence.
+template <class T, std::size_t... Is>
+constexpr auto int_pow(T base, std::index_sequence<Is...>) -> T {
+  return ((static_cast<void>(Is), base) * ... * T{1});
+}
+}  // namespace details
+
 /// @brief Compile-time integer power.
 /// @tparam Exponent The integer exponent.
 /// @tparam T        The base type.
@@ -29,11 +38,7 @@ constexpr auto narrow_cast(From&& value) noexcept -> To {
 /// @return base raised to the given exponent.
 template <unsigned Exponent, class T>
 constexpr auto int_pow(T base) -> T {
-  T result{1};
-  for (unsigned i = 0; i < Exponent; ++i) {
-    result *= base;
-  }
-  return result;
+  return details::int_pow(base, std::make_index_sequence<Exponent>{});
 }
 
 }  // namespace vortex::helpers
