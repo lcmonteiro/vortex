@@ -6,7 +6,7 @@
 
 #include <memory_resource>
 
-#include "tests/fixtures/simple_slam_problem.hpp"
+#include "tests/fixtures/simple_slam_graph.hpp"
 
 namespace {
 
@@ -17,35 +17,35 @@ class SlamOptimizationTest : public ::testing::Test {
   using Key = SlamGraph::Key;
 
   auto SetUp() -> void override {
-    p1_ = g_.build<Pose>(Key{1});
-    p2_ = g_.build<Pose>(Key{2});
-    p3_ = g_.build<Pose>(Key{3});
-    d1_ = g_.build<PoseDistance>(*p1_, *p2_);
-    d2_ = g_.build<PoseDistance>(*p2_, *p3_);
-    l1_ = g_.build<PoseLocation>(*p1_);
+    p1_ = g_.build<PositionNode>(Key{1});
+    p2_ = g_.build<PositionNode>(Key{2});
+    p3_ = g_.build<PositionNode>(Key{3});
+    d1_ = g_.build<PositionDistanceEdge>(*p1_, *p2_);
+    d2_ = g_.build<PositionDistanceEdge>(*p2_, *p3_);
+    l1_ = g_.build<PositionLocationEdge>(*p1_);
   }
 
   auto TearDown() -> void override { g_.destroy(); }
 
   SlamGraph g_{std::pmr::new_delete_resource()};
-  go::OptionalShared<Pose> p1_;
-  go::OptionalShared<Pose> p2_;
-  go::OptionalShared<Pose> p3_;
-  go::OptionalShared<PoseDistance> d1_;
-  go::OptionalShared<PoseDistance> d2_;
-  go::OptionalShared<PoseLocation> l1_;
+  go::OptionalShared<PositionNode> p1_;
+  go::OptionalShared<PositionNode> p2_;
+  go::OptionalShared<PositionNode> p3_;
+  go::OptionalShared<PositionDistanceEdge> d1_;
+  go::OptionalShared<PositionDistanceEdge> d2_;
+  go::OptionalShared<PositionLocationEdge> l1_;
 };
 
 /// @brief The prior on p1 = (1,1) and the relative constraint p2 - p1 = (1,1)
 /// drive the solution to p1 = (1,1), p2 = (2,2). p3 follows p2 through d2.
 TEST_F(SlamOptimizationTest, ConvergesToExpectedEstimates) {
-  (*p1_)->estimation(Pointd{0, 0});
-  (*p2_)->estimation(Pointd{2, 2});
-  (*p3_)->estimation(Pointd{0, 0});
+  (*p1_)->estimation(Position{0, 0});
+  (*p2_)->estimation(Position{2, 2});
+  (*p3_)->estimation(Position{0, 0});
 
-  (*l1_)->measurement(Pointd{1, 1});
-  (*d1_)->measurement(Pointd{1, 1});
-  (*d2_)->measurement(Pointd{0, 0});
+  (*l1_)->measurement(Position{1, 1});
+  (*d1_)->measurement(Position{1, 1});
+  (*d2_)->measurement(Position{0, 0});
 
   size_t iterations = 10;
   const auto result = g_.optimize(iterations);
