@@ -31,8 +31,24 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(blaze)
 
 # LAPACK / BLAS are required by the Blaze dense solvers (sysv/potrf/potrs).
-find_library(LAPACK_LIB NAMES lapack liblapack.so.3 PATHS /lib/x86_64-linux-gnu)
-find_library(BLAS_LIB NAMES blas libblas.so.3 PATHS /lib/x86_64-linux-gnu)
+# No PATHS override here -- CMake's default search paths already cover the
+# common cases (Debian/Ubuntu multiarch dirs, Termux's $PREFIX/lib, Homebrew,
+# Fedora/Arch /usr/lib, etc). NAMES includes openblas' library names since on
+# several platforms (Termux among them) that's the package that provides
+# BLAS/LAPACK, and it may or may not also symlink libblas.so/liblapack.so.
+find_library(LAPACK_LIB NAMES lapack liblapack.so.3 openblas)
+find_library(BLAS_LIB NAMES blas libblas.so.3 openblas)
+
+if(NOT LAPACK_LIB OR NOT BLAS_LIB)
+  message(FATAL_ERROR
+    "Could not find BLAS/LAPACK, required by Blaze's dense solvers.\n"
+    "Install them for your platform, then re-run CMake:\n"
+    "  Debian/Ubuntu : sudo apt-get install libblas-dev liblapack-dev\n"
+    "  Fedora/RHEL   : sudo dnf install blas-devel lapack-devel\n"
+    "  Arch          : sudo pacman -S blas lapack\n"
+    "  macOS         : brew install openblas lapack\n"
+    "  Termux        : pkg install openblas\n")
+endif()
 
 # ---------------------------------------------------------------------------
 # vortex library
