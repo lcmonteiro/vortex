@@ -13,9 +13,9 @@
 #include <iterator>
 #include <vector>
 
+#include "foundation/dual/dual.hpp"
 #include "foundation/graph/graph.hpp"
 #include "foundation/math/math.hpp"
-#include "foundation/dual/dual.hpp"
 #include "helpers/index.hpp"
 #include "helpers/invoke.hpp"
 #include "optimization/graph_config.hpp"
@@ -141,8 +141,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
 
   /// @brief Updates the jacobian values for all nodes.
   auto updateJacobians() -> void {
-    helpers::for_each(helpers::Indexes<Base::NNodes>{},
-                            JacobiansUpdateCallback{self()});
+    helpers::for_each(helpers::Indexes<Base::NNodes>{}, JacobiansUpdateCallback{self()});
   }
 
   /// @brief Applies a function to each H block.
@@ -150,7 +149,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   template <class Fn>
   auto forEachHBlock(Fn&& callable) -> void {
     helpers::for_each_pair(helpers::Indexes<Base::NNodes>{},
-                          HBlockCallback<Fn>{this, std::forward<Fn>(callable)});
+                           HBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
 
   /// @brief Applies a function to each B block.
@@ -158,7 +157,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   template <class Fn>
   auto forEachBBlock(Fn&& callable) -> void {
     helpers::for_each(helpers::Indexes<Base::NNodes>{},
-                     BBlockCallback<Fn>{this, std::forward<Fn>(callable)});
+                      BBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
 
  protected:
@@ -168,10 +167,9 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   /// @note The transpose version is assumed to already include the
   /// information matrix.
   template <typename Node>
-  using JacobianTransposeMatrix =
-      math::HybridMatrix<Number, Node::kMaxDimension, kDimension, math::rowMajor>;
+  using JacobianMatrixT = math::HybridMatrix<Number, Node::kDimension, kDimension, math::rowMajor>;
   template <typename Node>
-  using JacobianMatrix = math::HybridMatrix<Number, kDimension, Node::kMaxDimension>;
+  using JacobianMatrix = math::HybridMatrix<Number, kDimension, Node::kDimension>;
 
   /// @brief Calculates the jacobian via forward-mode automatic
   /// differentiation using dual numbers.
@@ -187,17 +185,15 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   auto jacobian() {
     using NodeType = Node<I>;
 
-    const auto node_dimension = GetNode<I>(*this)->dimension();
-    auto jacobian = JacobianMatrix<NodeType>(kDimension, node_dimension, Number{0});
-
-    const auto residual = helpers::invoke(
-        ErrorCall{self()},                                  // Invoke the error function
-        DualEstimationCallback<I>{self(), node_dimension},  // Get the dual estimations
+    const auto residual = helpers::invoke(  //
+        ErrorCall{self()},                  // Invoke the error function
+        DualEstimationCallback<I>{self()},  // Get the dual estimations
         helpers::Expand<Base::NNodes>{});
 
+    auto jacobian = JacobianMatrix<NodeType>(kDimension, NodeType::kDimension, Number{0});
     for (size_t row{0}; row < kDimension; ++row) {
       const auto& partials = residual[row];
-      assert(partials.size() <= node_dimension);
+      assert(partials.size() <= NodeType::kDimension);
       for (size_t col{0}; col < partials.size(); ++col) {
         jacobian(row, col) = partials.dvalue(col);
       }
@@ -238,17 +234,16 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   template <size_t UpdateIndex>
   struct DualEstimationCallback {
     Derived* self;
-    size_t update_dimension;
     template <size_t I>
     auto operator()() {
-      const auto dimension = GetNode<I>(*self)->dimension();
-      std::vector<Dual> delta;
-      delta.reserve(dimension);
-      for (size_t index{0}; index < dimension; ++index) {
+      using NodeType = Node<I>;
+
+      std::array<Dual, NodeType::kDimension> delta;
+      for (size_t index{0}; index < NodeType::kDimension; ++index) {
         if constexpr (UpdateIndex == I) {
-          delta.emplace_back(Number{0}, index);
+          delta[index] = Dual{Number{0}, index};
         } else {
-          delta.emplace_back(Number{0});
+          delta[index] = Dual{Number{0}};
         }
       }
       return GetNode<I>(*self)->plus(delta);
@@ -319,9 +314,9 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   KernelVariant kernel_{};
 
   /// @brief Jacobian types.
-  using JacobianTransposeTuple = helpers::TypesWrapBuild<std::tuple, JacobianTransposeMatrix, Nodes>;
+  using JacobianTupleT = helpers::TypesWrapBuild<std::tuple, JacobianMatrixT, Nodes>;
   using JacobianTuple = helpers::TypesWrapBuild<std::tuple, JacobianMatrix, Nodes>;
-  JacobianTransposeTuple jacobian_transpose_{};
+  JacobianTupleT jacobian_transpose_{};
   JacobianTuple jacobian_{};
 };
 
