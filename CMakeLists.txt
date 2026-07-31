@@ -47,7 +47,7 @@ if(NOT LAPACK_LIB OR NOT BLAS_LIB)
     "  Fedora/RHEL   : sudo dnf install blas-devel lapack-devel\n"
     "  Arch          : sudo pacman -S blas lapack\n"
     "  macOS         : brew install openblas lapack\n"
-    "  Termux        : pkg install openblas\n")
+    "  Termux        : pkg install blas-openblas\n")
 endif()
 
 # ---------------------------------------------------------------------------
