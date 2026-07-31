@@ -48,7 +48,7 @@ install_apt_deps() {
 }
 
 install_termux_deps() {
-  local pkgs=(cmake git clang openblas)
+  local pkgs=(cmake git clang blas-openblas)
   log "Installing dependencies via pkg: ${pkgs[*]}"
   pkg install -y "${pkgs[@]}"
 }
