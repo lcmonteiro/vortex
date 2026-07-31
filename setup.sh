@@ -47,23 +47,60 @@ install_apt_deps() {
   maybe_sudo apt-get install -y "${pkgs[@]}"
 }
 
+install_termux_deps() {
+  local pkgs=(cmake git clang openblas)
+  log "Installing dependencies via pkg: ${pkgs[*]}"
+  pkg install -y "${pkgs[@]}"
+}
+
+# Whether liblapack/libblas (or an equivalent like openblas) are already
+# resolvable on the linker's default search paths. This is separate from
+# the compiler/cmake/git check below -- those being present says nothing
+# about whether the math libraries this project links against are.
+have_blas_lapack() {
+  if have ldconfig; then
+    if ldconfig -p 2>/dev/null | grep -qE 'lib(blas|openblas)\.so' && \
+       ldconfig -p 2>/dev/null | grep -qE 'lib(lapack|openblas)\.so'; then
+      return 0
+    fi
+  fi
+  # ldconfig isn't available (Termux, some minimal images) -- fall back to
+  # checking common lib directories directly, including Termux's $PREFIX.
+  local dir found_blas=0 found_lapack=0 name
+  for dir in /usr/lib /usr/lib64 /usr/local/lib "${PREFIX:-}/lib" /lib/*-linux-gnu; do
+    [ -d "$dir" ] || continue
+    for name in libblas.so libopenblas.so; do
+      compgen -G "$dir/${name}*" >/dev/null 2>&1 && found_blas=1
+    done
+    for name in liblapack.so libopenblas.so; do
+      compgen -G "$dir/${name}*" >/dev/null 2>&1 && found_lapack=1
+    done
+  done
+  [ "$found_blas" -eq 1 ] && [ "$found_lapack" -eq 1 ]
+}
+
 ensure_deps() {
   case "$INSTALL_DEPS" in
     no)
       log "Skipping dependency installation (INSTALL_DEPS=no)."
       ;;
     yes)
-      if have apt-get; then install_apt_deps
-      else err "apt-get not found; please install the prerequisites manually."; fi
+      if [ -n "${PREFIX:-}" ] && [[ "$PREFIX" == *com.termux* ]]; then install_termux_deps
+      elif have apt-get; then install_apt_deps
+      else err "No supported package manager found (apt-get or Termux's pkg); please install the prerequisites manually."; fi
       ;;
     auto)
-      if have cmake && have git && { have g++ || have clang++; }; then
-        log "Core build tools already present."
+      local have_tools=0
+      have cmake && have git && { have g++ || have clang++; } && have_tools=1
+      if [ "$have_tools" -eq 1 ] && have_blas_lapack; then
+        log "Core build tools and BLAS/LAPACK already present."
+      elif [ -n "${PREFIX:-}" ] && [[ "$PREFIX" == *com.termux* ]]; then
+        install_termux_deps
       elif have apt-get; then
         install_apt_deps
       else
-        warn "Missing build tools and no apt-get available."
-        warn "Please install: cmake (>=3.24), a C++23 compiler, git, liblapack-dev, libblas-dev."
+        warn "Missing build tools or BLAS/LAPACK, and no supported package manager available."
+        warn "Please install: cmake (>=3.24), a C++23 compiler, git, and BLAS/LAPACK (see README.md)."
       fi
       ;;
     *)
