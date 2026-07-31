@@ -14,7 +14,6 @@
 
 namespace vortex::graph::optimization {
 
-using graph::SharedRevision;
 using graph::Types;
 
 /// ===========================================================================
@@ -32,47 +31,32 @@ using Edges = Types<Ts...>;
 /// @tparam Edges        The type of edges connected to the node.
 /// @tparam Config       Configuration settings for the node.
 /// ===========================================================================
-template <class Derived, size_t MaxDimension, class Type, class Edges, class Config = DefaultConfig>
+template <class Derived, size_t Dimension, class Type, class Edges, class Config = DefaultConfig>
 class Node : public helpers::TypesBuild<graph::Node, Edges> {
  public:
   /// @brief Helper aliases.
-  static constexpr size_t kMaxDimension{MaxDimension};
+  static constexpr size_t kDimension{Dimension};
 
   using Number = typename Config::Number;
   using Key = typename Config::Key;
 
   template <size_t D>
-  using Matrix = math::HybridMatrix<Number, D, kMaxDimension>;
-  using Vector = math::HybridVector<Number, kMaxDimension>;
+  using Matrix = math::HybridMatrix<Number, D, kDimension>;
+  using Vector = math::HybridVector<Number, kDimension>;
   using Base = helpers::TypesBuild<graph::Node, Edges>;
   using Base::Base;
 
   /// @brief Node constructor.
-  /// @param memory Memory resource.
   /// @param key Node identifier.
-  /// @param revision Node revision tracker.
-  Node(const SharedRevision& revision, const Key& key, std::pmr::memory_resource* const memory)
-      : Base{key, memory},
-        dimension_{kMaxDimension},
-        estimation_{},
-        backlog_{},
-        key_{key},
-        revision_{revision} {
+  /// @param memory Memory resource.
+  Node(const Key& key, std::pmr::memory_resource* const memory)
+      : Base{key, memory}, estimation_{}, backlog_{}, key_{key} {
     push();
   }
-  Node(const Key& key, std::pmr::memory_resource* const memory)
-      : Node(SharedRevision{memory}, memory, key) {}
 
   /// @brief Gets the node dimension.
-  /// @return The current dimension.
-  auto dimension() const -> size_t { return dimension_; }
-
-  /// @brief Sets the node dimension.
-  /// @param value The new dimension.
-  auto dimension(size_t value) -> void {
-    dimension_ = value;
-    revision_->update();
-  }
+  /// @return The dimension.
+  constexpr auto dimension() -> size_t { return kDimension; }
 
   /// @brief Gets estimation.
   /// @return The current estimation.
@@ -122,7 +106,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   template <class Delta>
   auto updateEstimation(const Delta delta) -> void {
     VORTEX_PRECONDITION(std::size(delta) == dimension(),
-                          "delta update size do not match with node dimension");
+                        "delta update size do not match with node dimension");
     estimation(self()->plus(delta));
   }
 
@@ -137,11 +121,9 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
  private:
   using Backlog = helpers::Buffer<Type, Config::BacklogCapacity>;
 
-  size_t dimension_;
   Type estimation_;
   Backlog backlog_;
   Key key_;
-  SharedRevision revision_;
 };
 
 }  // namespace vortex::graph::optimization

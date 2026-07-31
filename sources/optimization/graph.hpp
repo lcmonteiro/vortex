@@ -19,7 +19,6 @@ using graph::OptionalShared;
 using graph::Shared;
 
 using graph::Revision;
-using graph::SharedRevision;
 
 /// ===========================================================================
 /// @brief A templated Graph class implementing optimization algorithms.
@@ -50,15 +49,9 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
   explicit Graph(std::pmr::memory_resource* const memory_resource)
       : Base{memory_resource}, algorithm_{*this}, optimizer_revision_{} {}
 
-  /// @brief Extends the builders from the base class.
-  template <class T, class... A, typename Base::template if_node<T> = 0>
-  auto build(A&&... args) {
-    return Base::template build<T>(std::forward<A>(args)..., this->revision());
-  }
-  template <class T, class... A, typename Base::template if_edge<T> = 0>
-  auto build(A&&... args) {
-    return Base::template build<T>(std::forward<A>(args)...);
-  }
+  /// @brief Node and edge construction is inherited as-is from the base graph --
+  /// optimization::Graph adds no extra construction arguments.
+  using Base::build;
 
   /// @brief Runs the graph optimization algorithm.
   /// @param iterations The number of iterations to run.
