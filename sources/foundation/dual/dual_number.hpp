@@ -56,7 +56,7 @@ struct number {
   /// @param value The scalar value.
   /// @param index Derivative index assigned to this variable (derivative 1).
   explicit number(const value_t& value, index_t index)
-      : value_{value},
+      : value_{value},  //
         dindex_({index}, resource()),
         dvalue_(index + 1, value_t{0}, resource()) {
     assert(index < kMaxIndex);
@@ -164,7 +164,7 @@ inline auto make_vector(std::size_t n, const U& value) {
 /// @param init Initial scalar value for every element.
 /// @return An array of independent dual variables.
 template <size_t N, class U, std::size_t... I>
-inline auto make_array(const U& init, sequence<I...> = {}) {
+constexpr auto make_array(const U& init, sequence<I...> = {}) {
   if constexpr (sizeof...(I) != N) {
     return make_array<N>(init, make_sequence<N>{});
   } else {
