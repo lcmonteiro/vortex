@@ -71,18 +71,15 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   using Vector = math::StaticVector<Number, kDimension>;
   using Base::Base;
 
-  /// @brief Dual number scalar used for automatic differentiation.
-  using Dual = ::vortex::dual::number<Number>;
-
   /// @brief Scalar-generic error container returned by a derived edge.
   ///
-  /// A derived edge must implement a templated `error(...)` that accepts the
-  /// connected node estimations expressed in the scalar type `Scalar` and
-  /// returns an `Error<Scalar>` (i.e. `std::array<Scalar, kDimension>`). This
-  /// lets the same cost function be evaluated with `Number` (to obtain the
-  /// residual) and with `Dual` (to obtain exact Jacobians).
-  template <class Scalar>
-  using Error = std::array<Scalar, kDimension>;
+  /// A derived edge implements a templated `error(...)` that accepts the
+  /// connected node estimations with arbitrary scalar types and returns an
+  /// `Error<Scalars...>`. The element type is deduced from the arithmetic result
+  /// of the supplied scalar types, allowing residuals to be evaluated with
+  /// `Number`, `Dual`, or a mixture of compatible scalar types.
+  template <class... Scalars>
+  using Error = std::array<std::decay_t<decltype((std::declval<Scalars>() + ...))>, kDimension>;
 
   /// @brief Gets measurement.
   /// @return The current measurement value.
@@ -236,17 +233,13 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     Derived* self;
     template <size_t I>
     auto operator()() {
-      using NodeType = Node<I>;
-
-      std::array<Dual, NodeType::kDimension> delta;
-      for (size_t index{0}; index < NodeType::kDimension; ++index) {
-        if constexpr (UpdateIndex == I) {
-          delta[index] = Dual{Number{0}, index};
-        } else {
-          delta[index] = Dual{Number{0}};
-        }
+      if constexpr (UpdateIndex == I) {
+        constexpr auto D = Node<I>::kDimension;
+        constexpr auto Z = Number{0};
+        return GetNode<I>(*self)->plus(dual::make_array<D>(Z));
+      } else {
+        return GetNode<I>(*self)->estimation();
       }
-      return GetNode<I>(*self)->plus(delta);
     }
   };
 
