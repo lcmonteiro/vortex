@@ -21,6 +21,8 @@ template <std::size_t N>
 using make_sequence = std::make_index_sequence<N>;
 template <std::size_t... I>
 using sequence = std::index_sequence<I...>;
+template <std::size_t I>
+using index = std::integral_constant<std::size_t, I>;
 
 /// @brief Forward-mode dual number carrying a scalar value and its partial
 /// derivatives.
@@ -139,50 +141,28 @@ inline auto operator<(const T& n1, const number<T>& n2) -> bool {
 /// @param i Derivative index assigned to the variable.
 /// @return The constructed dual number.
 template <class U>
-inline auto make_number(const U& init, std::size_t i = 0) {
+inline auto make_number_(const U& init, std::size_t i = 0) {
   return number{init, i};
 }
 
-/// @brief Creates a vector of dual numbers, each seeded at its own index.
-/// @tparam U Scalar type.
-/// @param n Number of elements.
-/// @param value Initial scalar value for every element.
-/// @return A vector of independent dual variables.
-template <class U>
-inline auto make_vector(std::size_t n, const U& value) {
-  auto vector = std::vector<number<U>>{};
-  vector.reserve(n);
-  for (std::size_t idx = 0; idx < n; ++idx) {
-    vector.emplace_back(value, idx);
-  }
-  return vector;
-}
-
-/// @brief Creates an array of `N` dual numbers, each seeded at its own index.
-/// @tparam N Number of elements.
-/// @tparam U Scalar type.
-/// @param init Initial scalar value for every element.
-/// @return An array of independent dual variables.
-template <size_t N, class U, std::size_t... I>
-constexpr auto make_array(const U& init, sequence<I...> = {}) {
+/// @brief Creates an array of dual numbers, each seeded at its own index with an optional offset.
+/// @tparam N Number of elements to create.
+/// @tparam U Scalar type of the initial value.
+/// @tparam O Index offset applied to each variable's seed (default is 0).
+/// @param init Initial scalar value for every dual element.
+/// @param offset Compile-time index offset wrapper (default is index<0>).
+/// @return An array of `N` independent dual variables.
+template <std::size_t N, std::size_t O = 0, class U, std::size_t... I>
+constexpr auto array(const U& init, sequence<I...> = {}) {
   if constexpr (sizeof...(I) != N) {
-    return make_array<N>(init, make_sequence<N>{});
+    return array<N, O>(init, make_sequence<N>{});
   } else {
-    return std::array{number{init, I}...};
+    return std::array{number{init, I + O}...};
   }
 }
-/// @brief Creates an array of dual numbers from existing scalar values.
-/// @tparam U Scalar type.
-/// @tparam N Number of elements.
-/// @param container Scalar values to seed as independent variables.
-/// @return An array of independent dual variables.
-template <class U, size_t N>
-inline auto make_array(const std::array<U, N>& container) {
-  auto array = std::array<number<U>, N>{};
-  for (std::size_t idx = 0; idx < N; ++idx) {
-    array[idx] = number{container[idx], idx};
-  }
-  return array;
+template <class U, std::size_t N, std::size_t O = 0>
+constexpr auto zeros() {
+  return array<N, O>(U{0});
 }
 
 template <class T>
