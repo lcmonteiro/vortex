@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstddef>
 #include <iterator>
+#include <utility>
 #include <vector>
 
 #include "foundation/dual/dual.hpp"
@@ -127,6 +128,11 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   } kernel{kernel_};
 
   /// @brief Updates the error value and chi-squared value.
+  ///
+  /// Evaluates the derived edge's `error(...)` with plain (non-dual) node
+  /// estimations, and updates the robust kernel's chi-squared statistic
+  /// from the resulting residual. This does not touch the jacobians; use
+  /// `update()` for a combined error + jacobian refresh.
   auto updateError() -> void {
     const auto residual = helpers::invoke(
         ErrorCall{self()},           // Invoke the error function of the derived edge
@@ -137,8 +143,48 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   }
 
   /// @brief Updates the jacobian values for all nodes.
+  ///
+  /// @note This evaluates the derived edge's `error(...)` once per
+  /// connected node (`Base::NNodes` evaluations total), each time seeding
+  /// only that node's tangent increment with independent dual variables.
+  /// Prefer `update()` when both the error and the jacobians are needed,
+  /// since it performs the equivalent work with a single evaluation of
+  /// `error(...)`.
   auto updateJacobians() -> void {
     helpers::for_each(helpers::Indexes<Base::NNodes>{}, JacobiansUpdateCallback{self()});
+  }
+
+  /// @brief Updates the error, chi-squared value, and both jacobian forms
+  /// for every connected node in a single evaluation of `error(...)`.
+  ///
+  /// Unlike `updateJacobians()`, which seeds one node at a time and
+  /// re-evaluates `error(...)` once per node, this seeds *all* connected
+  /// nodes' tangent increments simultaneously into one combined dual
+  /// vector (see `DualEstimationCallback2` / `kNodeOffset`), so a single
+  /// call to `error(...)` yields, in its dual residual, the exact partial
+  /// derivatives with respect to every node at once. The scalar part of
+  /// the residual doubles as the plain error value, so this also replaces
+  /// `updateError()`.
+  auto update() -> void {
+    const auto residual = helpers::invoke(  //
+        ErrorCall{self()},                  // Invoke the error function of the derived edge
+        DualEstimationCallback2{self()},    // Seed every node's tangent at once
+        helpers::Expand<Base::NNodes>{});
+
+    // The scalar part of each dual residual component is the plain error.
+    std::transform(             //
+        std::cbegin(residual),  //
+        std::cend(residual),    //
+        std::begin(error_),     //
+        [](const auto& component) { return component.value(); });
+    kernel_->update(math::dot(error_, information() * error_));
+
+    // Extract each node's jacobian / jacobian_transpose block from the
+    // single dual residual above, reading the derivative range that
+    // corresponds to that node's offset in the combined tangent space.
+    helpers::for_each(                     //
+        helpers::Indexes<Base::NNodes>{},  //
+        JacobianExtractCallback{self(), residual});
   }
 
   /// @brief Applies a function to each H block.
@@ -168,6 +214,41 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   template <typename Node>
   using JacobianMatrix = math::HybridMatrix<Number, kDimension, Node::kDimension>;
 
+  /// @brief Dimension of each connected node, in `Nodes` order.
+  ///
+  /// `kNodeDimension[I] == Node<I>::kDimension`. Built once at compile
+  /// time by expanding `I = 0 .. Base::NNodes - 1` and reading each node
+  /// type's `kDimension`.
+  static constexpr auto kNodeDimension = []<size_t... Is>(std::index_sequence<Is...>) {
+    return std::array<size_t, sizeof...(Is)>{Node<Is>::kDimension...};
+  }(std::make_index_sequence<Base::NNodes>{});
+
+  /// @brief Offset of each connected node within the edge's combined
+  /// tangent space (the concatenation of every connected node's tangent
+  /// increment).
+  ///
+  /// `kNodeOffset[I]` is the exclusive prefix sum of `kNodeDimension`:
+  /// `kNodeOffset[0] == 0` and `kNodeOffset[I] == kNodeOffset[I - 1] +
+  /// kNodeDimension[I - 1]` for `I > 0`. This is the derivative index at
+  /// which node `I`'s dual seed range starts when all nodes are seeded
+  /// simultaneously (see `DualEstimationCallback2`).
+  ///
+  /// @note The peeled first index `I` in the lambda's parameter pack is
+  /// only used to size the resulting `std::array` back to `Base::NNodes`
+  /// (`sizeof...(Is) + 1`); `offset[0]` stays `0` from the aggregate
+  /// initializer and the fold below only ever writes `offset[Is]` for
+  /// `Is >= 1`.
+  static constexpr auto kNodeOffset = []<size_t I, size_t... Is>(std::index_sequence<I, Is...>) {
+    std::array<size_t, sizeof...(Is) + 1> offset{0};
+    ((offset[Is] = offset[Is - 1] + kNodeDimension[Is - 1]), ...);
+    return offset;
+  }(std::make_index_sequence<Base::NNodes>{});
+
+  /// @brief Total size of the edge's combined tangent space, i.e. the sum
+  /// of every connected node's dimension.
+  static constexpr size_t kTangentSize =
+      kNodeOffset[Base::NNodes - 1] + kNodeDimension[Base::NNodes - 1];
+
   /// @brief Calculates the jacobian via forward-mode automatic
   /// differentiation using dual numbers.
   ///
@@ -176,6 +257,11 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   /// constant (zero) dual increment. The derived edge's templated `error(...)`
   /// is then evaluated once with dual estimations, and the exact partial
   /// derivatives are read directly from the resulting dual residuals.
+  ///
+  /// @note This evaluates `error(...)` once for this node alone. When
+  /// jacobians for every node are needed, prefer `update()`, which seeds
+  /// all nodes at once and reads every node's block from a single
+  /// evaluation.
   /// @tparam I node index.
   /// @return The jacobian matrix.
   template <size_t I>
@@ -234,16 +320,52 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     template <size_t I>
     auto operator()() {
       if constexpr (UpdateIndex == I) {
-        constexpr auto D = Node<I>::kDimension;
-        constexpr auto Z = Number{0};
-        return GetNode<I>(*self)->plus(dual::make_array<D>(Z));
+        constexpr auto D = std::get<I>(kNodeDimension);
+        return GetNode<I>(*self)->plus(dual::zeros<Number, D>());
       } else {
         return GetNode<I>(*self)->estimation();
       }
     }
   };
 
-  /// @brief Updates the two jacobian forms.
+  /// @brief Produces dual-number estimations for *every* connected node at
+  /// once, each seeded at its own non-overlapping range within the edge's
+  /// combined tangent space.
+  ///
+  /// Node `I`'s tangent increment is seeded with `kNodeDimension[I]`
+  /// independent dual variables starting at derivative index
+  /// `kNodeOffset[I]` (value 0, unit derivative at its own index; see
+  /// `dual::zeros`). Because every node is seeded in the same call, a
+  /// single evaluation of the derived edge's `error(...)` yields, in the
+  /// dual residual, the exact partial derivatives with respect to *all*
+  /// connected nodes simultaneously — the block for node `I` is read from
+  /// derivative indices `[kNodeOffset[I], kNodeOffset[I] +
+  /// kNodeDimension[I])` (see `JacobianExtractCallback`).
+  ///
+  /// @note Compared to `DualEstimationCallback<I>`, which seeds one node
+  /// at a time and requires `Base::NNodes` evaluations of `error(...)` to
+  /// cover every node, this trades a larger per-operation dual vector
+  /// (size `kTangentSize` instead of a single node's dimension) for a
+  /// single evaluation of `error(...)`. Whether this is a net win depends
+  /// on the relative cost of evaluating `error(...)` versus the cost of
+  /// dual arithmetic over the larger combined vector.
+  struct DualEstimationCallback2 {
+    Derived* self;
+    template <size_t I>
+    auto operator()() {
+      constexpr auto D = std::get<I>(kNodeDimension);
+      constexpr auto O = std::get<I>(kNodeOffset);
+      return GetNode<I>(*self)->plus(dual::zeros<Number, D, O>());
+    }
+  };
+
+  /// @brief Updates the two jacobian forms for a single node by evaluating
+  /// `error(...)` once for that node alone (via `jacobian<I>()`).
+  ///
+  /// @note Used by `updateJacobians()`, which calls this once per
+  /// connected node. Prefer `update()` / `JacobianExtractCallback` when
+  /// jacobians for every node are needed, to avoid the repeated
+  /// evaluations of `error(...)`.
   struct JacobiansUpdateCallback {
     Derived* self;
 
@@ -257,6 +379,47 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
       auto& jacobian = std::get<I>(self->jacobian_);
       auto& jacobian_transpose = std::get<I>(self->jacobian_transpose_);
       jacobian = self->template jacobian<I>();
+      jacobian_transpose = math::trans(jacobian) * robustify(self->information());
+    }
+  };
+
+  /// @brief Extracts the jacobian and jacobian_transpose block for a
+  /// single node from a residual that was computed with *every* node
+  /// seeded simultaneously (see `DualEstimationCallback2`).
+  ///
+  /// Reads each residual row's derivative components in the range
+  /// `[kNodeOffset[I], kNodeOffset[I] + kNodeDimension[I])`, which
+  /// corresponds to node `I`'s tangent increment within the combined dual
+  /// vector.
+  ///
+  /// @tparam Residual Type of the dual residual produced by evaluating
+  /// `error(...)` with `DualEstimationCallback2`.
+  template <class Residual>
+  struct JacobianExtractCallback {
+    Derived* self;
+    const Residual& residual;
+
+    template <class T>
+    auto robustify(const T& information) {
+      return self->kernel_->robustify(information);
+    }
+
+    template <size_t I>
+    auto operator()() -> void {
+      using NodeType = Node<I>;
+      constexpr auto D = std::get<I>(kNodeDimension);
+      constexpr auto O = std::get<I>(kNodeOffset);
+
+      auto& jacobian = std::get<I>(self->jacobian_);
+      for (size_t row{0}; row < kDimension; ++row) {
+        const auto& partials = residual[row];
+        assert(O + D <= partials.size());
+        for (size_t col{0}; col < D; ++col) {
+          jacobian(row, col) = partials.dvalue(O + col);
+        }
+      }
+
+      auto& jacobian_transpose = std::get<I>(self->jacobian_transpose_);
       jacobian_transpose = math::trans(jacobian) * robustify(self->information());
     }
   };
