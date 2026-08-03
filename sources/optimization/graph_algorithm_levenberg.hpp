@@ -71,11 +71,11 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   template <bool first_iteration, bool last_iteration>
   auto solve() -> std::expected<bool, AlgorithmError> {
     if constexpr (first_iteration) {
-      graph_.updateErrors();
+      graph_.updateEdges();
       solver_.buildSystem();
       lambda_ = computeLambdaInit();
       lambda_factor_ = 2;
-      current_chi_ = graph_.computeChi2();
+      current_chi_ = graph_.chi2();
     }
 
     for (size_t it = 0; it < Constant(Config::Retries); ++it) {
@@ -83,10 +83,10 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
       if (solver_.solve()) {
         graph_.push();
-        graph_.updateEstimations(solver_.x());
-        graph_.updateErrors();
+        graph_.updateNodes(solver_.x());
+        graph_.updateEdges();
 
-        const Number chi = graph_.computeChi2();
+        const Number chi = graph_.chi2();
         const Number scale = computeScale() + Constant<Number>(1e-3);
         const Number rho = (current_chi_ - chi) / scale;
 
