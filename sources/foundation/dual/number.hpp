@@ -22,6 +22,10 @@ using make_sequence = std::make_index_sequence<N>;
 template <std::size_t... I>
 using sequence = std::index_sequence<I...>;
 
+inline auto memory() noexcept -> std::pmr::memory_resource* {
+  return helpers::MemoryScope::GetResource();
+}
+
 /// @brief Forward-mode dual number carrying a scalar value and its partial
 /// derivatives.
 ///
@@ -39,26 +43,19 @@ struct number {
   static constexpr auto kMaxIndex = 100000;
 
   number() = default;
-  number(const number& other)
-      : value_{other.value_},
-        dindex_{other.dindex_, resource()},
-        dvalue_{other.dvalue_, resource()} {}
+  number(const number& other) = default;
   number(number&&) = default;
 
   /// @brief Constructs a constant dual number with a zero derivative.
   /// @param value The scalar value.
-  explicit number(const value_t& value)
-      : value_{value},  //
-        dindex_{resource()},
-        dvalue_{resource()} {}
+  explicit number(const value_t& value)  //
+      : value_{value}, dindex_{memory()}, dvalue_{memory()} {}
 
   /// @brief Constructs an independent variable seeded at the given index.
   /// @param value The scalar value.
   /// @param index Derivative index assigned to this variable (derivative 1).
   explicit number(const value_t& value, index_t index)
-      : value_{value},  //
-        dindex_({index}, resource()),
-        dvalue_(index + 1, value_t{0}, resource()) {
+      : value_{value}, dindex_({index}, memory()), dvalue_(index + 1, value_t{0}, memory()) {
     VORTEX_ASSERT(index < kMaxIndex, "derivative index exceeds kMaxIndex");
     dvalue_.back() = value_t{1};
   }
@@ -97,24 +94,18 @@ struct number {
   auto size() const -> std::size_t { return dvalue_.size(); }
 
  protected:
-  number(const value_t& value,    //< The scalar value.
-         const dindex_t& dindex,  //< The active derivative indices.
-         const dvalue_t& dvalue   //< The derivative values.
-         )
-      : value_{value}, dindex_{dindex, resource()}, dvalue_{dvalue, resource()} {}
+  number(const value_t& value, const dindex_t& dindex, const dvalue_t& dvalue)
+      : value_{value}, dindex_{dindex, memory()}, dvalue_{dvalue, memory()} {}
+
   template <class Derived>
   friend struct unary_operation;
   template <class Derived>
   friend struct binary_operation;
 
  private:
-  static auto resource() noexcept -> std::pmr::memory_resource* {
-    return helpers::MemoryScope::GetResource();
-  }
-
   value_t value_{};
-  dindex_t dindex_{resource()};
-  dvalue_t dvalue_{resource()};
+  dindex_t dindex_{memory()};
+  dvalue_t dvalue_{memory()};
 };
 
 /// @brief Compares two dual numbers by their scalar value.

@@ -6,6 +6,7 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <utility>
@@ -233,10 +234,11 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
 
       auto& jacobian = std::get<I>(self->jacobian_);
       jacobian.resize(kDimension, D, false);
+      VORTEX_ASSERT(kDimension == residual.size(), "...");
       for (size_t row{0}; row < kDimension; ++row) {
         const auto& partials = residual[row];
-        VORTEX_ASSERT(O + D <= partials.size(), "jacobian block exceeds residual partials");
-        for (size_t col{0}; col < D; ++col) {
+        const auto partials_size = std::clamp(partials.size() - O, size_t{0}, D);
+        for (size_t col{0}; col < partials_size; ++col) {
           jacobian(row, col) = partials.dvalue(O + col);
         }
       }
