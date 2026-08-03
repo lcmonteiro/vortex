@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "foundation/dual/operations/base.hpp"
+#include "helpers/contracts.hpp"
 
 namespace vortex::dual {
 /// @brief Natural-logarithm operation.
@@ -19,7 +20,7 @@ struct log : unary_operation<log> {
   }
   template <class T>
   auto dvalue(const duo<T>& n) const {
-    assert(n.v > T{0});
+    VORTEX_ASSERT(n.v > T{0}, "log derivative requires a positive value");
     return n.d / n.v;
   }
 };
@@ -32,7 +33,7 @@ struct log1p : unary_operation<log1p> {
   }
   template <class T>
   auto dvalue(const duo<T>& n) const {
-    assert(n.v > T{-1});
+    VORTEX_ASSERT(n.v > T{-1}, "log1p derivative requires a value greater than -1");
     return n.d / (T{1} + n.v);
   }
 };

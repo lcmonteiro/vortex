@@ -7,13 +7,13 @@
 #define VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
 
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <utility>
 
 #include "foundation/dual.hpp"
 #include "foundation/graph.hpp"
 #include "foundation/math.hpp"
+#include "helpers/contracts.hpp"
 #include "helpers/index.hpp"
 #include "helpers/invoke.hpp"
 #include "optimization/graph_config.hpp"
@@ -235,7 +235,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
       jacobian.resize(kDimension, D, false);
       for (size_t row{0}; row < kDimension; ++row) {
         const auto& partials = residual[row];
-        assert(O + D <= partials.size());
+        VORTEX_ASSERT(O + D <= partials.size(), "jacobian block exceeds residual partials");
         for (size_t col{0}; col < D; ++col) {
           jacobian(row, col) = partials.dvalue(O + col);
         }

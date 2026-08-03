@@ -7,12 +7,12 @@
 #define VORTEX_FOUNDATION_DUAL_DUAL_NUMBER_HPP
 
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
+#include "helpers/contracts.hpp"
 #include "helpers/memory.hpp"
 
 namespace vortex::dual {
@@ -59,7 +59,7 @@ struct number {
       : value_{value},  //
         dindex_({index}, resource()),
         dvalue_(index + 1, value_t{0}, resource()) {
-    assert(index < kMaxIndex);
+    VORTEX_ASSERT(index < kMaxIndex, "derivative index exceeds kMaxIndex");
     dvalue_.back() = value_t{1};
   }
 
@@ -88,7 +88,7 @@ struct number {
   /// @param i Derivative index.
   /// @return The derivative value at index @p i.
   auto dvalue(index_t i) const -> const value_t& {
-    assert(i < dvalue_.size());
+    VORTEX_ASSERT(i < dvalue_.size(), "derivative index out of range");
     return dvalue_[i];
   }
 
