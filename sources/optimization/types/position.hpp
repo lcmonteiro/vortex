@@ -106,8 +106,8 @@ struct PositionDistanceEdge : PositionDistanceEdgeBase<PositionDistanceEdge<Numb
   /// @param a Estimate of the first (source) position.
   /// @param b Estimate of the second (target) position.
   /// @return Error vector [observed_dx − measured_x, observed_dy − measured_y].
-  template <class A, class B>
-  auto error(const Position<A>& a, const Position<B>& b) -> typename Base::template Error<A, B> {
+  template <class T>
+  auto error(const Position<T>& a, const Position<T>& b) -> typename Base::template Error<T> {
     return {(b.x - a.x) - this->measurement().x, (b.y - a.y) - this->measurement().y};
   }
 };
@@ -139,8 +139,8 @@ struct PositionLocationEdge : PositionLocationEdgeBase<PositionLocationEdge<Numb
   ///   Jacobians).
   /// @param a Estimate of the position.
   /// @return Error vector [a.x − measured_x, a.y − measured_y].
-  template <class A>
-  auto error(const Position<A>& a) -> typename Base::template Error<A> {
+  template <class T>
+  auto error(const Position<T>& a) -> typename Base::template Error<T> {
     return {a.x - this->measurement().x, a.y - this->measurement().y};
   }
 };
