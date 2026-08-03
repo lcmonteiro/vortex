@@ -1,10 +1,10 @@
 /// ===========================================================================
 /// @file
 ///
-/// @brief vortex.helpers.index component
+/// @brief vortex.helpers.unroll component
 /// ===========================================================================
-#ifndef VORTEX_HELPERS_INDEX_HPP
-#define VORTEX_HELPERS_INDEX_HPP
+#ifndef VORTEX_HELPERS_UNROLL_HPP
+#define VORTEX_HELPERS_UNROLL_HPP
 
 #include <cstddef>
 #include <type_traits>
@@ -16,7 +16,7 @@ namespace vortex::helpers {
 
 namespace details {
 template <size_t... Es, class F, size_t... Is>
-auto for_each(F&& fn, std::index_sequence<Is...>) -> void {
+auto unroll(F&& fn, std::index_sequence<Is...>) -> void {
   auto& ref_func = lreference<F>(std::forward<F>(fn));
   if constexpr (std::is_invocable_v<F, size_t>) {
     (ref_func.operator()(Es..., Is), ...);
@@ -25,9 +25,9 @@ auto for_each(F&& fn, std::index_sequence<Is...>) -> void {
   }
 }
 template <class F, size_t... Is>
-auto for_each_pair(F&& fn, std::index_sequence<Is...>) -> void {
+auto unroll_pair(F&& fn, std::index_sequence<Is...>) -> void {
   auto& ref_func = lreference<F>(std::forward<F>(fn));
-  (for_each<Is>(ref_func, std::make_index_sequence<Is + 1>{}), ...);
+  (unroll<Is>(ref_func, std::make_index_sequence<Is + 1>{}), ...);
 }
 }  // namespace details
 
@@ -39,14 +39,14 @@ struct Indexes {
 };
 
 template <size_t N, class F>
-auto for_each(Indexes<N>, F&& fn) -> void {
-  details::for_each(std::forward<F>(fn), Indexes<N>::value);
+auto unroll(Indexes<N>, F&& fn) -> void {
+  details::unroll(std::forward<F>(fn), Indexes<N>::value);
 }
 
 template <size_t N, class F>
-auto for_each_pair(Indexes<N>, F&& fn) -> void {
-  details::for_each_pair(std::forward<F>(fn), Indexes<N>::value);
+auto unroll_pair(Indexes<N>, F&& fn) -> void {
+  details::unroll_pair(std::forward<F>(fn), Indexes<N>::value);
 }
 
 }  // namespace vortex::helpers
-#endif  // VORTEX_HELPERS_INDEX_HPP
+#endif  // VORTEX_HELPERS_UNROLL_HPP
