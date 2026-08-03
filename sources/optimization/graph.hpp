@@ -129,26 +129,25 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
     ForEach<Nodes>(*this, [&](auto& node) { node->revert(n); }, Enabled{});
   }
 
-  /// @brief Computes the error vectors of all edges in the activeSet, and
-  /// caches them.
-  auto updateErrors() -> void {
-    ForEach<Edges>(*this, [](auto& edge) { edge->updateError(); }, Enabled{});
-  }
-
   /// @brief Computes cached chi2 of the active portion of the graph.
-  auto computeChi2() const -> Number {
+  auto chi2() const -> Number {
     Number chi = 0;
     ForEach<Edges>(*this, [&](auto& edge) { chi += edge->chi2(); }, Enabled{});
     return chi;
   }
 
-  /// @brief Updates the estimate of the active nodes.
-  auto updateEstimations(const Vector& x) -> void {
+  /// @brief Updates cached edge quantities for all active edges.
+  auto updateEdges() -> void {
+    ForEach<Edges>(*this, [](auto& edge) { edge->update(); }, Enabled{});
+  }
+
+  /// @brief Updates the active nodes from the stacked state increment vector.
+  auto updateNodes(const Vector& delta) -> void {
     size_t idx = 0;
     ForEach<Nodes>(
         *this,
         [&](auto& node) {
-          node->updateEstimation(math::subvector(x, idx, node->dimension()));
+          node->update(math::subvector(delta, idx, node->dimension()));
           idx += node->dimension();
         },
         Enabled{});

@@ -21,8 +21,6 @@ template <std::size_t N>
 using make_sequence = std::make_index_sequence<N>;
 template <std::size_t... I>
 using sequence = std::index_sequence<I...>;
-template <std::size_t I>
-using index = std::integral_constant<std::size_t, I>;
 
 /// @brief Forward-mode dual number carrying a scalar value and its partial
 /// derivatives.
@@ -135,34 +133,15 @@ inline auto operator<(const T& n1, const number<T>& n2) -> bool {
   return n1 < n2.value();
 }
 
-/// @brief Creates a dual number seeded as an independent variable.
-/// @tparam U Scalar type.
-/// @param init Initial scalar value.
-/// @param i Derivative index assigned to the variable.
-/// @return The constructed dual number.
-template <class U>
-inline auto make_number_(const U& init, std::size_t i = 0) {
-  return number{init, i};
-}
-
-/// @brief Creates an array of dual numbers, each seeded at its own index with an optional offset.
-/// @tparam N Number of elements to create.
-/// @tparam U Scalar type of the initial value.
-/// @tparam O Index offset applied to each variable's seed (default is 0).
-/// @param init Initial scalar value for every dual element.
-/// @param offset Compile-time index offset wrapper (default is index<0>).
-/// @return An array of `N` independent dual variables.
-template <std::size_t N, std::size_t O = 0, class U, std::size_t... I>
-constexpr auto array(const U& init, sequence<I...> = {}) {
-  if constexpr (sizeof...(I) != N) {
-    return array<N, O>(init, make_sequence<N>{});
-  } else {
-    return std::array{number{init, I + O}...};
-  }
-}
-template <class U, std::size_t N, std::size_t O = 0>
+/// @brief Creates a dual number with a zero derivative vector of size D.
+/// @tparam U The underlying scalar type.
+/// @tparam D The size of the derivative vector.
+/// @tparam O The starting offset for the derivative indices (default is 0).
+template <class U, std::size_t D, std::size_t O = 0>
 constexpr auto zeros() {
-  return array<N, O>(U{0});
+  return []<std::size_t... Is>(std::index_sequence<Is...>) {
+    return std::array{number<U>{U{0}, O + Is}...};
+  }(make_sequence<D>{});
 }
 
 template <class T>
