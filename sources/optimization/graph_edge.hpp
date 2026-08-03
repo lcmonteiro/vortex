@@ -70,15 +70,8 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   using Vector = math::StaticVector<Number, kDimension>;
   using Base::Base;
 
-  /// @brief Scalar-generic error container returned by a derived edge.
-  ///
-  /// A derived edge implements a templated `error(...)` that accepts the
-  /// connected node estimations with arbitrary scalar types and returns an
-  /// `Error<Scalars...>`. The element type is deduced from the arithmetic result
-  /// of the supplied scalar types, allowing residuals to be evaluated with
-  /// `Number`, `Dual`, or a mixture of compatible scalar types.
-  template <class... Scalars>
-  using Error = std::array<std::decay_t<decltype((std::declval<Scalars>() + ...))>, kDimension>;
+  template <class Scalar>
+  using Error = std::array<Scalar, kDimension>;
 
   /// @brief Gets measurement.
   /// @return The current measurement value.
