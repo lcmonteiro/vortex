@@ -10,7 +10,7 @@
 #include <iterator>
 #include <tuple>
 
-#include "foundation/dual/dual_number.hpp"
+#include "foundation/dual/number.hpp"
 
 namespace vortex::dual {
 

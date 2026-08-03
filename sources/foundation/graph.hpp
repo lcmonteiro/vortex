@@ -5,14 +5,14 @@
 /// ===========================================================================
 #ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_HPP
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_HPP
-#include <memory>
+
 #include <memory_resource>
 #include <optional>
 #include <tuple>
 
-#include "foundation/graph/graph_config.hpp"
-#include "foundation/graph/graph_edge.hpp"
-#include "foundation/graph/graph_node.hpp"
+#include "foundation/graph/config.hpp"
+#include "foundation/graph/edge.hpp"
+#include "foundation/graph/node.hpp"
 #include "helpers/apply.hpp"
 #include "helpers/build.hpp"
 #include "helpers/memory.hpp"

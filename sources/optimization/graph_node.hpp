@@ -6,8 +6,8 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 
-#include "foundation/graph/graph.hpp"
-#include "foundation/math/math.hpp"
+#include "foundation/graph.hpp"
+#include "foundation/math.hpp"
 #include "helpers/buffer.hpp"
 #include "helpers/contracts.hpp"
 #include "optimization/graph_config.hpp"

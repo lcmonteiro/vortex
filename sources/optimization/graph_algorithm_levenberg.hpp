@@ -10,7 +10,7 @@
 #include <cmath>
 #include <expected>
 
-#include "foundation/math/math.hpp"
+#include "foundation/math.hpp"
 #include "helpers/numeric.hpp"
 #include "optimization/graph_algorithm.hpp"
 

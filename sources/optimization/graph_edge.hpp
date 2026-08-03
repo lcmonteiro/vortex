@@ -11,9 +11,9 @@
 #include <cstddef>
 #include <utility>
 
-#include "foundation/dual/dual.hpp"
-#include "foundation/graph/graph.hpp"
-#include "foundation/math/math.hpp"
+#include "foundation/dual.hpp"
+#include "foundation/graph.hpp"
+#include "foundation/math.hpp"
 #include "helpers/index.hpp"
 #include "helpers/invoke.hpp"
 #include "optimization/graph_config.hpp"
