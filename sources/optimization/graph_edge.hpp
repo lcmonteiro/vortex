@@ -14,8 +14,8 @@
 #include "foundation/graph.hpp"
 #include "foundation/math.hpp"
 #include "helpers/contracts.hpp"
-#include "helpers/index.hpp"
 #include "helpers/invoke.hpp"
+#include "helpers/unroll.hpp"
 #include "optimization/graph_config.hpp"
 #include "optimization/graph_operations.hpp"
 #include "optimization/variants/information_matrix.hpp"
@@ -142,7 +142,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     kernel_->update(math::dot(error_, information() * error_));
 
     // Extract the jacobian and jacobian_transpose blocks for each node from the dual residual.
-    helpers::for_each(                            // Iterate over each node index
+    helpers::unroll(                              // Iterate over each node index
         helpers::Indexes<Base::NNodes>{},         // Index sequence for the number of nodes
         JacobianUpdateCallback{self(), residual}  // update the jacobian and jacobian_transposs
     );
@@ -152,16 +152,16 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   /// @param callable Function that receives the nodes and the block value.
   template <class Fn>
   auto forEachHBlock(Fn&& callable) -> void {
-    helpers::for_each_pair(helpers::Indexes<Base::NNodes>{},
-                           HBlockCallback<Fn>{this, std::forward<Fn>(callable)});
+    helpers::unroll_pair(helpers::Indexes<Base::NNodes>{},
+                         HBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
 
   /// @brief Applies a function to each B block.
   /// @param callable Function that receives the nodes and the block value.
   template <class Fn>
   auto forEachBBlock(Fn&& callable) -> void {
-    helpers::for_each(helpers::Indexes<Base::NNodes>{},
-                      BBlockCallback<Fn>{this, std::forward<Fn>(callable)});
+    helpers::unroll(helpers::Indexes<Base::NNodes>{},
+                    BBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
 
  protected:
