@@ -55,7 +55,7 @@ class Buffer {
   /// @return The element count, always in the range [0, Capacity].
   auto size() const noexcept -> size_type { return size_; }
 
-  /// @brief Constructs a new newest element in place, evicting the oldest
+  /// @brief Constructs a new element at the head of the buffer
   /// element if the buffer is already full.
   /// @tparam Args Constructor argument types for T.
   /// @param args Arguments forwarded to T's constructor.

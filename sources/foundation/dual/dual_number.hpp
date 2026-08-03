@@ -133,56 +133,15 @@ inline auto operator<(const T& n1, const number<T>& n2) -> bool {
   return n1 < n2.value();
 }
 
-/// @brief Creates a dual number seeded as an independent variable.
-/// @tparam U Scalar type.
-/// @param init Initial scalar value.
-/// @param i Derivative index assigned to the variable.
-/// @return The constructed dual number.
-template <class U>
-inline auto make_number(const U& init, std::size_t i = 0) {
-  return number{init, i};
-}
-
-/// @brief Creates a vector of dual numbers, each seeded at its own index.
-/// @tparam U Scalar type.
-/// @param n Number of elements.
-/// @param value Initial scalar value for every element.
-/// @return A vector of independent dual variables.
-template <class U>
-inline auto make_vector(std::size_t n, const U& value) {
-  auto vector = std::vector<number<U>>{};
-  vector.reserve(n);
-  for (std::size_t idx = 0; idx < n; ++idx) {
-    vector.emplace_back(value, idx);
-  }
-  return vector;
-}
-
-/// @brief Creates an array of `N` dual numbers, each seeded at its own index.
-/// @tparam N Number of elements.
-/// @tparam U Scalar type.
-/// @param init Initial scalar value for every element.
-/// @return An array of independent dual variables.
-template <size_t N, class U, std::size_t... I>
-constexpr auto make_array(const U& init, sequence<I...> = {}) {
-  if constexpr (sizeof...(I) != N) {
-    return make_array<N>(init, make_sequence<N>{});
-  } else {
-    return std::array{number{init, I}...};
-  }
-}
-/// @brief Creates an array of dual numbers from existing scalar values.
-/// @tparam U Scalar type.
-/// @tparam N Number of elements.
-/// @param container Scalar values to seed as independent variables.
-/// @return An array of independent dual variables.
-template <class U, size_t N>
-inline auto make_array(const std::array<U, N>& container) {
-  auto array = std::array<number<U>, N>{};
-  for (std::size_t idx = 0; idx < N; ++idx) {
-    array[idx] = number{container[idx], idx};
-  }
-  return array;
+/// @brief Creates a dual number with a zero derivative vector of size D.
+/// @tparam U The underlying scalar type.
+/// @tparam D The size of the derivative vector.
+/// @tparam O The starting offset for the derivative indices (default is 0).
+template <class U, std::size_t D, std::size_t O = 0>
+constexpr auto zeros() {
+  return []<std::size_t... Is>(std::index_sequence<Is...>) {
+    return std::array{number<U>{U{0}, O + Is}...};
+  }(make_sequence<D>{});
 }
 
 template <class T>

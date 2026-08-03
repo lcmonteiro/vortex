@@ -104,7 +104,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   /// @tparam Delta The delta type.
   /// @param delta The delta to be added to the current estimation.
   template <class Delta>
-  auto updateEstimation(const Delta delta) -> void {
+  auto update(const Delta delta) -> void {
     VORTEX_PRECONDITION(std::size(delta) == dimension(),
                         "delta update size do not match with node dimension");
     estimation(self()->plus(delta));

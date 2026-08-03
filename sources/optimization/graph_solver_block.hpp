@@ -68,7 +68,6 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
     ForEach<Edges>(
         this->graph_,
         [this](const auto& edge) {
-          edge->updateJacobians();
           edge->forEachHBlock(UpdateHBlock{this});
           edge->forEachBBlock(UpdateBBlock{this});
         },
