@@ -29,7 +29,7 @@ using graph::Revision;
 /// parameters for the graph (default is `DefaultConfig`).
 /// ===========================================================================
 template <class Nodes, class Edges, class Config = DefaultConfig>
-class Graph : public graph::Graph<Nodes, Edges, Config> {
+class Graph : public graph::Container<Nodes, Edges, Config> {
   /// @brief Helper alias types.
   using LSolver = typename Config::LinearSolver;
   using GSolver = typename Config::template GraphSolver<Graph, LSolver>;
@@ -37,7 +37,7 @@ class Graph : public graph::Graph<Nodes, Edges, Config> {
 
  public:
   static constexpr size_t kSystemCapacity = Config::SystemCapacity;
-  using Base = graph::Graph<Nodes, Edges, Config>;
+  using Base = graph::Container<Nodes, Edges, Config>;
   using Key = typename Config::Key;
   using Number = typename Config::Number;
   using Vector = math::DynamicVector<Number>;
