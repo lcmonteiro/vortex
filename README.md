@@ -51,34 +51,36 @@ The result: you write your residual once, and the exact Jacobian comes for free.
 | [sources/foundation/math/](sources/foundation/math/) | Dense linear-algebra wrappers over [Blaze](https://bitbucket.org/blaze-lib/blaze) (matrix/vector types, inversion, and solvers). |
 | [sources/optimization/](sources/optimization/) | Optimizer layer: `optimize()`, Levenberg–Marquardt algorithm, block graph solver, and the Cholesky/PCG/default linear solvers. Edges compute exact Jacobians via dual numbers. |
 | [sources/helpers/](sources/helpers/) | Compile-time utilities — type lists, apply/invoke, shared/pmr helpers, traits. |
-| [sources/types/](sources/types/) | Small supporting containers (e.g. `vector_set`). |
+| [sources/foundation/types/](sources/foundation/types/) | Small supporting containers (e.g. `vector_set`). |
 | [tests/](tests/) | GoogleTest unit and end-to-end tests, including a scalar-generic SLAM fixture. |
 
-> `sources/foundation/` groups the core modeling modules (`dual`, `graph`, `math`).
+> `sources/foundation/` groups the core modeling modules (`dual`, `graph`, `math`, `types`).
 
 ---
 
 ## How automatic differentiation works
 
-Each derived edge implements **one** scalar-generic residual function:
+Each derived edge implements **one** scalar-generic residual function, e.g.
+[PositionDistanceEdge](sources/optimization/types/position.hpp):
 
 ```cpp
-struct PoseDistance : go::Edge<PoseDistance, 2, Pointd, go::Nodes<Pose, Pose>> {
+struct PositionDistanceEdge
+    : go::Edge<PositionDistanceEdge, 2, Position, go::Nodes<PositionNode, PositionNode>> {
   using Base::Base;
 
-  template <class T>
-  auto error(const Point2<T>& a, const Point2<T>& b) -> Base::Error<T> {
+  template <class A, class B>
+  auto error(const Position<A>& a, const Position<B>& b) -> Base::Error<A, B> {
     return {(b.x - a.x) - this->measurement().x,
             (b.y - a.y) - this->measurement().y};
   }
 };
 ```
 
-- Evaluated with `T = double` → the **residual** used to compute `chi²`.
-- Evaluated with `T = number<double>` → the residual carries its **exact
-  partial derivatives**. The optimizer seeds one node's tangent increment with
-  independent dual variables and reads the Jacobian directly from the dual
-  residual (see `Edge::jacobian()` in [sources/optimization/graph_edge.hpp](sources/optimization/graph_edge.hpp)).
+- Evaluated with `A = B = double` → the **residual** used to compute `chi²`.
+- Evaluated with `A = B = dual::number<double>` → the residual carries its
+  **exact partial derivatives**. The optimizer seeds one node's tangent
+  increment with independent dual variables and reads the Jacobian directly
+  from the dual residual (see `Edge::jacobian()` in [sources/optimization/graph_edge.hpp](sources/optimization/graph_edge.hpp)).
 
 No finite differences, no manually maintained Jacobian blocks.
 
@@ -131,34 +133,34 @@ target_link_libraries(my_app PRIVATE vortex::vortex)
 
 ## Minimal example
 
-A tiny 2D pose-graph SLAM problem: three poses, one prior, two relative
+A tiny 2D pose-graph SLAM problem: three positions, one prior, two relative
 constraints. Full code lives in
-[tests/fixtures/simple_slam_problem.hpp](tests/fixtures/simple_slam_problem.hpp)
+[tests/fixtures/simple_slam_graph.hpp](tests/fixtures/simple_slam_graph.hpp)
 and [tests/optimization_test.cpp](tests/optimization_test.cpp).
 
 ```cpp
 #include <memory_resource>
-#include "tests/fixtures/simple_slam_problem.hpp"
+#include "tests/fixtures/simple_slam_graph.hpp"
 
 using namespace vortex::test;
 
 SlamGraph g{std::pmr::new_delete_resource()};
 
-// Vertices (poses) and factors (edges)
-auto p1 = g.build<Pose>(SlamGraph::Key{1});
-auto p2 = g.build<Pose>(SlamGraph::Key{2});
-auto p3 = g.build<Pose>(SlamGraph::Key{3});
-auto d1 = g.build<PoseDistance>(**p1, **p2);
-auto d2 = g.build<PoseDistance>(**p2, **p3);
-auto l1 = g.build<PoseLocation>(**p1);
+// Vertices (2D positions) and factors (edges)
+auto p1 = g.build<PositionNode>(SlamGraph::Key{1});
+auto p2 = g.build<PositionNode>(SlamGraph::Key{2});
+auto p3 = g.build<PositionNode>(SlamGraph::Key{3});
+auto d1 = g.build<PositionDistanceEdge>(*p1, *p2);
+auto d2 = g.build<PositionDistanceEdge>(*p2, *p3);
+auto l1 = g.build<PositionLocationEdge>(*p1);
 
 // Initial estimates + measurements
-(*p1)->estimation(Pointd{0, 0});
-(*p2)->estimation(Pointd{2, 2});
-(*p3)->estimation(Pointd{0, 0});
-(*l1)->measurement(Pointd{1, 1});   // prior:      p1 = (1,1)
-(*d1)->measurement(Pointd{1, 1});   // relative:   p2 - p1 = (1,1)
-(*d2)->measurement(Pointd{0, 0});   // relative:   p3 - p2 = (0,0)
+(*p1)->estimation(Position{0, 0});
+(*p2)->estimation(Position{2, 2});
+(*p3)->estimation(Position{0, 0});
+(*l1)->measurement(Position{1, 1});   // prior:      p1 = (1,1)
+(*d1)->measurement(Position{1, 1});   // relative:   p2 - p1 = (1,1)
+(*d2)->measurement(Position{0, 0});   // relative:   p3 - p2 = (0,0)
 
 // Optimize (Levenberg–Marquardt); returns std::expected<size_t, AlgorithmError>
 const auto result = g.optimize(/*iterations=*/10);
