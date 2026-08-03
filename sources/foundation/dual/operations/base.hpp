@@ -87,8 +87,7 @@ struct binary_operation {
   }
 
   template <class T>
-  auto operator()(const number<T>& n1,  //
-                  const number<T>& n2) const {
+  auto operator()(const number<T>& n1, const number<T>& n2) const {
     const auto value = this->value(n1.value(), n2.value());
     const auto [dindex, dvalue] = this->dvalues(n1, n2);
     return number<T>{value, dindex, dvalue};
@@ -105,7 +104,7 @@ struct binary_operation {
   template <class T>
   auto dvalues(const number<T>& n, const T& v) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(n.size(), T{0}, helpers::MemoryScope::GetResource());
+    auto dv = dvalue_t(n.size(), T{0}, memory());
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(duo(n, i), v);
     }
@@ -115,7 +114,7 @@ struct binary_operation {
   template <class T>
   auto dvalues(const T& v, const number<T>& n) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(n.size(), T{0}, helpers::MemoryScope::GetResource());
+    auto dv = dvalue_t(n.size(), T{0}, memory());
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(v, duo(n, i));
     }
@@ -123,13 +122,12 @@ struct binary_operation {
   }
 
   template <class T>
-  auto dvalues(const number<T>& n1,  //
-               const number<T>& n2) const {
+  auto dvalues(const number<T>& n1, const number<T>& n2) const {
     using dindex_t = typename number<T>::dindex_t;
     using dvalue_t = typename number<T>::dvalue_t;
     const auto ds = std::max(n1.size(), n2.size());
-    auto dv = dvalue_t(ds, T{0}, helpers::MemoryScope::GetResource());
-    auto di = dindex_t(helpers::MemoryScope::GetResource());
+    auto dv = dvalue_t(ds, T{0}, memory());
+    auto di = dindex_t(memory());
     di.reserve(ds);
     merge_index(
         n1.dindex(), n2.dindex(),
@@ -150,9 +148,7 @@ struct binary_operation {
 
  private:
   template <class I, class OnI1, class OnI2, class OnIx>
-  auto merge_index(const I& i1,  //
-                   const I& i2,  //
-                   OnI1 on_i1, OnI2 on_i2, OnIx on_ix) const -> void {
+  auto merge_index(const I& i1, const I& i2, OnI1 on_i1, OnI2 on_i2, OnIx on_ix) const -> void {
     auto it1 = std::cbegin(i1);
     auto it2 = std::cbegin(i2);
     auto end1 = std::cend(i1);
