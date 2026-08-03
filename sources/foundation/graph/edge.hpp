@@ -78,7 +78,7 @@ class Edge {
 
  protected:
   template <class, class, class>
-  friend class Graph;
+  friend class Container;
 
   /// @brief Disables or enables the edge.
   /// @param value If `true`, the edge will be disabled;

@@ -66,7 +66,7 @@ class Node {
 
  protected:
   template <class, class, class>
-  friend class Graph;
+  friend class Container;
 
   /// @brief Disables or enables the node.
   /// @param value If `true`, the node will be disabled; if `false`, it will
