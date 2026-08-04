@@ -155,12 +155,12 @@ auto d2 = g.build<PositionDistanceEdge>(*p2, *p3);
 auto l1 = g.build<PositionLocationEdge>(*p1);
 
 // Initial estimates + measurements
-(*p1)->estimation(Position{0, 0});
-(*p2)->estimation(Position{2, 2});
-(*p3)->estimation(Position{0, 0});
-(*l1)->measurement(Position{1, 1});   // prior:      p1 = (1,1)
-(*d1)->measurement(Position{1, 1});   // relative:   p2 - p1 = (1,1)
-(*d2)->measurement(Position{0, 0});   // relative:   p3 - p2 = (0,0)
+p1->estimation(Position{0, 0});
+p2->estimation(Position{2, 2});
+p3->estimation(Position{0, 0});
+l1->measurement(Position{1, 1});   // prior:      p1 = (1,1)
+d1->measurement(Position{1, 1});   // relative:   p2 - p1 = (1,1)
+d2->measurement(Position{0, 0});   // relative:   p3 - p2 = (0,0)
 
 // Optimize (Levenberg–Marquardt); returns std::expected<std::size_t, AlgorithmError>
 const auto result = g.optimize(/*iterations=*/10);
