@@ -7,12 +7,12 @@ Vortex (build target `vortex`) is a compile-time, type-safe non-linear
 least-squares optimizer for graph/factor-graph problems such as SLAM, bundle
 adjustment and sensor calibration. It combines two ideas:
 
-- the **graph optimization engine** of `vortex` — a modern, allocation-aware,
-  statically-typed rewrite of the classic
+- a **graph optimization engine** inspired by the classic
   [g2o](https://github.com/RainerKuemmerle/g2o) framework, and
-- the **forward-mode automatic differentiation** (dual numbers) of `b2o` — so
-  that edge Jacobians are computed *exactly* from a single scalar-generic
-  `error()` function instead of being derived and hand-coded.
+- **forward-mode automatic differentiation** (dual numbers) from
+  [library-dual](https://github.com/lcmonteiro/library-dual), so edge
+  Jacobians are computed *exactly* from a single scalar-generic `error()`
+  function instead of being derived and hand-coded.
 
 The result: you write your residual once, and the exact Jacobian comes for free.
 
@@ -214,6 +214,10 @@ ctest --test-dir build --output-on-failure
 ---
 
 ## Acknowledgements
+- **[g2o](https://github.com/RainerKuemmerle/g2o)** — inspiration for the
+  graph optimization engine.
+- **[library-dual](https://github.com/lcmonteiro/library-dual)** — forward-mode
+  automatic differentiation (dual numbers).
 - **[Blaze](https://bitbucket.org/blaze-lib/blaze)** — high-performance C++
   dense linear algebra.
 - **[GoogleTest](https://github.com/google/googletest)** — unit testing.
