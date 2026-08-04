@@ -41,8 +41,9 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   using Key = typename Config::Key;
 
   template <size_t D>
-  using Matrix = math::HybridMatrix<Number, D, kDimension>;
-  using Vector = math::HybridVector<Number, kDimension>;
+  using Matrix = math::StaticMatrix<Number, D, kDimension>;
+  using Vector = math::StaticVector<Number, kDimension>;
+
   using Base = helpers::TypesBuild<graph::Node, Edges>;
   using Base::Base;
 

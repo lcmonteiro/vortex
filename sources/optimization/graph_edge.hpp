@@ -165,9 +165,9 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   /// @note The transpose version is assumed to already include the
   /// information matrix.
   template <typename Node>
-  using JacobianMatrixT = math::HybridMatrix<Number, Node::kDimension, kDimension, math::rowMajor>;
+  using JacobianMatrixT = math::StaticMatrix<Number, Node::kDimension, kDimension, math::rowMajor>;
   template <typename Node>
-  using JacobianMatrix = math::HybridMatrix<Number, kDimension, Node::kDimension>;
+  using JacobianMatrix = math::StaticMatrix<Number, kDimension, Node::kDimension>;
 
   /// @brief `kNodeDimension[I]` is `Node<I>::kDimension`, in `Nodes` order.
   static constexpr auto kNodeDimension = []<size_t... Is>(std::index_sequence<Is...>) {
@@ -226,8 +226,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
       constexpr auto O = std::get<I>(kNodeOffset);
 
       auto& jacobian = std::get<I>(self->jacobian_);
-      jacobian.resize(kDimension, D, false);
-      VORTEX_ASSERT(kDimension == residual.size(), "...");
+      VORTEX_ASSERT(kDimension == residual.size(), "residual size mismatch");
       for (size_t row{0}; row < kDimension; ++row) {
         const auto& partials = residual[row];
         const auto partials_size = std::clamp(partials.size() - O, size_t{0}, D);
@@ -237,7 +236,6 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
       }
 
       auto& jacobian_transpose = std::get<I>(self->jacobian_transpose_);
-      jacobian_transpose.resize(D, kDimension, false);
       jacobian_transpose = math::trans(jacobian) * robustify(self->information());
     }
   };
