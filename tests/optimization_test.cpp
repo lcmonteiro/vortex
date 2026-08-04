@@ -47,16 +47,16 @@ TEST_F(SlamOptimizationTest, ConvergesToExpectedEstimates) {
   (*d1_)->measurement(Position{1, 1});
   (*d2_)->measurement(Position{0, 0});
 
-  size_t iterations = 10;
+  const size_t iterations = 3;
   const auto result = g_.optimize(iterations);
   ASSERT_TRUE(result.has_value());
 
-  EXPECT_NEAR((*p1_)->estimation().x, 1.0, 1e-9);
-  EXPECT_NEAR((*p1_)->estimation().y, 1.0, 1e-9);
-  EXPECT_NEAR((*p2_)->estimation().x, 2.0, 1e-9);
-  EXPECT_NEAR((*p2_)->estimation().y, 2.0, 1e-9);
-  EXPECT_NEAR((*p3_)->estimation().x, 2.0, 1e-9);
-  EXPECT_NEAR((*p3_)->estimation().y, 2.0, 1e-9);
+  EXPECT_NEAR((*p1_)->estimation().x, 1.0, 1e-12);
+  EXPECT_NEAR((*p1_)->estimation().y, 1.0, 1e-12);
+  EXPECT_NEAR((*p2_)->estimation().x, 2.0, 1e-12);
+  EXPECT_NEAR((*p2_)->estimation().y, 2.0, 1e-12);
+  EXPECT_NEAR((*p3_)->estimation().x, 2.0, 1e-12);
+  EXPECT_NEAR((*p3_)->estimation().y, 2.0, 1e-12);
 }
 
 /// @brief A zero-iteration optimize is a valid no-op.
