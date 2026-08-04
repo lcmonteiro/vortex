@@ -6,6 +6,8 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_SOLVER_BLOCK_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_SOLVER_BLOCK_HPP
 
+#include <cstddef>
+
 #include "foundation/math.hpp"
 #include "optimization/graph_operations.hpp"
 #include "optimization/graph_solver.hpp"
@@ -42,7 +44,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   ///  - matrix and vector shapes
   ///  - update nodes positions
   auto buildStructure() -> bool {
-    auto total_dimension = size_t{0};
+    auto total_dimension = std::size_t{0};
 
     ForEach<Nodes>(
         this->graph_,
@@ -57,7 +59,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
     h_.resize(total_dimension, total_dimension, false);
     h_diagonal_backup_.resize(total_dimension, false);
 
-    return total_dimension > size_t{0};
+    return total_dimension > std::size_t{0};
   }
 
   /// @brief this function compute system matrix

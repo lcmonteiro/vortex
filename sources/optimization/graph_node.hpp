@@ -6,6 +6,8 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 
+#include <cstddef>
+
 #include "foundation/graph.hpp"
 #include "foundation/math.hpp"
 #include "helpers/buffer.hpp"
@@ -26,21 +28,21 @@ using Edges = Types<Ts...>;
 /// @brief Represents a graph node used for estimations.
 ///
 /// @tparam Derived      The derived node type.
-/// @tparam MaxDimension The maximum dimension of the node.
+/// @tparam Dimension    The dimension of the node.
 /// @tparam Type         The data type of the node's estimation.
 /// @tparam Edges        The type of edges connected to the node.
 /// @tparam Config       Configuration settings for the node.
 /// ===========================================================================
-template <class Derived, size_t Dimension, class Type, class Edges, class Config = DefaultConfig>
+template <class Derived, auto Dimension, class Type, class Edges, class Config = DefaultConfig>
 class Node : public helpers::TypesBuild<graph::Node, Edges> {
  public:
   /// @brief Helper aliases.
-  static constexpr size_t kDimension{Dimension};
+  static constexpr auto kDimension = std::size_t{Dimension};
 
   using Number = typename Config::Number;
   using Key = typename Config::Key;
 
-  template <size_t D>
+  template <std::size_t D>
   using Matrix = math::StaticMatrix<Number, D, kDimension>;
   using Vector = math::StaticVector<Number, kDimension>;
 
@@ -57,7 +59,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
 
   /// @brief Gets the node dimension.
   /// @return The dimension.
-  constexpr auto dimension() -> size_t { return kDimension; }
+  constexpr auto dimension() -> std::size_t { return kDimension; }
 
   /// @brief Gets estimation.
   /// @return The current estimation.
@@ -78,9 +80,9 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   auto push() -> void { backlog_.push(estimation_); }
   auto pull() -> void { estimation(backlog_.back()); }
 
-  auto revert(size_t n = 1) -> void {
-    const size_t drop = std::size(backlog_) > 1 ? std::min(n, std::size(backlog_) - 1) : 0;
-    for (size_t i = 0; i < drop; ++i) {
+  auto revert(std::size_t n = 1) -> void {
+    const std::size_t drop = std::size(backlog_) > 1 ? std::min(n, std::size(backlog_) - 1) : 0;
+    for (std::size_t i = 0; i < drop; ++i) {
       backlog_.pop();
     }
     pull();
@@ -95,10 +97,10 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
 
    protected:
     auto operator()() { return value_; }
-    auto operator()(size_t value) -> void { value_ = value; }
+    auto operator()(std::size_t value) -> void { value_ = value; }
 
    private:
-    size_t value_{0};
+    std::size_t value_{0};
   } position;
 
   /// @brief Updates the estimation.

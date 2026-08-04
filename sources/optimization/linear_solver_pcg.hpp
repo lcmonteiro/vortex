@@ -6,6 +6,8 @@
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP
 
+#include <cstddef>
+
 #include "optimization/linear_solver.hpp"
 
 namespace vortex::graph::optimization {
@@ -17,12 +19,12 @@ namespace vortex::graph::optimization {
 /// @tparam ResidualExponent Base-10 exponent of the convergence residual limit.
 /// @tparam IterationsLimit  Maximum number of PCG iterations.
 /// ===========================================================================
-template <class Number, int ResidualExponent = -6, size_t IterationsLimit = 1000>
+template <class Number, int ResidualExponent = -6, auto IterationsLimit = 1000>
 class PCGLinearSolver : public LinearSolver {
  public:
-  static constexpr bool kRequiresFullMatrix = true;
+  static constexpr auto kRequiresFullMatrix = true;
 
-  const size_t iterations_limit = IterationsLimit;
+  const std::size_t iterations_limit = IterationsLimit;
   const Number residual_limit = Number{std::pow(Number{10}, Number{ResidualExponent})};
 
   /// @brief Solves a linear system like h * x = b using the Preconditioned
@@ -42,7 +44,7 @@ class PCGLinearSolver : public LinearSolver {
     const auto rz_init = rz;
     const auto rz_end = residual_limit * rz_init;
 
-    for (size_t iter = 1;; ++iter) {
+    for (std::size_t iter = 1;; ++iter) {
       const auto ap = h * p;
       const auto alpha = rz / dot(p, ap);
 

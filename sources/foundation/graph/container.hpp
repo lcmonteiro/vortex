@@ -6,6 +6,7 @@
 #ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_CONTAINER_HPP
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_CONTAINER_HPP
 
+#include <cstddef>
 #include <memory_resource>
 #include <optional>
 #include <tuple>
@@ -171,7 +172,7 @@ class Container {
   /// enabled, disabled, or all nodes and edges.
   template <class T, Option value = Option::kAll, if_node<T> = 0>
   auto size(const OptionConstant<value> option = All{}) const {
-    size_t result{0};
+    std::size_t result{0};
     for (const MapShared<T>& map : select<T>(nodes_enable_, nodes_disable_, option)) {
       result += std::size(map);
     }
@@ -180,7 +181,7 @@ class Container {
 
   template <class T, Option value = Option::kAll, if_edge<T> = 0>
   auto size(const OptionConstant<value> option = All{}) const {
-    size_t result{0};
+    std::size_t result{0};
     for (const SetShared<T>& set : select<T>(edges_enable_, edges_disable_, option)) {
       result += std::size(set);
     }

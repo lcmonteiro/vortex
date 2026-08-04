@@ -5,6 +5,7 @@
 /// ===========================================================================
 #ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_CONFIG_HPP
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_CONFIG_HPP
+#include <cstddef>
 #include <map>
 #include <set>
 namespace vortex::graph {
@@ -15,14 +16,14 @@ namespace vortex::graph {
 struct DefaultConfig {
   /// @brief Initial size of the cache in bytes.
   /// @details Set to 0x80000 (524,288 bytes).
-  static constexpr size_t CacheInitSize = 0x80000U;
+  static constexpr std::size_t CacheInitSize = 0x80000U;
 
   /// @brief Maximum size of a single cache block in bytes.
   /// @details Set to 0x8000 (32,768 bytes).
-  static constexpr size_t CacheBlockMaxSize = 0x8000;
+  static constexpr std::size_t CacheBlockMaxSize = 0x8000;
 
   /// @brief Data type for node keys.
-  using Key = size_t;
+  using Key = std::size_t;
 
   /// @brief Data type for node containers.
   template <class K, class V>

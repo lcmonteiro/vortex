@@ -8,6 +8,8 @@
 
 #include <blaze/Math.h>
 
+#include <cstddef>
+
 namespace vortex::math {
 /// ===========================================================================
 /// Matrix & Vector Types
@@ -17,10 +19,10 @@ using blaze::columnVector;
 using blaze::rowMajor;
 using blaze::rowVector;
 
-template <class Type, size_t R, size_t C, bool SO = columnMajor>
+template <class Type, std::size_t R, std::size_t C, bool SO = columnMajor>
 using StaticMatrix = blaze::StaticMatrix<Type, R, C, SO>;
 
-template <class Type, size_t R, size_t C, bool SO = columnMajor>
+template <class Type, std::size_t R, std::size_t C, bool SO = columnMajor>
 using HybridMatrix = blaze::HybridMatrix<Type, R, C, SO>;
 
 template <class Type, bool SO = columnMajor>
@@ -32,10 +34,10 @@ using IdentityMatrix = blaze::IdentityMatrix<Type, SO>;
 template <class Type, bool TF = columnVector>
 using DynamicVector = blaze::DynamicVector<Type, TF>;
 
-template <class Type, size_t Size, bool TF = columnVector>
+template <class Type, std::size_t Size, bool TF = columnVector>
 using StaticVector = blaze::StaticVector<Type, Size, TF>;
 
-template <class Type, size_t Size, bool TF = columnVector>
+template <class Type, std::size_t Size, bool TF = columnVector>
 using HybridVector = blaze::HybridVector<Type, Size, TF>;
 
 /// ===========================================================================

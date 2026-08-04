@@ -6,6 +6,7 @@
 #ifndef VORTEX_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
 #define VORTEX_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
 
+#include <cstddef>
 #include <variant>
 
 namespace vortex::graph::optimization {
@@ -91,8 +92,8 @@ struct HuberKernel {
 /// ===========================================================================
 
 /// @brief Robust kernel options.
-constexpr size_t kNullKernel = 0;
-constexpr size_t kHuberKernel = 1;
+constexpr std::size_t kNullKernel = 0;
+constexpr std::size_t kHuberKernel = 1;
 
 /// @brief Robust kernel variant.
 /// @tparam Derived The derived edge type.

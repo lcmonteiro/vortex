@@ -96,7 +96,7 @@ inline auto DisableIf(Graph& graph, Fn&& func) -> void {
   graph.template toggle<Types>(std::forward<Fn>(func), typename Graph::Enabled{});
 }
 
-template <size_t I, class Type>
+template <std::size_t I, class Type>
 inline auto GetNode(Type& obj) -> decltype(auto) {
   return obj.template node<I>();
 }

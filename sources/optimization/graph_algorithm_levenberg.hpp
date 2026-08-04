@@ -17,6 +17,14 @@
 namespace vortex::graph::optimization {
 
 /// ===========================================================================
+/// @brief Constexpr-friendly identity cast
+/// ===========================================================================
+template <class Type>
+inline constexpr auto Constant(Type v) -> Type {
+  return v;
+}
+
+/// ===========================================================================
 /// @brief Default configuration used by LevenbergAlgorithm.
 /// ===========================================================================
 struct LevenbergConfig {
@@ -27,10 +35,6 @@ struct LevenbergConfig {
   static constexpr auto Retries{5U};
   static constexpr auto RhoEpsilon{1e-9};
 };
-template <class Type>
-inline constexpr auto Constant(Type v) -> Type {
-  return v;
-}
 
 /// ===========================================================================
 /// @brief Levenberg-Marquardt optimization algorithm.
@@ -78,7 +82,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
       current_chi_ = graph_.chi2();
     }
 
-    for (size_t it = 0; it < Constant(Config::Retries); ++it) {
+    for (std::size_t it = 0; it < Constant(Config::Retries); ++it) {
       solver_.updateDiagonal(lambda_);
 
       if (solver_.solve()) {
@@ -139,7 +143,9 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
   /// @brief Computes the scaler for the chi2 difference.
   /// @return The scaler value.
-  auto computeScale() -> Number { return math::dot(solver_.x(), (solver_.x() * lambda_) + solver_.b()); }
+  auto computeScale() -> Number {
+    return math::dot(solver_.x(), (solver_.x() * lambda_) + solver_.b());
+  }
 
   /// @brief Increases lambda aggressively when the step fails.
   auto increaseLambdaAggressive() -> void {

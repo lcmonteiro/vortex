@@ -5,6 +5,7 @@
 /// ===========================================================================
 #ifndef VORTEX_OPTIMIZATION_GRAPH_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_HPP
+#include <cstddef>
 #include <expected>
 
 #include "foundation/graph.hpp"
@@ -36,7 +37,8 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
   using Algorithm = typename Config::template Algorithm<Graph, GSolver>;
 
  public:
-  static constexpr size_t kSystemCapacity = Config::SystemCapacity;
+  static constexpr auto kSystemCapacity = std::size_t{Config::SystemCapacity};
+  
   using Base = graph::Container<Nodes, Edges, Config>;
   using Key = typename Config::Key;
   using Number = typename Config::Number;
@@ -57,7 +59,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
   /// @param iterations The number of iterations to run.
   /// @param reset Whether to reset the algorithm state.
   /// @return The number of completed iterations or an unexpected error.
-  auto optimize(size_t iterations, bool reset = true) -> std::expected<size_t, AlgorithmError> {
+  auto optimize(std::size_t iterations, bool reset = true) -> std::expected<std::size_t, AlgorithmError> {
     // Route transient dual-number (Jacobian) allocations through the graph's
     // memory arena for the duration of the optimization.
     const helpers::MemoryScope scope{this->memory()};
@@ -96,7 +98,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
     }
 
     // Perform the intermediate iterations, which may have different logic than the first and last.
-    for (size_t it = 1; it < (iterations - 1); ++it) {
+    for (std::size_t it = 1; it < (iterations - 1); ++it) {
       auto result_next = algorithm_.template solve<false, false>();
       if (not result_next) {
         return std::unexpected(result_next.error());
@@ -125,7 +127,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
   auto pull() -> void {
     ForEach<Nodes>(*this, [](auto& node) { node->pull(); }, Enabled{});
   }
-  auto revert(size_t n = 1) -> void {
+  auto revert(std::size_t n = 1) -> void {
     ForEach<Nodes>(*this, [&](auto& node) { node->revert(n); }, Enabled{});
   }
 
@@ -143,7 +145,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
 
   /// @brief Updates the active nodes from the stacked state increment vector.
   auto updateNodes(const Vector& delta) -> void {
-    size_t idx = 0;
+    std::size_t idx = 0;
     ForEach<Nodes>(
         *this,
         [&](auto& node) {

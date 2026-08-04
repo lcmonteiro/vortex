@@ -6,6 +6,7 @@
 #ifndef VORTEX_OPTIMIZATION_VARIANTS_INFORMATION_MATRIX_HPP
 #define VORTEX_OPTIMIZATION_VARIANTS_INFORMATION_MATRIX_HPP
 
+#include <cstddef>
 #include <variant>
 
 #include "foundation/math.hpp"
@@ -31,7 +32,7 @@ using if_vector = std::enable_if_t<math::IsVector<Type>::value, bool>;
 /// @tparam Number Type of the elements of the matrix.
 /// @tparam Dimension The dimension the matrix. The matrix is square
 /// (Dimension*Dimension).
-template <class Number, size_t Dimension>
+template <class Number, std::size_t Dimension>
 struct IdentityInformationOption {
   /// @brief Constructor of an information matrix that is an identity matrix.
   IdentityInformationOption() : matrix_{Dimension} {};
@@ -53,7 +54,7 @@ struct IdentityInformationOption {
 /// @tparam Number Type of the elements of the matrix.
 /// @tparam Dimension The dimension the matrix. The matrix is square
 /// (Dimension*Dimension).
-template <class Number, size_t Dimension>
+template <class Number, std::size_t Dimension>
 struct DiagonalInformationOption {
   /// @brief Constructor of an information matrix that is a diagonal matrix.
   DiagonalInformationOption() : matrix_{math::IdentityMatrix<Number>(Dimension)} {};
@@ -113,7 +114,7 @@ struct DiagonalInformationOption {
 /// @tparam Number Type of the elements of the matrix.
 /// @tparam Dimension The dimension the matrix. The matrix is square
 /// (Dimension*Dimension).
-template <class Number, size_t Dimension>
+template <class Number, std::size_t Dimension>
 struct SymmetricInformationOption {
   /// @brief Constructor of an information matrix.
   SymmetricInformationOption() : matrix_{math::IdentityMatrix<Number>(Dimension)} {};
@@ -144,15 +145,15 @@ struct SymmetricInformationOption {
 /// ===========================================================================
 
 /// @brief Information matrix options.
-constexpr size_t kIdentityMatrix = 0;
-constexpr size_t kDiagonalMatrix = 1;
-constexpr size_t kSymmetricMatrix = 2;
+constexpr std::size_t kIdentityMatrix = 0;
+constexpr std::size_t kDiagonalMatrix = 1;
+constexpr std::size_t kSymmetricMatrix = 2;
 
 /// @brief Information matrix variant.
 /// @tparam Derived The derived edge type.
 /// @tparam Config The edge configuration.
 /// @tparam Dimension The information matrix dimension.
-template <class Derived, class Config, size_t Dimension>
+template <class Derived, class Config, std::size_t Dimension>
 struct InformationVariant {
   using Number = typename Config::Number;
 
