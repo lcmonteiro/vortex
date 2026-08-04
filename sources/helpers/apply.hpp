@@ -6,6 +6,7 @@
 #ifndef VORTEX_HELPERS_APPLY_HPP
 #define VORTEX_HELPERS_APPLY_HPP
 
+#include <cstddef>
 #include <tuple>
 #include <utility>
 
@@ -14,7 +15,7 @@
 namespace vortex::helpers {
 namespace details {
 
-template <class F, class T, size_t... Is>
+template <class F, class T, std::size_t... Is>
 inline auto apply_tuple(F&& func, T&& tuple, std::index_sequence<Is...>) -> void {
   auto& ref_func = lreference<F>(std::forward<F>(func));
   auto& ref_tuple = lreference<T>(std::forward<T>(tuple));

@@ -5,6 +5,7 @@
 /// ===========================================================================
 #ifndef VORTEX_HELPERS_MEMORY_HPP
 #define VORTEX_HELPERS_MEMORY_HPP
+#include <cstddef>
 #include <memory_resource>
 
 #include "helpers/contracts.hpp"
@@ -19,7 +20,7 @@ namespace vortex::helpers {
 /// MaxAllocSize, an assertion failure occurs (in debug builds).
 ///
 /// @tparam MaxAllocSize The maximum number of bytes allowed per allocation.
-template <size_t MaxAllocSize>
+template <std::size_t MaxAllocSize>
 class MemoryBoundedResource : public std::pmr::memory_resource {
  public:
   /// @brief Constructs the bounded memory resource.
@@ -33,7 +34,7 @@ class MemoryBoundedResource : public std::pmr::memory_resource {
   /// @return Pointer to allocated memory.
   ///
   /// Triggers VORTEX_PRECONDITION if bytes > MaxAllocSize.
-  auto do_allocate(size_t bytes, size_t alignment) -> void* override {
+  auto do_allocate(std::size_t bytes, std::size_t alignment) -> void* override {
     VORTEX_PRECONDITION(bytes <= MaxAllocSize, "Allocation exceeds maximum allowed");
     return upstream_->allocate(bytes, alignment);
   }
@@ -42,7 +43,7 @@ class MemoryBoundedResource : public std::pmr::memory_resource {
   /// @param p Pointer to memory to deallocate.
   /// @param bytes Size of the allocation (must match original size).
   /// @param alignment Alignment of the original allocation.
-  auto do_deallocate(void* p, size_t bytes, size_t alignment) -> void override {
+  auto do_deallocate(void* p, std::size_t bytes, std::size_t alignment) -> void override {
     upstream_->deallocate(p, bytes, alignment);
   }
 

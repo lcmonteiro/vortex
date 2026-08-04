@@ -6,6 +6,8 @@
 #ifndef VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP
 #define VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP
 
+#include <cstddef>
+
 #include "foundation/math/types.hpp"
 #include "helpers/contracts.hpp"
 
@@ -43,12 +45,12 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   const auto lwork = blaze::blas_int_t{n * lda};
   auto info = blaze::blas_int_t{0};
 
-  blaze::resize(x, blaze::numeric_cast<size_t>(n));
+  blaze::resize(x, blaze::numeric_cast<std::size_t>(n));
   blaze::smpAssign(x, b);
 
-  auto ipiv = blaze::DynamicVector<blaze::blas_int_t>(blaze::numeric_cast<size_t>(n));
+  auto ipiv = blaze::DynamicVector<blaze::blas_int_t>(blaze::numeric_cast<std::size_t>(n));
   auto work =
-      blaze::DynamicVector<blaze::ElementType_t<Matrix>>(blaze::numeric_cast<size_t>(lwork));
+      blaze::DynamicVector<blaze::ElementType_t<Matrix>>(blaze::numeric_cast<std::size_t>(lwork));
 
   // Solve A * x = b via Bunch-Kaufman diagonal pivoting: P * L * D * L^T * P^T
   blaze::sysv('L', n, nrhs, h_factor.data(), lda, ipiv.data(), x.data(), ldb, work.data(), lwork,
@@ -96,7 +98,7 @@ inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool 
 
   // Solve A * x = b via Cholesky factor: forward solve L * y = b, then
   // backward solve L^T * x = y
-  blaze::resize(x, blaze::numeric_cast<size_t>(n));
+  blaze::resize(x, blaze::numeric_cast<std::size_t>(n));
   blaze::smpAssign(x, b);
   blaze::potrs('L', n, nrhs, h_factor.data(), lda, x.data(), ldb, &info);
 

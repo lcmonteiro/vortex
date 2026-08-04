@@ -88,7 +88,7 @@ struct number {
   /// @param i Derivative index.
   /// @return The derivative value at index @p i.
   auto dvalue(index_t i) const -> const value_t& {
-    VORTEX_ASSERT(i < dvalue_.size(), "derivative index out of range");
+    VORTEX_ASSERT(i < std::size(dvalue_), "derivative index out of range");
     return dvalue_[i];
   }
 

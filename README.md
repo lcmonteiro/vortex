@@ -162,7 +162,7 @@ auto l1 = g.build<PositionLocationEdge>(*p1);
 (*d1)->measurement(Position{1, 1});   // relative:   p2 - p1 = (1,1)
 (*d2)->measurement(Position{0, 0});   // relative:   p3 - p2 = (0,0)
 
-// Optimize (Levenberg–Marquardt); returns std::expected<size_t, AlgorithmError>
+// Optimize (Levenberg–Marquardt); returns std::expected<std::size_t, AlgorithmError>
 const auto result = g.optimize(/*iterations=*/10);
 if (result) {
   // Converges to p1=(1,1), p2=(2,2), p3=(2,2)

@@ -36,7 +36,7 @@ struct Revision {
   auto equal(const Revision& other) const -> bool { return revision_ == other.revision_; }
 
  private:
-  size_t revision_;
+  std::size_t revision_;
 };
 }  // namespace vortex::helpers
 #endif  // VORTEX_HELPERS_REVISION_HPP

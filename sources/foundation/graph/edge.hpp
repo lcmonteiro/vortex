@@ -6,6 +6,7 @@
 #ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP
 
+#include <cstddef>
 #include <memory>
 #include <memory_resource>
 #include <tuple>
@@ -44,7 +45,7 @@ class Edge {
   /// @brief Gets a node by index.
   /// @tparam I Index.
   /// @return The shared node.
-  template <size_t I>
+  template <std::size_t I>
   const auto& node() const {
     return std::get<I>(nodes_);
   }

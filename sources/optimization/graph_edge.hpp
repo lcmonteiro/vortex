@@ -40,28 +40,28 @@ using Nodes = Types<Ts...>;
 /// @tparam Nodes      The type of nodes connected by the edge.
 /// @tparam Config     Configuration settings for the edge.
 /// ===========================================================================
-template <class Derived, size_t Dimension, class Type, class Nodes, class Config = DefaultConfig>
+template <class Derived, auto Dimension, class Type, class Nodes, class Config = DefaultConfig>
 class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   using KernelVariant = variants::KernelVariant<Derived, Config>;
 
  public:
   /// @brief The dimension of the edge.
-  static constexpr size_t kDimension = Dimension;
+  static constexpr std::size_t kDimension = Dimension;
 
   /// @brief Default information matrix type.
-  static constexpr size_t kInformation = variants::kIdentityMatrix;
+  static constexpr std::size_t kInformation = variants::kIdentityMatrix;
 
   /// @brief Information matrix alternatives.
   using InformationVariant = variants::InformationVariant<Derived, Config, Dimension>;
 
   /// @brief Default kernel type.
-  static constexpr size_t kKernel = variants::kNullKernel;
+  static constexpr std::size_t kKernel = variants::kNullKernel;
 
   /// @brief Robust kernel alternatives.
   using KernelTypes = variants::KernelVariant<Derived, Config>;
 
   /// @brief Helper alias types.
-  template <size_t I>
+  template <std::size_t I>
   using Node = helpers::TypesElementBuild<I, Nodes>;
   using Number = typename Config::Number;
   using Measurement = Type;
@@ -170,13 +170,13 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   using JacobianMatrix = math::StaticMatrix<Number, kDimension, Node::kDimension>;
 
   /// @brief `kNodeDimension[I]` is `Node<I>::kDimension`, in `Nodes` order.
-  static constexpr auto kNodeDimension = []<size_t... Is>(std::index_sequence<Is...>) {
-    return std::array<size_t, sizeof...(Is)>{Node<Is>::kDimension...};
+  static constexpr auto kNodeDimension = []<std::size_t... Is>(std::index_sequence<Is...>) {
+    return std::array<std::size_t, sizeof...(Is)>{Node<Is>::kDimension...};
   }(std::make_index_sequence<Base::NNodes>{});
 
   /// @brief `kNodeOffset[I]` is node `I`'s starting index in the edge's combined tangent space.
-  static constexpr auto kNodeOffset = []<size_t I, size_t... Is>(std::index_sequence<I, Is...>) {
-    std::array<size_t, sizeof...(Is) + 1> offset{0};
+  static constexpr auto kNodeOffset = []<std::size_t I, std::size_t... Is>(std::index_sequence<I, Is...>) {
+    std::array<std::size_t, sizeof...(Is) + 1> offset{0};
     ((offset[Is] = offset[Is - 1] + kNodeDimension[Is - 1]), ...);
     return offset;
   }(std::make_index_sequence<Base::NNodes>{});
@@ -200,7 +200,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   /// combined tangent space.
   struct EstimationCallback {
     Derived* self;
-    template <size_t I>
+    template <std::size_t I>
     auto operator()() {
       constexpr auto D = std::get<I>(kNodeDimension);
       constexpr auto O = std::get<I>(kNodeOffset);
@@ -219,7 +219,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
       return self->kernel_->robustify(information);
     }
 
-    template <size_t I>
+    template <std::size_t I>
     auto operator()() -> void {
       using NodeType = Node<I>;
       constexpr auto D = std::get<I>(kNodeDimension);
@@ -227,10 +227,10 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
 
       auto& jacobian = std::get<I>(self->jacobian_);
       VORTEX_ASSERT(kDimension == std::size(residual), "residual size mismatch");
-      for (size_t row{0}; row < kDimension; ++row) {
+      for (std::size_t row{0}; row < kDimension; ++row) {
         const auto& partials = residual[row];
-        const auto partials_size = std::clamp(std::size(partials) - O, size_t{0}, D);
-        for (size_t col{0}; col < partials_size; ++col) {
+        const auto partials_size = std::clamp(std::size(partials) - O, std::size_t{0}, D);
+        for (std::size_t col{0}; col < partials_size; ++col) {
           jacobian(row, col) = partials.dvalue(O + col);
         }
       }
@@ -246,7 +246,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     Edge* self;
     Fn callback;
 
-    template <size_t I>
+    template <std::size_t I>
     auto operator()() -> void {
       auto& node = GetNode<I>(*self);
       if (not node->disable()) {
@@ -262,7 +262,7 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
     Edge* self;
     Fn callback;
 
-    template <size_t I, size_t J>
+    template <std::size_t I, std::size_t J>
     auto operator()() -> void {
       auto& node_i = GetNode<I>(*self);
       auto& node_j = GetNode<J>(*self);

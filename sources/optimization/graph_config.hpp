@@ -6,6 +6,8 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP
 
+#include <cstddef>
+
 #include "foundation/graph/config.hpp"
 #include "optimization/graph_algorithm_levenberg.hpp"
 #include "optimization/graph_solver_block.hpp"
@@ -20,10 +22,10 @@ namespace vortex::graph::optimization {
 /// ===========================================================================
 struct DefaultConfig : graph::DefaultConfig {
   /// @brief Capacity of the backlog buffer.
-  static constexpr size_t BacklogCapacity = 3;
+  static constexpr auto BacklogCapacity = std::size_t{3};
 
   /// @brief Maximum system capacity (internal matrices and vectors).
-  static constexpr size_t SystemCapacity = 0x200U;
+  static constexpr auto SystemCapacity = std::size_t{0x200U};
 
   /// @brief Data type for numerical values.
   using Number = double;
