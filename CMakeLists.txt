@@ -4,7 +4,7 @@ project(vortex LANGUAGES CXX)
 # ---------------------------------------------------------------------------
 # Global settings
 # ---------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -54,7 +54,7 @@ endif()
 # vortex library
 # ---------------------------------------------------------------------------
 add_library(vortex STATIC sources/vortex.cpp)
-target_compile_features(vortex PUBLIC cxx_std_23)
+target_compile_features(vortex PUBLIC cxx_std_20)
 target_include_directories(vortex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/sources)
 target_include_directories(vortex SYSTEM PUBLIC ${blaze_SOURCE_DIR})
 target_link_libraries(vortex PUBLIC ${LAPACK_LIB} ${BLAS_LIB})

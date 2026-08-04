@@ -1,6 +1,6 @@
 # Vortex
 
-**A header-only C++23 graph-optimization library with exact, automatically
+**A header-only C++20 graph-optimization library with exact, automatically
 differentiated Jacobians.**
 
 Vortex (build target `vortex`) is a compile-time, type-safe non-linear
@@ -31,8 +31,6 @@ adjustment and sensor calibration. It combines two ideas:
 - **Pluggable solver stack.** Levenberg–Marquardt algorithm, block graph
   solver, and Cholesky / PCG / dense linear back-ends selected through a single
   configuration struct.
-- **Modern C++23.** Uses `std::expected` for error handling, concepts, and
-  `std::pmr`.
 - **Header-only core** with a thin static-library shim; [Blaze](https://bitbucket.org/blaze-lib/blaze)
   provides the dense linear algebra (backed by LAPACK/BLAS).
 
@@ -90,7 +88,7 @@ No finite differences, no manually maintained Jacobian blocks.
 
 ### Prerequisites
 
-- A **C++23** compiler (GCC 13+ / Clang 17+).
+- A **C++20** compiler.
 - **CMake ≥ 3.24**.
 - **LAPACK** and **BLAS** development libraries (used by the Blaze dense
   solvers). On Debian/Ubuntu:
