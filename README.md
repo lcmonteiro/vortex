@@ -14,7 +14,7 @@ adjustment and sensor calibration. It combines two ideas:
   Jacobians are computed *exactly* from a single scalar-generic `error()`
   function instead of being derived and hand-coded.
 
-The result: you write your residual once, and the exact Jacobian comes for free.
+> 💡 Write your error function **once**, and the exact **Jacobian** comes for **free**.
 
 ---
 
@@ -49,9 +49,9 @@ The result: you write your residual once, and the exact Jacobian comes for free.
 | [sources/foundation/dual/](sources/foundation/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
 | [sources/foundation/graph/](sources/foundation/graph/) | Core statically-typed graph engine — `Graph`, `Node`, `Edge`, revision tracking, and memory management (from `vortex`). |
 | [sources/foundation/math/](sources/foundation/math/) | Dense linear-algebra wrappers over [Blaze](https://bitbucket.org/blaze-lib/blaze) (matrix/vector types, inversion, and solvers). |
+| [sources/foundation/types/](sources/foundation/types/) | Small supporting containers (e.g. `vector_set`). |
 | [sources/optimization/](sources/optimization/) | Optimizer layer: `optimize()`, Levenberg–Marquardt algorithm, block graph solver, and the Cholesky/PCG/default linear solvers. Edges compute exact Jacobians via dual numbers. |
 | [sources/helpers/](sources/helpers/) | Compile-time utilities — type lists, apply/invoke, shared/pmr helpers, traits. |
-| [sources/foundation/types/](sources/foundation/types/) | Small supporting containers (e.g. `vector_set`). |
 | [tests/](tests/) | GoogleTest unit and end-to-end tests, including a scalar-generic SLAM fixture. |
 
 > `sources/foundation/` groups the core modeling modules (`dual`, `graph`, `math`, `types`).
