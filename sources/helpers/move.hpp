@@ -30,7 +30,7 @@ inline auto get_value(const V& value) -> decltype(auto) {
 template <class T, class Fn>
 inline auto move_all(T& source, T& destination, Fn&& execute) -> void {
   apply(std::forward<Fn>(execute), source);
-  if (source.size() > destination.size()) {
+  if (std::size(source) > std::size(destination)) {
     source.insert(std::make_move_iterator(std::begin(destination)),
                   std::make_move_iterator(std::end(destination)));
     destination.clear();

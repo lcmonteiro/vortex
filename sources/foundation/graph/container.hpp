@@ -173,7 +173,7 @@ class Container {
   auto size(const OptionConstant<value> option = All{}) const {
     size_t result{0};
     for (const MapShared<T>& map : select<T>(nodes_enable_, nodes_disable_, option)) {
-      result += map.size();
+      result += std::size(map);
     }
     return result;
   }
@@ -182,7 +182,7 @@ class Container {
   auto size(const OptionConstant<value> option = All{}) const {
     size_t result{0};
     for (const SetShared<T>& set : select<T>(edges_enable_, edges_disable_, option)) {
-      result += set.size();
+      result += std::size(set);
     }
     return result;
   }

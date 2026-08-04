@@ -17,11 +17,14 @@
 
 namespace vortex::dual {
 
+/// @brief Creates a compile-time sequence of integers from 0 to N-1.
 template <std::size_t N>
 using make_sequence = std::make_index_sequence<N>;
 template <std::size_t... I>
 using sequence = std::index_sequence<I...>;
 
+/// @brief Gets the current memory resource for dual number allocations.
+/// @return The current memory resource.
 inline auto memory() noexcept -> std::pmr::memory_resource* {
   return helpers::MemoryScope::GetResource();
 }
@@ -40,8 +43,7 @@ struct number {
   using dindex_t = std::pmr::vector<index_t>;
   using dvalue_t = std::pmr::vector<value_t>;
 
-  static constexpr auto kMaxIndex = 100000;
-
+  /// @brief Default constructor creates a constant dual number with zero value and no derivatives.
   number() = default;
   number(const number& other) = default;
   number(number&&) = default;
@@ -56,13 +58,14 @@ struct number {
   /// @param index Derivative index assigned to this variable (derivative 1).
   explicit number(const value_t& value, index_t index)
       : value_{value}, dindex_({index}, memory()), dvalue_(index + 1, value_t{0}, memory()) {
-    VORTEX_ASSERT(index < kMaxIndex, "derivative index exceeds kMaxIndex");
     dvalue_.back() = value_t{1};
   }
 
+  /// @brief Assignment operators.
   auto operator=(const number&) -> number<T>& = default;
   auto operator=(number&&) -> number<T>& = default;
 
+  /// @brief Implicit conversion to the underlying scalar type.
   operator const value_t&() const { return value_; }
 
   /// @brief Sets the scalar value.
@@ -91,7 +94,7 @@ struct number {
 
   /// @brief Gets the number of derivative components.
   /// @return The size of the derivative storage.
-  auto size() const -> std::size_t { return dvalue_.size(); }
+  auto size() const -> std::size_t { return std::size(dvalue_); }
 
  protected:
   number(const value_t& value, const dindex_t& dindex, const dvalue_t& dvalue)
@@ -130,7 +133,7 @@ inline auto operator<(const T& n1, const number<T>& n2) -> bool {
 /// @tparam O The starting offset for the derivative indices (default is 0).
 template <class U, std::size_t D, std::size_t O = 0>
 constexpr auto zeros() {
-  return []<std::size_t... Is>(std::index_sequence<Is...>) {
+  return []<std::size_t... Is>(sequence<Is...>) {
     return std::array{number<U>{U{0}, O + Is}...};
   }(make_sequence<D>{});
 }
