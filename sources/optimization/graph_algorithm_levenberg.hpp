@@ -8,7 +8,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <expected>
+#include "helpers/expected.hpp"
 
 #include "foundation/math.hpp"
 #include "helpers/numeric.hpp"
@@ -55,7 +55,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
   /// @brief Algorithm initialization
   /// @return nothing or an algorithm error
-  auto init(bool reset) -> std::expected<void, AlgorithmError> {
+  auto init(bool reset) -> helpers::expected<void, AlgorithmError> {
     auto result = Base::init(reset);
     if (not result) {
       return result;
@@ -63,7 +63,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
     if (reset) {
       if (not solver_.buildStructure()) {
-        return std::unexpected(AlgorithmError::FAIL);
+        return helpers::unexpected(AlgorithmError::FAIL);
       }
     }
 
@@ -73,7 +73,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   /// @brief Performs a Levenberg-Marquardt solve iteration.
   /// @return Whether the optimization converged, or an algorithm error.
   template <bool first_iteration, bool last_iteration>
-  auto solve() -> std::expected<bool, AlgorithmError> {
+  auto solve() -> helpers::expected<bool, AlgorithmError> {
     if constexpr (first_iteration) {
       graph_.updateEdges();
       solver_.buildSystem();
@@ -120,7 +120,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
       // Check for numeric instability in lambda
       if (not std::isfinite(lambda_)) {
-        return std::unexpected(AlgorithmError::NUMERIC_LIMIT);
+        return helpers::unexpected(AlgorithmError::NUMERIC_LIMIT);
       }
     }
     return true;

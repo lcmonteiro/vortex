@@ -6,10 +6,10 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_HPP
 #include <cstddef>
-#include <expected>
 
 #include "foundation/graph.hpp"
 #include "foundation/math.hpp"
+#include "helpers/expected.hpp"
 #include "helpers/memory.hpp"
 #include "optimization/graph_config.hpp"
 #include "optimization/graph_edge.hpp"
@@ -38,7 +38,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
 
  public:
   static constexpr auto kSystemCapacity = std::size_t{Config::SystemCapacity};
-  
+
   using Base = graph::Container<Nodes, Edges, Config>;
   using Key = typename Config::Key;
   using Number = typename Config::Number;
@@ -59,7 +59,8 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
   /// @param iterations The number of iterations to run.
   /// @param reset Whether to reset the algorithm state.
   /// @return The number of completed iterations or an unexpected error.
-  auto optimize(std::size_t iterations, bool reset = true) -> std::expected<std::size_t, AlgorithmError> {
+  auto optimize(std::size_t iterations, bool reset = true)
+      -> helpers::expected<std::size_t, AlgorithmError> {
     // Route transient dual-number (Jacobian) allocations through the graph's
     // memory arena for the duration of the optimization.
     const helpers::MemoryScope scope{this->memory()};
@@ -73,7 +74,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
     const auto graph_changed = not this->revision()->equal(optimizer_revision_);
     const auto result_init = algorithm_.init(reset or graph_changed);
     if (not result_init) {
-      return std::unexpected(result_init.error());
+      return helpers::unexpected(result_init.error());
     }
 
     // Update the optimizer revision to match the current graph revision.
@@ -83,7 +84,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
     if (1 == iterations) {
       auto result_solve = algorithm_.template solve<true, true>();
       if (not result_solve) {
-        return std::unexpected(result_solve.error());
+        return helpers::unexpected(result_solve.error());
       }
       return iterations;
     }
@@ -91,7 +92,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
     // Perform the first iteration, which may have special initialization logic.
     auto result_first = algorithm_.template solve<true, false>();
     if (not result_first) {
-      return std::unexpected(result_first.error());
+      return helpers::unexpected(result_first.error());
     }
     if (result_first.value()) {
       return 1;
@@ -101,7 +102,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
     for (std::size_t it = 1; it < (iterations - 1); ++it) {
       auto result_next = algorithm_.template solve<false, false>();
       if (not result_next) {
-        return std::unexpected(result_next.error());
+        return helpers::unexpected(result_next.error());
       }
       if (result_next.value()) {
         return it;
@@ -111,7 +112,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
     // Perform the last iteration, which may have special finalization logic.
     auto result_last = algorithm_.template solve<false, true>();
     if (not result_last) {
-      return std::unexpected(result_last.error());
+      return helpers::unexpected(result_last.error());
     }
 
     return iterations;
