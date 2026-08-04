@@ -31,14 +31,14 @@ template <class Matrix, class Vector,
           blaze::EnableIf_t<blaze::IsColumnMajorMatrix_v<Matrix>>* = nullptr>
 inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
-  VORTEX_PRECONDITION(h.rows() == b.size(), "incompatible matrix and vector");
+  VORTEX_PRECONDITION(h.rows() == std::size(b), "incompatible matrix and vector");
 
   static thread_local Matrix h_factor;
   h_factor = h;
 
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(h_factor.rows());
   const auto lda = blaze::numeric_cast<blaze::blas_int_t>(h_factor.spacing());
-  const auto ldb = blaze::numeric_cast<blaze::blas_int_t>(b.size());
+  const auto ldb = blaze::numeric_cast<blaze::blas_int_t>(std::size(b));
   const auto nrhs = blaze::blas_int_t{1};
   const auto lwork = blaze::blas_int_t{n * lda};
   auto info = blaze::blas_int_t{0};
@@ -78,14 +78,14 @@ template <class Matrix, class Vector,
           blaze::EnableIf_t<blaze::IsColumnMajorMatrix_v<Matrix>>* = nullptr>
 inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool {
   VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
-  VORTEX_PRECONDITION(h.rows() == b.size(), "incompatible matrix and vector");
+  VORTEX_PRECONDITION(h.rows() == std::size(b), "incompatible matrix and vector");
 
   static thread_local Matrix h_factor;
   h_factor = h;
 
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(h_factor.rows());
   const auto lda = blaze::numeric_cast<blaze::blas_int_t>(h_factor.spacing());
-  const auto ldb = blaze::numeric_cast<blaze::blas_int_t>(b.size());
+  const auto ldb = blaze::numeric_cast<blaze::blas_int_t>(std::size(b));
   const auto nrhs = blaze::blas_int_t{1};
   auto info = blaze::blas_int_t{0};
 

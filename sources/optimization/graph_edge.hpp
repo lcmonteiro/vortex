@@ -226,10 +226,10 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
       constexpr auto O = std::get<I>(kNodeOffset);
 
       auto& jacobian = std::get<I>(self->jacobian_);
-      VORTEX_ASSERT(kDimension == residual.size(), "residual size mismatch");
+      VORTEX_ASSERT(kDimension == std::size(residual), "residual size mismatch");
       for (size_t row{0}; row < kDimension; ++row) {
         const auto& partials = residual[row];
-        const auto partials_size = std::clamp(partials.size() - O, size_t{0}, D);
+        const auto partials_size = std::clamp(std::size(partials) - O, size_t{0}, D);
         for (size_t col{0}; col < partials_size; ++col) {
           jacobian(row, col) = partials.dvalue(O + col);
         }

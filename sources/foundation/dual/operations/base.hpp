@@ -6,8 +6,6 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 
-#include <cassert>
-#include <iterator>
 #include <tuple>
 
 #include "foundation/dual/number.hpp"
@@ -50,7 +48,7 @@ struct unary_operation {
   template <class T>
   auto dvalue(const number<T>& n) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(n.size(), T{0}, helpers::MemoryScope::GetResource());
+    auto dv = dvalue_t(std::size(n), T{0}, helpers::MemoryScope::GetResource());
     for (const auto i : n.dindex()) {
       dv[i] = self()->dvalue(duo(n, i));
     }
@@ -104,7 +102,7 @@ struct binary_operation {
   template <class T>
   auto dvalues(const number<T>& n, const T& v) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(n.size(), T{0}, memory());
+    auto dv = dvalue_t(std::size(n), T{0}, memory());
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(duo(n, i), v);
     }
@@ -114,7 +112,7 @@ struct binary_operation {
   template <class T>
   auto dvalues(const T& v, const number<T>& n) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(n.size(), T{0}, memory());
+    auto dv = dvalue_t(std::size(n), T{0}, memory());
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(v, duo(n, i));
     }
@@ -125,7 +123,7 @@ struct binary_operation {
   auto dvalues(const number<T>& n1, const number<T>& n2) const {
     using dindex_t = typename number<T>::dindex_t;
     using dvalue_t = typename number<T>::dvalue_t;
-    const auto ds = std::max(n1.size(), n2.size());
+    const auto ds = std::max(std::size(n1), std::size(n2));
     auto dv = dvalue_t(ds, T{0}, memory());
     auto di = dindex_t(memory());
     di.reserve(ds);

@@ -79,7 +79,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   auto pull() -> void { estimation(backlog_.back()); }
 
   auto revert(size_t n = 1) -> void {
-    const size_t drop = backlog_.size() > 1 ? std::min(n, backlog_.size() - 1) : 0;
+    const size_t drop = std::size(backlog_) > 1 ? std::min(n, std::size(backlog_) - 1) : 0;
     for (size_t i = 0; i < drop; ++i) {
       backlog_.pop();
     }
