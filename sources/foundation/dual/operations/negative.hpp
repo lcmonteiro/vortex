@@ -22,7 +22,8 @@ struct negate : unary_operation<negate> {
 };
 
 /// @brief Negates a dual number, propagating derivatives.
-template <class T, negate::enable_t<T> = 0>
+template <class T>
+requires negate::enable<T>
 inline auto operator-(const T& n) {
   return std::invoke(negate{}, n);
 }

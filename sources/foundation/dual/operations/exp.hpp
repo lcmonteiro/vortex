@@ -27,7 +27,8 @@ struct exp : unary_operation<exp> {
 
 namespace std {
 /// @brief Computes the exponential of a dual number.
-template <class T, vortex::dual::exp::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::exp::enable<T>
 inline auto exp(const T& n) {
   return std::invoke(vortex::dual::exp{}, n);
 }

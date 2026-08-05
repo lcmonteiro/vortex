@@ -30,7 +30,8 @@ struct plus : binary_operation<plus> {
 };
 
 /// @brief Adds two operands, propagating derivatives.
-template <class T, class U, plus::enable_t<T, U> = 0>
+template <class T, class U>
+requires plus::enable<T, U>
 inline auto operator+(const T& n1, const U& n2) {
   return std::invoke(plus{}, n1, n2);
 }

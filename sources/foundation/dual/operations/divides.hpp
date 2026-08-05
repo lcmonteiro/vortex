@@ -30,7 +30,8 @@ struct divides : binary_operation<divides> {
 };
 
 /// @brief Divides two operands, propagating derivatives.
-template <class T, class U, divides::enable_t<T, U> = 0>
+template <class T, class U>
+requires divides::enable<T, U>
 inline auto operator/(const T& n1, const U& n2) {
   return std::invoke(divides{}, n1, n2);
 }

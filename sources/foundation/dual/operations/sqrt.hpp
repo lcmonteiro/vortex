@@ -27,7 +27,8 @@ struct sqrt : unary_operation<sqrt> {
 
 namespace std {
 /// @brief Computes the square root of a dual number.
-template <class T, vortex::dual::sqrt::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::sqrt::enable<T>
 inline auto sqrt(const T& n) {
   return std::invoke(vortex::dual::sqrt{}, n);
 }

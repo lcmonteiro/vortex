@@ -29,7 +29,8 @@ struct abs : unary_operation<abs> {
 
 namespace std {
 /// @brief Computes the absolute value of a dual number.
-template <class T, vortex::dual::abs::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::abs::enable<T>
 inline auto abs(const T& n) {
   return std::invoke(vortex::dual::abs{}, n);
 }

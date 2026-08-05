@@ -41,12 +41,14 @@ struct log1p : unary_operation<log1p> {
 
 namespace std {
 /// @brief Computes the natural logarithm of a dual number.
-template <class T, vortex::dual::log::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::log::enable<T>
 inline auto log(const T& n) {
   return std::invoke(vortex::dual::log{}, n);
 }
 /// @brief Computes log(1 + x) of a dual number.
-template <class T, vortex::dual::log1p::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::log1p::enable<T>
 inline auto log1p(const T& n) {
   return std::invoke(vortex::dual::log1p{}, n);
 }

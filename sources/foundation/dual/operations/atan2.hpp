@@ -35,15 +35,12 @@ struct atan2 : binary_operation<atan2> {
   }
 };
 
-template <class T, class U, atan2::enable_t<T, U> = 0>
-inline auto atan2_impl(const T& y, const U& x) {
-  return std::invoke(atan2{}, y, x);
-}
 }  // namespace vortex::dual
 
 namespace std {
 /// @brief Computes atan2(y, x) for dual operands.
-template <class T, class U, vortex::dual::atan2::enable_t<T, U> = 0>
+template <class T, class U>
+requires vortex::dual::atan2::enable<T, U>
 inline auto atan2(const T& y, const U& x) {
   return std::invoke(vortex::dual::atan2{}, y, x);
 }

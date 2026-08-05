@@ -51,16 +51,14 @@ struct max : binary_operation<max> {
 
 namespace std {
 /// @brief Returns the smaller of two operands, propagating derivatives.
-template <class T,  //
-          class U,  //
-          vortex::dual::min::enable_t<T, U> = 0>
+template <class T, class U>
+requires vortex::dual::min::enable<T, U>
 inline auto min(const T& n1, const U& n2) {
   return std::invoke(vortex::dual::min{}, n1, n2);
 }
 /// @brief Returns the larger of two operands, propagating derivatives.
-template <class T,  //
-          class U,  //
-          vortex::dual::max::enable_t<T, U> = 0>
+template <class T, class U>
+requires vortex::dual::max::enable<T, U>
 inline auto max(const T& n1, const U& n2) {
   return std::invoke(vortex::dual::max{}, n1, n2);
 }

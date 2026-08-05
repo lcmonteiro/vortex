@@ -30,7 +30,8 @@ struct multiplies : binary_operation<multiplies> {
 };
 
 /// @brief Multiplies two operands, propagating derivatives.
-template <class T, class U, multiplies::enable_t<T, U> = 0>
+template <class T, class U>
+requires multiplies::enable<T, U>
 inline auto operator*(const T& n1, const U& n2) {
   return std::invoke(multiplies{}, n1, n2);
 }

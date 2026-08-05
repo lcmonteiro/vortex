@@ -27,7 +27,8 @@ struct cos : unary_operation<cos> {
 
 namespace std {
 /// @brief Computes the cosine of a dual number.
-template <class T, vortex::dual::cos::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::cos::enable<T>
 inline auto cos(const T& n) {
   return std::invoke(vortex::dual::cos{}, n);
 }

@@ -27,7 +27,8 @@ struct sin : unary_operation<sin> {
 
 namespace std {
 /// @brief Computes the sine of a dual number.
-template <class T, vortex::dual::sin::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::sin::enable<T>
 inline auto sin(const T& n) {
   return std::invoke(vortex::dual::sin{}, n);
 }

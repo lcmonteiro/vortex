@@ -30,7 +30,7 @@ struct duo {
 template <class Derived>
 struct unary_operation {
   template <class T>
-  using enable_t = std::enable_if_t<is_number_v<T>, int>;
+  static constexpr auto enable = is_number_v<T>;
 
   template <class T>
   auto operator()(const number<T>& n) const {
@@ -66,9 +66,10 @@ struct unary_operation {
 template <class Derived>
 struct binary_operation {
   template <class T1, class T2>
-  using enable_t = std::enable_if_t<((is_number_v<T1> and is_number_like_v<T2>) or
-                                     (is_number_v<T2> and is_number_like_v<T1>)),
-                                    int>;
+  static constexpr auto enable = (                   //
+      (is_number_v<T1> and is_number_like_v<T2>) or  //
+      (is_number_v<T2> and is_number_like_v<T1>)     //
+  );
 
   template <class T>
   auto operator()(const number<T>& n1, const T& v2) const {
