@@ -36,7 +36,8 @@ struct power : binary_operation<power> {
 
 namespace std {
 /// @brief Computes base raised to exponent for dual operands.
-template <class T, class U, vortex::dual::power::enable_t<T, U> = 0>
+template <class T, class U>
+requires vortex::dual::power::enable<T, U>
 inline auto pow(const T& base, const U& exponent) {
   return std::invoke(vortex::dual::power{}, base, exponent);
 }

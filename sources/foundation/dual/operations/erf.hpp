@@ -46,12 +46,14 @@ struct erfc : unary_operation<erfc> {
 
 namespace std {
 /// @brief Computes the error function of a dual number.
-template <class T, vortex::dual::erf::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::erf::enable<T>
 inline auto erf(const T& n) {
   return std::invoke(vortex::dual::erf{}, n);
 }
 /// @brief Computes the complementary error function of a dual number.
-template <class T, vortex::dual::erfc::enable_t<T> = 0>
+template <class T>
+requires vortex::dual::erfc::enable<T>
 inline auto erfc(const T& n) {
   return std::invoke(vortex::dual::erfc{}, n);
 }

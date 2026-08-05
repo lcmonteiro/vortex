@@ -30,7 +30,8 @@ struct minus : binary_operation<minus> {
 };
 
 /// @brief Subtracts two operands, propagating derivatives.
-template <class T, class U, minus::enable_t<T, U> = 0>
+template <class T, class U>
+requires minus::enable<T, U>
 inline auto operator-(const T& n1, const U& n2) {
   return std::invoke(minus{}, n1, n2);
 }
