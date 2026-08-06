@@ -21,9 +21,11 @@ namespace vortex::graph::optimization::types {
 /// @tparam Number Scalar type of the coordinates.
 template <class Number>
 struct Position {
+  /// @brief coordinates of the position.
   Number x{};
   Number y{};
 
+  /// @brief friend operators for arithmetic and comparison of Position objects.
   friend auto operator+(const Position<Number>& a, const Position<Number>& b) -> Position<Number> {
     return {a.x + b.x, a.y + b.y};
   }
