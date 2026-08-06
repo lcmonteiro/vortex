@@ -2,11 +2,11 @@
 /// @file
 /// @brief Unit tests for the dual-number forward-mode AD engine.
 /// ===============================================================================================
+#include "foundation/dual.hpp"
+
 #include <gtest/gtest.h>
 
 #include <cmath>
-
-#include "foundation/dual.hpp"
 
 namespace {
 

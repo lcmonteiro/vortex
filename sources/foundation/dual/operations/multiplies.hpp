@@ -6,6 +6,8 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_MULTIPLIES_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_MULTIPLIES_HPP
 
+#include <functional>
+
 #include "foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {

@@ -94,7 +94,9 @@ class VectorSet : private std::pmr::vector<Value> {
   /// @brief Finds the element equal to @p value.
   /// @param value The value to search for.
   /// @return An iterator to the element, or @c end() if not present.
-  auto find(const value_type& value) -> iterator { return std::find(Base::begin(), Base::end(), value); }
+  auto find(const value_type& value) -> iterator {
+    return std::find(Base::begin(), Base::end(), value);
+  }
 
   /// @brief Swaps contents with another set.
   /// @param other The set to swap with.

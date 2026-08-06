@@ -41,7 +41,8 @@ struct Node1 : Node1Base<Node1> {
 using MeasurementType = std::uint8_t;
 
 template <class Derived>
-using EdgeWithIdentityBase = go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+using EdgeWithIdentityBase =
+    go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
 
 struct EdgeWithIdentity : EdgeWithIdentityBase<EdgeWithIdentity> {
   using Base = EdgeWithIdentityBase<EdgeWithIdentity>;
@@ -52,7 +53,8 @@ struct EdgeWithIdentity : EdgeWithIdentityBase<EdgeWithIdentity> {
 };
 
 template <class Derived>
-using EdgeWithDiagonalBase = go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+using EdgeWithDiagonalBase =
+    go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
 
 struct EdgeWithDiagonal : EdgeWithDiagonalBase<EdgeWithDiagonal> {
   using Base = EdgeWithDiagonalBase<EdgeWithDiagonal>;
@@ -63,7 +65,8 @@ struct EdgeWithDiagonal : EdgeWithDiagonalBase<EdgeWithDiagonal> {
 };
 
 template <class Derived>
-using EdgeWithSymmetricBase = go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+using EdgeWithSymmetricBase =
+    go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
 
 struct EdgeWithSymmetric : EdgeWithSymmetricBase<EdgeWithSymmetric> {
   using Base = EdgeWithSymmetricBase<EdgeWithSymmetric>;
@@ -142,7 +145,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithVector) {
   auto n2 = g_.build<Node1>(Graph::Key{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
-  math::StaticVector<EdgeWithDiagonal::Number, EdgeWithDiagonal::kDimension> new_information_vector{2, 3};
+  math::StaticVector<EdgeWithDiagonal::Number, EdgeWithDiagonal::kDimension> new_information_vector{
+      2, 3};
 
   // When
   edge_with_diagonal->information(new_information_vector);
@@ -162,8 +166,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithValues) {
   auto n2 = g_.build<Node1>(Graph::Key{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
-  math::StaticVector<EdgeWithDiagonal::Number, EdgeWithDiagonal::kDimension> new_information_vector{2.0,
-                                                                                                     3.0};
+  math::StaticVector<EdgeWithDiagonal::Number, EdgeWithDiagonal::kDimension> new_information_vector{
+      2.0, 3.0};
 
   // When
   edge_with_diagonal->information(2.0, 3.0);

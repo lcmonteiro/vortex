@@ -7,6 +7,7 @@
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_ABS_HPP
 
 #include <cmath>
+#include <functional>
 
 #include "foundation/dual/operations/base.hpp"
 

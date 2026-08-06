@@ -42,7 +42,7 @@ inline auto apply_map(F&& func, T&& map) -> void {
 
 }  // namespace details
 
-  /// @brief Applies a function to each element in a tuple, set, or map-like container.
+/// @brief Applies a function to each element in a tuple, set, or map-like container.
 template <class F, class... Ts>
 inline auto apply(F&& func, std::tuple<Ts...>& data) -> void {
   details::apply_tuple(std::forward<F>(func), data, std::make_index_sequence<sizeof...(Ts)>{});

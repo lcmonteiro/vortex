@@ -21,8 +21,8 @@
 #include "helpers/revision.hpp"
 #include "helpers/select.hpp"
 #include "helpers/shared.hpp"
-#include "helpers/utility.hpp"
 #include "helpers/types.hpp"
+#include "helpers/utility.hpp"
 
 namespace vortex::graph {
 /// ===============================================================================================
