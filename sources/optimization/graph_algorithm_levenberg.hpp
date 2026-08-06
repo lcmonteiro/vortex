@@ -8,9 +8,9 @@
 
 #include <algorithm>
 #include <cmath>
-#include "helpers/expected.hpp"
 
 #include "foundation/math.hpp"
+#include "helpers/expected.hpp"
 #include "helpers/numeric.hpp"
 #include "optimization/graph_algorithm.hpp"
 

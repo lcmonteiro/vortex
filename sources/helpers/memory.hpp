@@ -26,7 +26,8 @@ class bounded_memory_resource : public std::pmr::memory_resource {
  public:
   /// @brief Constructs the bounded memory resource.
   /// @param upstream The upstream memory resource to forward allocations to.
-  explicit bounded_memory_resource(std::pmr::memory_resource* const upstream) : upstream_(upstream) {}
+  explicit bounded_memory_resource(std::pmr::memory_resource* const upstream)
+      : upstream_(upstream) {}
 
  protected:
   /// @brief Allocates memory, checking against MaxAllocSize.

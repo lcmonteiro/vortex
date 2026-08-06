@@ -25,7 +25,7 @@ namespace vortex::helpers {
 /// Single-threaded only — no locking, no atomics.
 ///
 /// @tparam T Element type.
-/// Must be default-constructible because the backing store is std::array<T,Capacity>, 
+/// Must be default-constructible because the backing store is std::array<T,Capacity>,
 /// which value-initializes every slot up front.
 /// @tparam Capacity Maximum number of retained elements. Must be greater than 0.
 template <class T, std::size_t Capacity>

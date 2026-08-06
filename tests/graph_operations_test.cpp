@@ -157,7 +157,8 @@ TEST_F(SlamGraphOperationsTest, GivenKey_ExpectCorrectFind) {
 /// @brief Verifies FindIf on a const graph retrieves the correct node by key.
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectCorrectFind_Const) {
   constexpr auto key_that_exists = Key{2};
-  const auto& node_found = go::FindIf<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_exists);
+  const auto& node_found =
+      go::FindIf<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_exists);
   EXPECT_EQ(node_found, p2_);
 }
 
@@ -227,7 +228,8 @@ TEST_F(SlamGraphOperationsTest, GivenTrueCondition_ExpectRemoval) {
 /// @brief Verifies RemoveIf with a key predicate removes only the matching node.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectRemoval) {
   ASSERT_EQ(g_.size<PositionNode>(), 3U);
-  go::RemoveIf<PositionNode>(g_, [](const auto& node) { return (node->key() == 1) ? true : false; });
+  go::RemoveIf<PositionNode>(g_,
+                             [](const auto& node) { return (node->key() == 1) ? true : false; });
   ASSERT_EQ(g_.size<PositionNode>(), 2U);
   EXPECT_FALSE(g_.find<PositionNode>(1).has_value());
 }
@@ -314,18 +316,20 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByKeyList_ExpectCorrectStat
 
 /// @brief Verifies DisableIf/EnableIf with predicates on nodes and edges.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectStatus) {
-  go::DisableIf<PositionNode>(g_, [](const auto& node) { return (node->key() == 1) ? true : false; });
-  go::DisableIf<PositionDistanceEdge>(g_,
-                                      [](const auto& edge) { return (edge->NNodes == 2) ? true : false; });
+  go::DisableIf<PositionNode>(g_,
+                              [](const auto& node) { return (node->key() == 1) ? true : false; });
+  go::DisableIf<PositionDistanceEdge>(
+      g_, [](const auto& edge) { return (edge->NNodes == 2) ? true : false; });
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::EnableIf<PositionNode>(g_, [](const auto& node) { return (node->key() == 1) ? true : false; });
-  go::EnableIf<PositionDistanceEdge>(g_,
-                                     [](const auto& edge) { return (edge->NNodes == 2) ? true : false; });
+  go::EnableIf<PositionNode>(g_,
+                             [](const auto& node) { return (node->key() == 1) ? true : false; });
+  go::EnableIf<PositionDistanceEdge>(
+      g_, [](const auto& edge) { return (edge->NNodes == 2) ? true : false; });
   EXPECT_FALSE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
