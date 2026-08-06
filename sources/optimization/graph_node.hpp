@@ -16,13 +16,11 @@
 
 namespace vortex::graph::optimization {
 
-using graph::Types;
-
 /// ===========================================================================
 /// @brief Utility alias to define the edge types of a node.
 /// ===========================================================================
 template <class... Ts>
-using Edges = Types<Ts...>;
+using Edges = helpers::types<Ts...>;
 
 /// ===========================================================================
 /// @brief Represents a graph node used for estimations.
@@ -34,7 +32,7 @@ using Edges = Types<Ts...>;
 /// @tparam Config       Configuration settings for the node.
 /// ===========================================================================
 template <class Derived, auto Dimension, class Type, class Edges, class Config = DefaultConfig>
-class Node : public helpers::TypesBuild<graph::Node, Edges> {
+class Node : public helpers::types_build_t<graph::Node, Edges> {
  public:
   /// @brief Helper aliases.
   static constexpr auto kDimension = std::size_t{Dimension};
@@ -46,7 +44,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   using Matrix = math::StaticMatrix<Number, D, kDimension>;
   using Vector = math::StaticVector<Number, kDimension>;
 
-  using Base = helpers::TypesBuild<graph::Node, Edges>;
+  using Base = helpers::types_build_t<graph::Node, Edges>;
   using Base::Base;
 
   /// @brief Node constructor.
@@ -122,7 +120,7 @@ class Node : public helpers::TypesBuild<graph::Node, Edges> {
   auto postEstimation() -> void {}
 
  private:
-  using Backlog = helpers::Buffer<Type, Config::BacklogCapacity>;
+  using Backlog = helpers::buffer<Type, Config::BacklogCapacity>;
 
   Type estimation_;
   Backlog backlog_;

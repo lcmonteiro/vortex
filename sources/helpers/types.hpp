@@ -6,46 +6,54 @@
 #ifndef VORTEX_HELPERS_TYPES_HPP
 #define VORTEX_HELPERS_TYPES_HPP
 #include <tuple>
+#include <type_traits>
 
 namespace vortex::helpers {
 
 /// @brief Container that stores and manipulates a compile-time list of types.
 ///
-/// This template class `Types` stores a list of types passed as template
+/// This template class `types` stores a list of types passed as template
 /// arguments (`Ts...`). It provides several helper aliases to operate on the
 /// type list, such as concatenation, applying templates, and accessing
 /// individual types.
 template <class... Ts>
-class Types {
+class types {
   template <class>
-  struct concat;
+  struct concat_impl;
   template <class... Tn>
-  struct concat<Types<Tn...>> {
-    using type = Types<Ts..., Tn...>;
+  struct concat_impl<types<Tn...>> {
+    using type = types<Ts..., Tn...>;
   };
 
  public:
   template <template <class...> class T>
-  using Type = T<Ts...>;
+  using apply_t = T<Ts...>;
 
   template <template <class...> class T, template <class> class W>
-  using WrapType = T<W<Ts>...>;
+  using apply_wrapped_t = T<W<Ts>...>;
 
   template <std::size_t index>
-  using ElementType = std::tuple_element_t<index, Type<std::tuple>>;
+  using element_t = std::tuple_element_t<index, apply_t<std::tuple>>;
 
   template <class T>
-  using Concat = typename concat<T>::type;
+  using concat_t = typename concat_impl<T>::type;
 };
 
+/// @brief Builds a type `B<Ts...>` from the types stored in a `types` list.
 template <template <class...> class B, class Ts>
-using TypesBuild = typename Ts::template Type<B>;
+using types_build_t = typename Ts::template apply_t<B>;
 
+/// @brief Builds a type `B<W<Ts>...>` by wrapping each stored type with `W` first.
 template <template <class...> class B, template <class> class W, class Ts>
-using TypesWrapBuild = typename Ts::template WrapType<B, W>;
+using types_wrap_build_t = typename Ts::template apply_wrapped_t<B, W>;
 
+/// @brief Helper alias to access the type at a specific index in a `types` list.
 template <std::size_t index, class Ts>
-using TypesElementBuild = typename Ts::template ElementType<index>;
+using types_element_build_t = typename Ts::template element_t<index>;
+
+/// @brief Concept satisfied by any specialization of `types`.
+template <class T>
+concept type_list = requires { []<class... Ts>(const types<Ts...>&) {}(std::declval<T>()); };
 
 }  // namespace vortex::helpers
 #endif  // VORTEX_HELPERS_TYPES_HPP

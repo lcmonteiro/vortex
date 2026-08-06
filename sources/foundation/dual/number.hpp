@@ -26,7 +26,7 @@ using sequence = std::index_sequence<I...>;
 /// @brief Gets the current memory resource for dual number allocations.
 /// @return The current memory resource.
 inline auto memory() noexcept -> std::pmr::memory_resource* {
-  return helpers::MemoryScope::GetResource();
+  return helpers::memory_scope::get_resource();
 }
 
 /// @brief Forward-mode dual number carrying a scalar value and its partial

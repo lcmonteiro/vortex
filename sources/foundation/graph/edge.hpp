@@ -31,7 +31,7 @@ class Edge {
  public:
   static constexpr auto NNodes = sizeof...(Nodes);
 
-  explicit Edge(const helpers::Shared<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
+  explicit Edge(const helpers::shared<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
   // Move and copy constructors purposely omitted
 
   /// @brief Gets a node by type.
@@ -39,7 +39,7 @@ class Edge {
   /// @return The shared node.
   template <class T>
   const auto& node() const {
-    return std::get<helpers::Shared<T>>(nodes_);
+    return std::get<helpers::shared<T>>(nodes_);
   }
 
   /// @brief Gets a node by index.
@@ -88,17 +88,14 @@ class Edge {
 
  private:
   bool disable_{};
-  std::tuple<helpers::Shared<Nodes>...> nodes_;
+  std::tuple<helpers::shared<Nodes>...> nodes_;
 };
 
-/// ===========================================================================
-/// Identity Helper Function
-/// ===========================================================================
-// LCOV_EXCL_START
-template <class... N>
-inline constexpr auto ToEdge(const Edge<N...>& e) {
-  return e;
-}
-// LCOV_EXCL_STOP
+/// ===============================================================================================
+/// @brief Concept satisfied by any specialization of `Edge`.
+/// ===============================================================================================
+template <class T>
+concept edge_type = requires { []<class... Ts>(const Edge<Ts...>&) {}(std::declval<T>()); };
+
 }  // namespace vortex::graph
 #endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP

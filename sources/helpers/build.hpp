@@ -6,7 +6,7 @@
 #ifndef VORTEX_HELPERS_BUILD_HPP
 #define VORTEX_HELPERS_BUILD_HPP
 
-#include "helpers/traits.hpp"
+#include "helpers/utility.hpp"
 
 namespace vortex::helpers {
 
@@ -18,6 +18,11 @@ inline auto build(Init&& init, Container<Types...>) {
 }
 }  // namespace details
 
+/// @brief Builds a container of types using a provided initialization function.
+/// @tparam Container The container template to build (e.g., std::tuple, std::array).
+/// @tparam Init The type of the initialization function.
+/// @param init The initialization function to be applied to each type in the container.
+/// @return A container of types initialized using the provided function.
 template <class Container, class Init>
 inline auto build(Init&& init) {
   return details::build(std::forward<Init>(init), Container{});

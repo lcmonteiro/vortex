@@ -17,9 +17,7 @@
 
 namespace vortex::graph::optimization {
 using graph::OptionalShared;
-using graph::Shared;
-
-using graph::Revision;
+using graph::shared;
 
 /// ===========================================================================
 /// @brief A templated Graph class implementing optimization algorithms.
@@ -63,7 +61,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
       -> helpers::expected<std::size_t, AlgorithmError> {
     // Route transient dual-number (Jacobian) allocations through the graph's
     // memory arena for the duration of the optimization.
-    const helpers::MemoryScope scope{this->memory()};
+    const helpers::memory_scope scope{this->memory()};
 
     // Special case: if no iterations are requested, return immediately.
     if (0 == iterations) {
@@ -164,7 +162,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
 
  private:
   Algorithm algorithm_;
-  Revision optimizer_revision_;
+  helpers::revision optimizer_revision_;
 };
 
 /// @brief Builds a shared graph using the provided memory resource.
@@ -175,7 +173,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
 /// @return A shared graph of type T.
 template <class T, class... A>
 auto Build(std::pmr::memory_resource* const memory, A&&... args) {
-  return Shared<T>(memory, memory, std::forward<A>(args)...);
+  return shared<T>(memory, memory, std::forward<A>(args)...);
 }
 }  // namespace vortex::graph::optimization
 
