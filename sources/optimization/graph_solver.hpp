@@ -1,13 +1,13 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.graph component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_OPTIMIZATION_GRAPH_SOLVER_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_SOLVER_HPP
 
 namespace vortex::graph::optimization {
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief A templated class that provides solver functionality for a graph
 /// using a linear solver.
 ///
@@ -15,7 +15,7 @@ namespace vortex::graph::optimization {
 /// it is compatible).
 /// @tparam LinearSolver The linear solver type used to perform solving
 /// operations on the graph.
-/// ===========================================================================
+/// ===============================================================================================
 template <class Graph, class LinearSolver>
 class GraphSolver {
  public:

@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.optimization.linear_solver_cholesky component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_CHOLESKY_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_CHOLESKY_HPP
 
@@ -11,10 +11,10 @@
 
 namespace vortex::graph::optimization {
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Linear solver that solves h * x = b using Cholesky factorization
 /// (L * L^T = h) followed by forward/backward substitution.
-/// ===========================================================================
+/// ===============================================================================================
 class CholeskyLinearSolver : public LinearSolver {
  public:
   /// @brief Solves a linear system like h * x = b using Cholesky factorization

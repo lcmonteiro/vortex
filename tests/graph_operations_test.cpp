@@ -1,10 +1,10 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 /// @brief Unit tests for SLAM graph optimization operations: measurements,
 /// estimations, estimation backlog (push/pull/revert), chi2, node/edge
 /// enable-disable, and the `graph_operations.hpp` free-function API
 /// (ForEach/FindIf/RemoveIf/Enable/Disable/EnableIf/DisableIf).
-/// ===========================================================================
+/// ===============================================================================================
 #include <gtest/gtest.h>
 
 #include <cstddef>

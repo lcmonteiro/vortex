@@ -2,7 +2,7 @@
 /// @file
 ///
 /// @brief vortex.math.solver component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP
 #define VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP
 

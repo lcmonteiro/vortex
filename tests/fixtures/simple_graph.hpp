@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 /// @brief Minimal foundation-level graph fixture (nodes/edges with no
 /// optimization payload) used to exercise `vortex::graph::Container` directly.
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_TESTS_FIXTURES_SIMPLE_GRAPH_HPP
 #define VORTEX_TESTS_FIXTURES_SIMPLE_GRAPH_HPP
 #include <gtest/gtest.h>

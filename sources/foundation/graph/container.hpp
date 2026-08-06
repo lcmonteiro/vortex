@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.graph component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_CONTAINER_HPP
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_CONTAINER_HPP
 
@@ -25,9 +25,9 @@
 #include "helpers/types.hpp"
 
 namespace vortex::graph {
-/// ===========================================================================
+/// ===============================================================================================
 /// Helper Types
-/// ===========================================================================
+/// ===============================================================================================
 using helpers::revision;
 using helpers::shared;
 using helpers::type_list;
@@ -37,7 +37,7 @@ template <class T>
 using OptionalShared = std::optional<shared<T>>;
 using SharedRevision = shared<helpers::revision>;
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Represents a graph with customizable node and edge types, and
 /// flexible configuration options.
 ///
@@ -50,7 +50,7 @@ using SharedRevision = shared<helpers::revision>;
 /// @tparam Tedges The set of edge types used in the graph.
 /// @tparam Config The configuration for memory resource management (default is
 /// DefaultConfig).
-/// ===========================================================================
+/// ===============================================================================================
 template <class Tnodes, class Tedges, class Config = DefaultConfig>
 class Container {
  protected:

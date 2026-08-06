@@ -1,4 +1,4 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 /// @brief Scalar-generic SLAM problem fixture for vortex.
 ///
@@ -6,7 +6,7 @@
 /// `plus()` and `error()` are now generic over the scalar type so that the
 /// same cost functions can be evaluated with `double` (residual) and with a
 /// dual number (exact Jacobian via forward-mode automatic differentiation).
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_TESTS_FIXTURES_SIMPLE_SLAM_GRAPH_HPP
 #define VORTEX_TESTS_FIXTURES_SIMPLE_SLAM_GRAPH_HPP
 

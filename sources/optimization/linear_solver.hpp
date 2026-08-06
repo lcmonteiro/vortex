@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.optimization.linear_solver component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP
 
@@ -10,12 +10,12 @@
 
 namespace vortex::graph::optimization {
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Base class for linear solvers of the system h * x = b.
 ///
 /// Concrete solvers implement a `solve(h, b, x)` member and may override
 /// `kRequiresFullMatrix` to request a fully populated symmetric matrix.
-/// ===========================================================================
+/// ===============================================================================================
 class LinearSolver {
  public:
   /// @brief Whether this solver requires the full symmetric matrix

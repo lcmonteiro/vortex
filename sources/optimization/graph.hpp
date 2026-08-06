@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.graph component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_OPTIMIZATION_GRAPH_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_HPP
 #include <cstddef>
@@ -19,14 +19,14 @@ namespace vortex::graph::optimization {
 using graph::OptionalShared;
 using graph::shared;
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief A templated Graph class implementing optimization algorithms.
 ///
 /// @tparam Nodes The collection of nodes in the graph.
 /// @tparam Edges The collection of edges in the graph.
 /// @tparam Config The configuration class that defines various types and
 /// parameters for the graph (default is `DefaultConfig`).
-/// ===========================================================================
+/// ===============================================================================================
 template <class Nodes, class Edges, class Config = DefaultConfig>
 class Graph : public graph::Container<Nodes, Edges, Config> {
   /// @brief Helper alias types.

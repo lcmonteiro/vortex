@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.graph component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 
@@ -16,13 +16,13 @@
 
 namespace vortex::graph::optimization {
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Utility alias to define the edge types of a node.
-/// ===========================================================================
+/// ===============================================================================================
 template <class... Ts>
 using Edges = helpers::types<Ts...>;
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Represents a graph node used for estimations.
 ///
 /// @tparam Derived      The derived node type.
@@ -30,7 +30,7 @@ using Edges = helpers::types<Ts...>;
 /// @tparam Type         The data type of the node's estimation.
 /// @tparam Edges        The type of edges connected to the node.
 /// @tparam Config       Configuration settings for the node.
-/// ===========================================================================
+/// ===============================================================================================
 template <class Derived, auto Dimension, class Type, class Edges, class Config = DefaultConfig>
 class Node : public helpers::types_build_t<graph::Node, Edges> {
  public:
