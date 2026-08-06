@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.graph component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
 
@@ -24,13 +24,13 @@
 
 namespace vortex::graph::optimization {
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Type Container: A utility template to define nodes types.
-/// ===========================================================================
+/// ===============================================================================================
 template <class... Ts>
 using Nodes = helpers::types<Ts...>;
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Edge: Represents a graph edge used for measurements.
 ///
 /// @tparam Derived    The derived edge type.
@@ -38,7 +38,7 @@ using Nodes = helpers::types<Ts...>;
 /// @tparam Type       The data type of the edge's measurement.
 /// @tparam Nodes      The type of nodes connected by the edge.
 /// @tparam Config     Configuration settings for the edge.
-/// ===========================================================================
+/// ===============================================================================================
 template <class Derived, auto Dimension, class Type, class Nodes, class Config = DefaultConfig>
 class Edge : public helpers::types_build_t<graph::Edge, Nodes> {
   using KernelVariant = variants::KernelVariant<Derived, Config>;

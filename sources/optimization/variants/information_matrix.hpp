@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.optimization.variants component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_OPTIMIZATION_VARIANTS_INFORMATION_MATRIX_HPP
 #define VORTEX_OPTIMIZATION_VARIANTS_INFORMATION_MATRIX_HPP
 
@@ -24,9 +24,9 @@ using if_matrix = std::enable_if_t<math::IsMatrix<Type>::value, bool>;
 template <class Type>
 using if_vector = std::enable_if_t<math::IsVector<Type>::value, bool>;
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Information Matrices: Identity Matrix
-/// ===========================================================================
+/// ===============================================================================================
 
 /// @brief An information matrix that is an identity matrix.
 /// @tparam Number Type of the elements of the matrix.
@@ -46,9 +46,9 @@ struct IdentityInformationOption {
   math::IdentityMatrix<Number> matrix_;
 };
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Information Matrices: Diagonal Matrix
-/// ===========================================================================
+/// ===============================================================================================
 
 /// @brief An information matrix that is a diagonal matrix.
 /// @tparam Number Type of the elements of the matrix.
@@ -106,9 +106,9 @@ struct DiagonalInformationOption {
   math::DiagonalMatrix<BaseMatrix> matrix_;
 };
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Information Matrices: Normal Matrix
-/// ===========================================================================
+/// ===============================================================================================
 
 /// @brief An information matrix.
 /// @tparam Number Type of the elements of the matrix.
@@ -140,9 +140,9 @@ struct SymmetricInformationOption {
   math::SymmetricMatrix<BaseMatrix> matrix_;
 };
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Information Matrix Alternatives
-/// ===========================================================================
+/// ===============================================================================================
 
 /// @brief Information matrix options.
 constexpr std::size_t kIdentityMatrix = 0;

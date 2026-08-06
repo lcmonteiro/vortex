@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.graph.edge component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP
 
@@ -15,7 +15,7 @@
 #include "helpers/shared.hpp"
 namespace vortex::graph {
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief A graph edge element that connects multiple nodes.
 ///
 /// The Edge class connects nodes of various types in a graph. Each node is
@@ -25,7 +25,7 @@ namespace vortex::graph {
 ///
 /// @tparam Nodes Variadic template representing the types of nodes connected by
 /// this edge.
-/// ===========================================================================
+/// ===============================================================================================
 template <class... Nodes>
 class Edge {
  public:

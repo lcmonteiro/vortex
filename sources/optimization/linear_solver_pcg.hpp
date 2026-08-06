@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.optimization.linear_solver_pcg component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP
 #define VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP
 
@@ -12,13 +12,13 @@
 
 namespace vortex::graph::optimization {
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Preconditioned Conjugate Gradient (PCG) linear solver for h * x = b.
 ///
 /// @tparam Number           Scalar type used for the computation.
 /// @tparam ResidualExponent Base-10 exponent of the convergence residual limit.
 /// @tparam IterationsLimit  Maximum number of PCG iterations.
-/// ===========================================================================
+/// ===============================================================================================
 template <class Number, int ResidualExponent = -6, auto IterationsLimit = 1000>
 class PCGLinearSolver : public LinearSolver {
  public:

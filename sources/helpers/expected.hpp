@@ -1,4 +1,4 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 /// @brief Minimal `expected<T, E>` / `unexpected<E>`, standing in for
 /// `std::expected` / `std::unexpected`.
@@ -8,7 +8,7 @@
 /// calling `value()` without first checking `has_value()` (or vice versa) is
 /// undefined behavior, same as dereferencing an empty `std::optional`. Every
 /// call site in this codebase already checks before accessing either.
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_HELPERS_EXPECTED_HPP
 #define VORTEX_HELPERS_EXPECTED_HPP
 

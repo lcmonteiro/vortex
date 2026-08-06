@@ -1,8 +1,8 @@
-/// ===========================================================================
+/// ===============================================================================================
 /// @file
 ///
 /// @brief vortex.graph.node component
-/// ===========================================================================
+/// ===============================================================================================
 #ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_NODE_HPP
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_NODE_HPP
 #include <memory>
@@ -14,7 +14,7 @@
 #include "helpers/build.hpp"
 #include "helpers/shared.hpp"
 namespace vortex::graph {
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief A graph node that can manage edges of different types.
 ///
 /// The Node class stores edges of various types in sets, one set per edge type.
@@ -23,7 +23,7 @@ namespace vortex::graph {
 ///
 /// @tparam Edges Variadic template representing the different edge types the
 /// node can manage.
-/// ===========================================================================
+/// ===============================================================================================
 template <class... Edges>
 class Node {
   template <class T>
@@ -98,9 +98,9 @@ class Node {
   std::tuple<SetShared<Edges>...> edges_;
 };
 
-/// ===========================================================================
+/// ===============================================================================================
 /// @brief Concept satisfied by any specialization of `Node`.
-/// ===========================================================================
+/// ===============================================================================================
 template <class T>
 concept node_type = requires { []<class... Ts>(const Node<Ts...>&) {}(std::declval<T>()); };
 
