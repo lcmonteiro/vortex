@@ -10,7 +10,7 @@
 #ifndef VORTEX_FOUNDATION_DUAL_DUAL_HPP
 #define VORTEX_FOUNDATION_DUAL_DUAL_HPP
 
-#include "foundation/dual/number.hpp"
-#include "foundation/dual/operations.hpp"
+#include "foundation/dual/number.hpp"      // IWYU pragma: export
+#include "foundation/dual/operations.hpp"  // IWYU pragma: export
 
 #endif  // VORTEX_FOUNDATION_DUAL_DUAL_HPP

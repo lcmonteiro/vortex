@@ -6,7 +6,6 @@
 #ifndef VORTEX_HELPERS_TYPES_HPP
 #define VORTEX_HELPERS_TYPES_HPP
 #include <tuple>
-#include <type_traits>
 
 namespace vortex::helpers {
 

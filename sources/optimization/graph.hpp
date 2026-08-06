@@ -12,8 +12,8 @@
 #include "helpers/expected.hpp"
 #include "helpers/memory.hpp"
 #include "optimization/graph_config.hpp"
-#include "optimization/graph_edge.hpp"
-#include "optimization/graph_node.hpp"
+#include "optimization/graph_edge.hpp"  // IWYU pragma: export
+#include "optimization/graph_node.hpp"  // IWYU pragma: export
 
 namespace vortex::graph::optimization {
 using graph::OptionalShared;
