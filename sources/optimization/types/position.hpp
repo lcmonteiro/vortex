@@ -23,6 +23,19 @@ template <class Number>
 struct Position {
   Number x{};
   Number y{};
+
+  friend auto operator+(const Position<Number>& a, const Position<Number>& b) -> Position<Number> {
+    return {a.x + b.x, a.y + b.y};
+  }
+  friend auto operator-(const Position<Number>& a, const Position<Number>& b) -> Position<Number> {
+    return {a.x - b.x, a.y - b.y};
+  }
+  friend auto operator==(const Position<Number>& a, const Position<Number>& b) -> bool {
+    return a.x == b.x && a.y == b.y;
+  }
+  friend auto operator!=(const Position<Number>& a, const Position<Number>& b) -> bool {
+    return !(a == b);
+  }
 };
 
 // Forward declarations of the edge types connected to a PositionNode.
