@@ -48,7 +48,7 @@ TEST_F(SlamOptimizationTest, ConvergesToExpectedEstimates) {
   (*d1_)->measurement(Position{1, 1});
   (*d2_)->measurement(Position{0, 0});
 
-  const std::size_t iterations = 3;
+  const auto iterations = std::size_t{3};
   const auto result = g_.optimize(iterations);
   ASSERT_TRUE(result.has_value());
 
@@ -62,7 +62,7 @@ TEST_F(SlamOptimizationTest, ConvergesToExpectedEstimates) {
 
 /// @brief A zero-iteration optimize is a valid no-op.
 TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
-  const std::size_t iterations = 0;
+  const auto iterations = std::size_t{0};
   const auto result = g_.optimize(iterations);
   EXPECT_TRUE(result.has_value());
 }
