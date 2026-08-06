@@ -23,7 +23,7 @@ namespace vortex::graph {
 /// std::pmr::set, which is not reproducible when the backing memory resource is
 /// exceeded.
 ///
-/// @tparam Value The element type stored in the set (e.g. @c Shared<Edge>).
+/// @tparam Value The element type stored in the set (e.g. @c shared<Edge>).
 template <typename Value>
 class VectorSet : private std::pmr::vector<Value> {
   using Base = std::pmr::vector<Value>;
@@ -82,7 +82,7 @@ class VectorSet : private std::pmr::vector<Value> {
   /// @param value The value to erase.
   /// @return The number of elements removed (0 or 1), mirroring @c std::set.
   /// @note Survivors are relocated with move-assignment (order-preserving);
-  /// relocating @c Shared by move steals its pointer, avoiding the atomic
+  /// relocating @c shared by move steals its pointer, avoiding the atomic
   /// reference-count churn of a copy-shift.
   auto erase(const value_type& value) -> size_type {
     const auto last = std::remove(Base::begin(), Base::end(), value);

@@ -21,31 +21,21 @@
 #include "helpers/revision.hpp"
 #include "helpers/select.hpp"
 #include "helpers/shared.hpp"
-#include "helpers/traits.hpp"
+#include "helpers/utility.hpp"
 #include "helpers/types.hpp"
 
 namespace vortex::graph {
 /// ===========================================================================
 /// Helper Types
 /// ===========================================================================
-using helpers::Revision;
-using helpers::Shared;
-using helpers::Types;
+using helpers::revision;
+using helpers::shared;
+using helpers::type_list;
+using helpers::types;
 
 template <class T>
-using OptionalShared = std::optional<Shared<T>>;
-
-using SharedRevision = Shared<helpers::Revision>;
-
-/// ===========================================================================
-/// Helpers Functions
-/// ===========================================================================
-// LCOV_EXCL_START
-template <class... T>
-inline constexpr auto ToTypes(const Types<T...>& t) {
-  return t;
-}
-// LCOV_EXCL_STOP
+using OptionalShared = std::optional<shared<T>>;
+using SharedRevision = shared<helpers::revision>;
 
 /// ===========================================================================
 /// @brief Represents a graph with customizable node and edge types, and
@@ -64,19 +54,6 @@ inline constexpr auto ToTypes(const Types<T...>& t) {
 template <class Tnodes, class Tedges, class Config = DefaultConfig>
 class Container {
  protected:
-  // concepts
-  template <class T>
-  using if_node = helpers::if_valid<decltype(ToNode(std::declval<T>()))>;
-
-  template <class T>
-  using if_edge = helpers::if_valid<decltype(ToEdge(std::declval<T>()))>;
-
-  template <class T>
-  using if_types = helpers::if_valid<decltype(ToTypes(std::declval<T>()))>;
-
-  template <class F, class N>
-  using if_predicate = helpers::if_valid<std::enable_if_t<std::is_invocable_v<F, Shared<N>&>>>;
-
   // types
   using Key = typename Config::Key;
 
@@ -86,16 +63,16 @@ class Container {
   using Set = typename Config::template Set<V>;
 
   template <class T>
-  using MapShared = Map<Key, Shared<T>>;
+  using MapShared = Map<Key, shared<T>>;
   template <class T>
-  using SetShared = Set<Shared<T>>;
+  using SetShared = Set<shared<T>>;
 
-  using TupleMapShared = helpers::TypesWrapBuild<std::tuple, MapShared, Tnodes>;
-  using TupleSetShared = helpers::TypesWrapBuild<std::tuple, SetShared, Tedges>;
+  using TupleMapShared = helpers::types_wrap_build_t<std::tuple, MapShared, Tnodes>;
+  using TupleSetShared = helpers::types_wrap_build_t<std::tuple, SetShared, Tedges>;
 
-  template <helpers::Option value>
-  using OptionConstant = helpers::OptionConstant<value>;
-  using Option = helpers::Option;
+  template <helpers::option value>
+  using OptionConstant = helpers::option_constant<value>;
+  using Option = helpers::option;
 
  public:
   using Nodes = Tnodes;
@@ -144,20 +121,20 @@ class Container {
   /// @param key The key used to identify the node being built (for node
   /// construction).
   /// @param args The arguments used to initialize the node or edge.
-  template <class T, class... A, if_node<T> = 0>
+  template <node_type T, class... A>
   auto build(const Key& key, A&&... args) {
-    auto node = Shared<T>(memory_, std::forward<A>(args)..., key, memory_);
+    auto node = shared<T>(memory_, std::forward<A>(args)..., key, memory_);
     destroy<T>(key);
     std::ignore = get<T>(nodes_enable_).emplace(key, node);
     revision_->update();
     return node;
   }
 
-  template <class T, class... A, if_edge<T> = 0>
+  template <edge_type T, class... A>
   auto build(A&&... args) {
-    auto edge = Shared<T>(memory_, std::forward<A>(args)...);
+    auto edge = shared<T>(memory_, std::forward<A>(args)...);
     edge->apply([&](const auto& v) { v->link(edge); });
-    linkEdge(edges_enable_, edge);
+    link_edge(edges_enable_, edge);
     revision_->update();
     return edge;
   }
@@ -170,7 +147,7 @@ class Container {
   /// This can be one of the enumerated options (enabled, disabled, all).
   /// @param option The `OptionConstant` that specifies whether to count
   /// enabled, disabled, or all nodes and edges.
-  template <class T, Option value = Option::kAll, if_node<T> = 0>
+  template <node_type T, Option value = Option::kAll>
   auto size(const OptionConstant<value> option = All{}) const {
     std::size_t result{0};
     for (const MapShared<T>& map : select<T>(nodes_enable_, nodes_disable_, option)) {
@@ -179,7 +156,7 @@ class Container {
     return result;
   }
 
-  template <class T, Option value = Option::kAll, if_edge<T> = 0>
+  template <edge_type T, Option value = Option::kAll>
   auto size(const OptionConstant<value> option = All{}) const {
     std::size_t result{0};
     for (const SetShared<T>& set : select<T>(edges_enable_, edges_disable_, option)) {
@@ -188,7 +165,7 @@ class Container {
     return result;
   }
 
-  template <class T, Option value = Option::kAll, if_types<T> = 0>
+  template <type_list T, Option value = Option::kAll>
   auto size(const OptionConstant<value> option = All{}) const {
     return size(T{}, option);
   }
@@ -211,7 +188,8 @@ class Container {
   /// @param value The option constant that determines the scope of the
   /// operation.
   /// @param option The constant indicating the selection criteria.
-  template <class T, class Fn, Option value = Option::kAll, if_node<T> = 0>
+  template <node_type T, class Fn, Option value = Option::kAll>
+  requires std::is_invocable_v<Fn, shared<T>&>
   auto apply(Fn&& func, const OptionConstant<value> option = All{}) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (const MapShared<T>& map : select<T>(nodes_enable_, nodes_disable_, option)) {
@@ -219,7 +197,8 @@ class Container {
     }
   }
 
-  template <class T, class Fn, Option value = Option::kAll, if_edge<T> = 0>
+  template <edge_type T, class Fn, Option value = Option::kAll>
+  requires std::is_invocable_v<Fn, shared<T>&>
   auto apply(Fn&& func, const OptionConstant<value> option = All{}) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (const SetShared<T>& set : select<T>(edges_enable_, edges_disable_, option)) {
@@ -227,7 +206,7 @@ class Container {
     }
   }
 
-  template <class T, class Fn, Option value = Option::kAll, if_types<T> = 0>
+  template <type_list T, class Fn, Option value = Option::kAll>
   auto apply(Fn&& func, const OptionConstant<value> option = All{}) const -> void {
     apply(std::forward<Fn>(func), T{}, option);
   }
@@ -250,18 +229,19 @@ class Container {
   /// @param evaluate The predicate function used to evaluate each node during
   /// the search.
   /// @param option The constant indicating the selection criteria for nodes.
-  template <class N, Option value = Option::kAll, if_node<N> = 0>
+  template <node_type N, Option value = Option::kAll>
   auto find(const Key& key, const OptionConstant<value> option = All{}) const -> OptionalShared<N> {
     const auto& nodes{select<N>(nodes_enable_, nodes_disable_, option)};
     for (const MapShared<N>& map : nodes) {
       if (auto found = map.find(key); found != std::end(map)) {
-        return std::get<Shared<N>>(*found);
+        return std::get<shared<N>>(*found);
       }
     }
     return std::nullopt;
   }
 
-  template <class N, class Fn, Option value = Option::kAll, if_node<N> = 0, if_predicate<Fn, N> = 0>
+  template <node_type N, class Fn, Option value = Option::kAll>
+  requires std::is_invocable_v<Fn, shared<N>&>
   auto find(Fn&& evaluate, const OptionConstant<value> option = All{}) const -> OptionalShared<N> {
     auto& ref_evaluate = helpers::lreference<Fn>(std::forward<Fn>(evaluate));
     const auto& nodes{select<N>(nodes_enable_, nodes_disable_, option)};
@@ -285,64 +265,64 @@ class Container {
   /// unlinking operation.
   /// @param key The key used to locate a specific node for unlinking.
   /// @param option The constant indicating the selection criteria for nodes.
-  template <class N, Option value = Option::kAll, if_node<N> = 0>
+  template <node_type N, Option value = Option::kAll>
   auto unlink(Key key, const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       if (auto iter = map.find(key); iter != map.end()) {
-        unlinkNode(std::get<Shared<N>>(*iter));
+        unlink_node(std::get<shared<N>>(*iter));
         revision_->update();
         return;
       }
     }
   }
 
-  template <class N, class E, Option value = Option::kAll, if_node<N> = 0, if_edge<E> = 0>
+  template <node_type N, edge_type E, Option value = Option::kAll>
   auto unlink(Key key, const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       if (auto iter = map.find(key); iter != map.end()) {
-        unlinkNode<E>(std::get<Shared<N>>(*iter));
+        unlink_node<E>(std::get<shared<N>>(*iter));
         revision_->update();
         return;
       }
     }
   }
 
-  template <class N, class E, Option value = Option::kAll, if_node<N> = 0, if_types<E> = 0>
+  template <node_type N, type_list E, Option value = Option::kAll>
   auto unlink(Key key, const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       if (auto iter = map.find(key); iter != map.end()) {
-        unlinkNode(std::get<Shared<N>>(*iter), E{});
+        unlink_node(std::get<shared<N>>(*iter), E{});
         revision_->update();
         return;
       }
     }
   }
 
-  template <class N, Option value = Option::kAll, if_node<N> = 0>
+  template <node_type N, Option value = Option::kAll>
   auto unlink(const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (const auto& node : map) {
-        unlinkNode(std::get<Shared<N>>(node));
+        unlink_node(std::get<shared<N>>(node));
       }
     }
     revision_->update();
   }
 
-  template <class N, class E, Option value = Option::kAll, if_node<N> = 0, if_edge<E> = 0>
+  template <node_type N, edge_type E, Option value = Option::kAll>
   auto unlink(const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (const auto& node : map) {
-        unlinkNode<E>(std::get<Shared<N>>(node));
+        unlink_node<E>(std::get<shared<N>>(node));
       }
     }
     revision_->update();
   }
 
-  template <class N, class E, Option value = Option::kAll, if_node<N> = 0, if_types<E> = 0>
+  template <node_type N, type_list E, Option value = Option::kAll>
   auto unlink(const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (const auto& node : map) {
-        unlinkNode(std::get<Shared<N>>(node), E{});
+        unlink_node(std::get<shared<N>>(node), E{});
       }
     }
     revision_->update();
@@ -361,11 +341,11 @@ class Container {
   /// @param func The predicate function used to evaluate each node during the
   /// destruction process.
   /// @param option The constant indicating the selection criteria for nodes.
-  template <class N, Option value = Option::kAll, if_node<N> = 0>
+  template <node_type N, Option value = Option::kAll>
   auto destroy(Key key, const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       if (auto iter = map.find(key); iter != map.end()) {
-        unlinkNode(std::get<Shared<N>>(*iter));
+        unlink_node(std::get<shared<N>>(*iter));
         std::ignore = map.erase(iter);
         revision_->update();
         return;
@@ -373,24 +353,25 @@ class Container {
     }
   }
 
-  template <class N, Option value = Option::kAll, if_node<N> = 0>
+  template <node_type N, Option value = Option::kAll>
   auto destroy(const OptionConstant<value> option = All{}) -> void {
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (const auto& node : map) {
-        unlinkNode(std::get<Shared<N>>(node));
+        unlink_node(std::get<shared<N>>(node));
       }
       map.clear();
     }
     revision_->update();
   }
 
-  template <class N, class Fn, Option value = Option::kAll, if_node<N> = 0, if_predicate<Fn, N> = 0>
+  template <node_type N, class Fn, Option value = Option::kAll>
+  requires std::is_invocable_v<Fn, shared<N>&>
   auto destroy(Fn&& func, const OptionConstant<value> option = All{}) -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     for (MapShared<N>& map : select<N>(nodes_enable_, nodes_disable_, option)) {
       for (auto iter = map.begin(); iter != map.end();) {
-        if (ref_func(std::get<Shared<N>>(*iter))) {
-          unlinkNode(std::get<Shared<N>>(*iter));
+        if (ref_func(std::get<shared<N>>(*iter))) {
+          unlink_node(std::get<shared<N>>(*iter));
           iter = map.erase(iter);
         } else {
           ++iter;
@@ -418,106 +399,110 @@ class Container {
   /// enabled nodes or edges.
   /// @param Disabled The constant indicating that the operation will act on
   /// disabled nodes or edges.
-  template <class T, if_node<T> = 0>
+  template <node_type T>
   auto toggle(const Enabled) -> void {
     helpers::move_all(get<T>(nodes_enable_), get<T>(nodes_disable_),
+                      [](const auto& node) { node->disable(true); });
+    revision_->update();
+  }
+
+  template <node_type T>
+  auto toggle(const Disabled) -> void {
+    helpers::move_all(get<T>(nodes_disable_), get<T>(nodes_enable_),
+                      [](const auto& node) { node->disable(false); });
+    revision_->update();
+  }
+
+  template <edge_type E, node_type T>
+  auto toggle(const shared<T>& node, const Enabled) -> void {
+    node->template apply<E>([this](const auto& edge) {
+      helpers::move(get<E>(edges_enable_), get<E>(edges_disable_), edge,
+                    [](const auto& e) { e->disable(true); });
+    });
+  }
+
+  template <edge_type E, node_type T>
+  auto toggle(const shared<T>& node, const Disabled) -> void {
+    node->template apply<E>([this](const auto& edge) {
+      helpers::move(get<E>(edges_disable_), get<E>(edges_enable_), edge,
+                    [](const auto& e) { e->disable(false); });
+    });
+  }
+
+  template <node_type T, class Fn>
+  requires std::is_invocable_v<Fn, shared<T>&>
+  auto toggle(Fn&& func, const Enabled) -> void {
+    helpers::move_if(get<T>(nodes_enable_), get<T>(nodes_disable_), std::forward<Fn>(func),
                      [](const auto& node) { node->disable(true); });
     revision_->update();
   }
 
-  template <class T, if_node<T> = 0>
-  auto toggle(const Disabled) -> void {
-    helpers::move_all(get<T>(nodes_disable_), get<T>(nodes_enable_),
+  template <node_type T, class Fn>
+  requires std::is_invocable_v<Fn, shared<T>&>
+  auto toggle(Fn&& func, const Disabled) -> void {
+    helpers::move_if(get<T>(nodes_disable_), get<T>(nodes_enable_), std::forward<Fn>(func),
                      [](const auto& node) { node->disable(false); });
     revision_->update();
   }
 
-  template <class E, class T, if_node<T> = 0, if_edge<E> = 0>
-  auto toggle(const Shared<T>& node, const Enabled) -> void {
-    node->template apply<E>([this](const auto& edge) {
-      helpers::move(get<E>(edges_enable_), get<E>(edges_disable_), edge,
-                   [](const auto& e) { e->disable(true); });
-    });
-  }
-
-  template <class E, class T, if_node<T> = 0, if_edge<E> = 0>
-  auto toggle(const Shared<T>& node, const Disabled) -> void {
-    node->template apply<E>([this](const auto& edge) {
-      helpers::move(get<E>(edges_disable_), get<E>(edges_enable_), edge,
-                   [](const auto& e) { e->disable(false); });
-    });
-  }
-
-  template <class T, class Fn, if_node<T> = 0, if_predicate<Fn, T> = 0>
-  auto toggle(Fn&& func, const Enabled) -> void {
-    helpers::move_if(get<T>(nodes_enable_), get<T>(nodes_disable_), std::forward<Fn>(func),
-                    [](const auto& node) { node->disable(true); });
-    revision_->update();
-  }
-
-  template <class T, class Fn, if_node<T> = 0, if_predicate<Fn, T> = 0>
-  auto toggle(Fn&& func, const Disabled) -> void {
-    helpers::move_if(get<T>(nodes_disable_), get<T>(nodes_enable_), std::forward<Fn>(func),
-                    [](const auto& node) { node->disable(false); });
-    revision_->update();
-  }
-
-  template <class T, if_node<T> = 0>
+  template <node_type T>
   auto toggle(const Key& key, const Enabled) -> void {
     helpers::move(get<T>(nodes_enable_), get<T>(nodes_disable_), key,
-                 [](const auto& node) { node->disable(true); });
+                  [](const auto& node) { node->disable(true); });
     revision_->update();
   }
 
-  template <class T, if_node<T> = 0>
+  template <node_type T>
   auto toggle(const Key& key, const Disabled) -> void {
     helpers::move(get<T>(nodes_disable_), get<T>(nodes_enable_), key,
-                 [](const auto& node) { node->disable(false); });
+                  [](const auto& node) { node->disable(false); });
     revision_->update();
   }
 
-  template <class T, if_edge<T> = 0>
+  template <edge_type T>
   auto toggle(const Enabled) -> void {
     helpers::move_all(get<T>(edges_enable_), get<T>(edges_disable_),
+                      [](const auto& edge) { edge->disable(true); });
+  }
+
+  template <edge_type T>
+  auto toggle(const Disabled) -> void {
+    helpers::move_all(get<T>(edges_disable_), get<T>(edges_enable_),
+                      [](const auto& edge) { edge->disable(false); });
+  }
+
+  template <edge_type T>
+  auto toggle(const shared<T>& edge, const Enabled) -> void {
+    helpers::move(get<T>(edges_enable_), get<T>(edges_disable_), edge,
+                  [](const auto& e) { e->disable(true); });
+  }
+
+  template <edge_type T>
+  auto toggle(const shared<T>& edge, const Disabled) -> void {
+    helpers::move(get<T>(edges_disable_), get<T>(edges_enable_), edge,
+                  [](const auto& e) { e->disable(false); });
+  }
+
+  template <edge_type T, class Fn>
+  requires std::is_invocable_v<Fn, shared<T>&>
+  auto toggle(Fn&& func, const Enabled) -> void {
+    helpers::move_if(get<T>(edges_enable_), get<T>(edges_disable_), std::forward<Fn>(func),
                      [](const auto& edge) { edge->disable(true); });
   }
 
-  template <class T, if_edge<T> = 0>
-  auto toggle(const Disabled) -> void {
-    helpers::move_all(get<T>(edges_disable_), get<T>(edges_enable_),
+  template <edge_type T, class Fn>
+  requires std::is_invocable_v<Fn, shared<T>&>
+  auto toggle(Fn&& func, const Disabled) -> void {
+    helpers::move_if(get<T>(edges_disable_), get<T>(edges_enable_), std::forward<Fn>(func),
                      [](const auto& edge) { edge->disable(false); });
   }
 
-  template <class T, if_edge<T> = 0>
-  auto toggle(const Shared<T>& edge, const Enabled) -> void {
-    helpers::move(get<T>(edges_enable_), get<T>(edges_disable_), edge,
-                 [](const auto& e) { e->disable(true); });
-  }
-
-  template <class T, if_edge<T> = 0>
-  auto toggle(const Shared<T>& edge, const Disabled) -> void {
-    helpers::move(get<T>(edges_disable_), get<T>(edges_enable_), edge,
-                 [](const auto& e) { e->disable(false); });
-  }
-
-  template <class T, class Fn, if_edge<T> = 0, if_predicate<Fn, T> = 0>
-  auto toggle(Fn&& func, const Enabled) -> void {
-    helpers::move_if(get<T>(edges_enable_), get<T>(edges_disable_), std::forward<Fn>(func),
-                    [](const auto& edge) { edge->disable(true); });
-  }
-
-  template <class T, class Fn, if_edge<T> = 0, if_predicate<Fn, T> = 0>
-  auto toggle(Fn&& func, const Disabled) -> void {
-    helpers::move_if(get<T>(edges_disable_), get<T>(edges_enable_), std::forward<Fn>(func),
-                    [](const auto& edge) { edge->disable(false); });
-  }
-
-  template <class E, Option value, if_types<E> = 0>
+  template <type_list E, Option value>
   auto toggle(const OptionConstant<value> option) -> void {
     toggle(E{}, option);
   }
 
-  template <class E, class T, Option value, if_types<E> = 0>
+  template <type_list E, class T, Option value>
   auto toggle(T&& variant, const OptionConstant<value> option) -> void {
     toggle(E{}, option, std::forward<T>(variant));
   }
@@ -567,72 +552,72 @@ class Container {
   }
 
   template <class T>
-  auto linkEdge(TupleSetShared& edges, const Shared<T>& edge) -> void {
+  auto link_edge(TupleSetShared& edges, const shared<T>& edge) -> void {
     std::ignore = get<T>(edges).insert(edge);
   }
 
   template <class T>
-  auto unlinkEdge(TupleSetShared& edges, const Shared<T>& edge) -> void {
+  auto unlink_edge(TupleSetShared& edges, const shared<T>& edge) -> void {
     std::ignore = get<T>(edges).erase(edge);
   }
 
   template <class N>
-  auto unlinkNode(const Shared<N>& node) -> void {
+  auto unlink_node(const shared<N>& node) -> void {
     node->apply([&](auto& e) {
       e->apply([&](const auto& n) {
         if (not equal(node, n)) {
           n->unlink(e);
         }
       });
-      unlinkEdge(edges_enable_, e);
-      unlinkEdge(edges_disable_, e);
+      unlink_edge(edges_enable_, e);
+      unlink_edge(edges_disable_, e);
     });
     node->unlink();
   }
 
   template <class E, class N>
-  auto unlinkNode(const Shared<N>& node) -> void {
+  auto unlink_node(const shared<N>& node) -> void {
     node->template apply<E>([&](auto e) {
       e->apply([&](const auto& n) {
         if (not equal(node, n)) {
           n->unlink(e);
         }
       });
-      unlinkEdge(edges_enable_, e);
-      unlinkEdge(edges_disable_, e);
+      unlink_edge(edges_enable_, e);
+      unlink_edge(edges_disable_, e);
     });
     node->template unlink<E>();
   }
 
   template <class N, class... T>
-  auto unlinkNode(const Shared<N>& node, Types<T...>) -> void {
-    (unlinkNode<T>(node), ...);
+  auto unlink_node(const shared<N>& node, types<T...>) -> void {
+    (unlink_node<T>(node), ...);
   }
 
   template <class... T, Option value>
-  auto size(const Types<T...>, const OptionConstant<value> option) const {
+  auto size(const types<T...>, const OptionConstant<value> option) const {
     return (size<T>(option) + ...);
   }
 
   template <class Fn, class... T, Option value>
-  auto apply(Fn&& func, Types<T...>, const OptionConstant<value> option) -> void {
+  auto apply(Fn&& func, types<T...>, const OptionConstant<value> option) -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     (apply<T>(ref_func, option), ...);
   }
 
   template <class Fn, class... T, Option value>
-  auto apply(Fn&& func, Types<T...>, const OptionConstant<value> option) const -> void {
+  auto apply(Fn&& func, types<T...>, const OptionConstant<value> option) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     (apply<T>(ref_func, option), ...);
   }
 
   template <class... T, Option value>
-  auto destroy(Types<T...>, const OptionConstant<value> option) -> void {
+  auto destroy(types<T...>, const OptionConstant<value> option) -> void {
     (destroy<T>(option), ...);
   }
 
   template <class... E, Option value, class... Ts>
-  auto toggle(Types<E...>, const OptionConstant<value> option, Ts&&... args) -> void {
+  auto toggle(types<E...>, const OptionConstant<value> option, Ts&&... args) -> void {
     (toggle<E>(helpers::lreference<Ts>(args)..., option), ...);
   }
 
@@ -641,7 +626,7 @@ class Container {
  private:
   std::pmr::monotonic_buffer_resource memory_monotonic_;
   std::pmr::unsynchronized_pool_resource memory_pool_;
-  helpers::MemoryBoundedResource<Config::CacheBlockMaxSize> memory_bounded_;
+  helpers::bounded_memory_resource<Config::CacheBlockMaxSize> memory_bounded_;
   std::pmr::memory_resource* memory_;
   TupleMapShared nodes_enable_;
   TupleMapShared nodes_disable_;

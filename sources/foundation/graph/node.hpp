@@ -27,7 +27,7 @@ namespace vortex::graph {
 template <class... Edges>
 class Node {
   template <class T>
-  using SetShared = std::pmr::set<helpers::Shared<T>>;
+  using SetShared = std::pmr::set<helpers::shared<T>>;
   using TupleSetShared = std::tuple<SetShared<Edges>...>;
 
  public:
@@ -77,12 +77,12 @@ class Node {
   /// @tparam T Edge type.
   /// @param edge The edge to link.
   template <class T>
-  auto link(const helpers::Shared<T>& edge) -> void {
+  auto link(const helpers::shared<T>& edge) -> void {
     std::ignore = std::get<SetShared<T>>(edges_).insert(edge);
   }
 
   template <class T>
-  auto unlink(const helpers::Shared<T>& edge) -> void {
+  auto unlink(const helpers::shared<T>& edge) -> void {
     std::ignore = std::get<SetShared<T>>(edges_).erase(edge);
   }
   template <class T>
@@ -99,14 +99,10 @@ class Node {
 };
 
 /// ===========================================================================
-/// Identity Helper Function
+/// @brief Concept satisfied by any specialization of `Node`.
 /// ===========================================================================
-// LCOV_EXCL_START
-template <class... E>
-inline constexpr auto ToNode(const Node<E...>& v) {
-  return v;
-}
-// LCOV_EXCL_STOP
+template <class T>
+concept node_type = requires { []<class... Ts>(const Node<Ts...>&) {}(std::declval<T>()); };
 
 }  // namespace vortex::graph
 #endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_NODE_HPP

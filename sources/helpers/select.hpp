@@ -7,25 +7,24 @@
 #define VORTEX_HELPERS_SELECT_HPP
 
 #include <array>
+#include <functional>
+#include <type_traits>
 
 namespace vortex::helpers {
 
 /// @brief Defines options for selecting between different configurations.
-enum class Option {
+enum class option {
   kAll,   ///< Select both right and left configurations.
   kLeft,  ///< Select only the left configuration.
   kRight  ///< Select only the right configuration.
 };
 
 /// @brief This provides a compile-time constant for a given Option value.
-///
 /// @tparam value The option value to be wrapped as a compile-time constant.
-template <Option value>
-using OptionConstant = std::integral_constant<Option, value>;
+template <option value>
+using option_constant = std::integral_constant<option, value>;
 
-/// @brief Selects between right and left configurations based on the
-/// given option.
-///
+/// @brief Selects between right and left configurations based on the given option.
 /// @tparam value The option specifying which configuration(s) to select.
 /// @tparam T The type of the `left` and `right` parameters (deduced
 /// automatically).
@@ -36,30 +35,30 @@ using OptionConstant = std::integral_constant<Option, value>;
 ///         - If `value` is `Option::kLeft`, returns only `left`.
 ///         - If `value` is `Option::kRight`, returns only `right`.
 /* LCOV_EXCL_START : Constexpr */
-template <class T, Option value>
-auto select(T& left, T& right, const OptionConstant<value>) {
-  if constexpr (value == Option::kAll) {
-    return std::array{ref(left), ref(right)};
+template <class T, option value>
+auto select(T& left, T& right, const option_constant<value>) {
+  if constexpr (value == option::kAll) {
+    return std::array{std::ref(left), std::ref(right)};
   }
-  if constexpr (value == Option::kLeft) {
-    return std::array{ref(left)};
+  if constexpr (value == option::kLeft) {
+    return std::array{std::ref(left)};
   }
-  if constexpr (value == Option::kRight) {
-    return std::array{ref(right)};
+  if constexpr (value == option::kRight) {
+    return std::array{std::ref(right)};
   }
 }
 /* LCOV_EXCL_STOP : Constexpr */
 /* LCOV_EXCL_START : Constexpr */
-template <class T, Option value>
-auto cselect(T& left, T& right, const OptionConstant<value>) {
-  if constexpr (value == Option::kAll) {
-    return std::array{cref(left), cref(right)};
+template <class T, option value>
+auto cselect(T& left, T& right, const option_constant<value>) {
+  if constexpr (value == option::kAll) {
+    return std::array{std::cref(left), std::cref(right)};
   }
-  if constexpr (value == Option::kLeft) {
-    return std::array{cref(left)};
+  if constexpr (value == option::kLeft) {
+    return std::array{std::cref(left)};
   }
-  if constexpr (value == Option::kRight) {
-    return std::array{cref(right)};
+  if constexpr (value == option::kRight) {
+    return std::array{std::cref(right)};
   }
 }
 /* LCOV_EXCL_STOP : Constexpr */

@@ -23,13 +23,12 @@
 #include "optimization/variants/robust_kernel.hpp"
 
 namespace vortex::graph::optimization {
-using helpers::Types;
 
 /// ===========================================================================
 /// @brief Type Container: A utility template to define nodes types.
 /// ===========================================================================
 template <class... Ts>
-using Nodes = Types<Ts...>;
+using Nodes = helpers::types<Ts...>;
 
 /// ===========================================================================
 /// @brief Edge: Represents a graph edge used for measurements.
@@ -41,7 +40,7 @@ using Nodes = Types<Ts...>;
 /// @tparam Config     Configuration settings for the edge.
 /// ===========================================================================
 template <class Derived, auto Dimension, class Type, class Nodes, class Config = DefaultConfig>
-class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
+class Edge : public helpers::types_build_t<graph::Edge, Nodes> {
   using KernelVariant = variants::KernelVariant<Derived, Config>;
 
  public:
@@ -62,10 +61,10 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
 
   /// @brief Helper alias types.
   template <std::size_t I>
-  using Node = helpers::TypesElementBuild<I, Nodes>;
+  using Node = helpers::types_element_build_t<I, Nodes>;
   using Number = typename Config::Number;
   using Measurement = Type;
-  using Base = helpers::TypesBuild<graph::Edge, Nodes>;
+  using Base = helpers::types_build_t<graph::Edge, Nodes>;
   using Matrix = math::StaticMatrix<Number, kDimension, kDimension>;
   using Vector = math::StaticVector<Number, kDimension>;
   using Base::Base;
@@ -286,8 +285,8 @@ class Edge : public helpers::TypesBuild<graph::Edge, Nodes> {
   KernelVariant kernel_{};
 
   /// @brief Jacobian types.
-  using JacobianTupleT = helpers::TypesWrapBuild<std::tuple, JacobianMatrixT, Nodes>;
-  using JacobianTuple = helpers::TypesWrapBuild<std::tuple, JacobianMatrix, Nodes>;
+  using JacobianTupleT = helpers::types_wrap_build_t<std::tuple, JacobianMatrixT, Nodes>;
+  using JacobianTuple = helpers::types_wrap_build_t<std::tuple, JacobianMatrix, Nodes>;
   JacobianTupleT jacobian_transpose_{};
   JacobianTuple jacobian_{};
 };

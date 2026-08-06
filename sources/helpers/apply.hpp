@@ -10,7 +10,7 @@
 #include <tuple>
 #include <utility>
 
-#include "helpers/traits.hpp"
+#include "helpers/utility.hpp"
 
 namespace vortex::helpers {
 namespace details {
@@ -42,32 +42,38 @@ inline auto apply_map(F&& func, T&& map) -> void {
 
 }  // namespace details
 
+  /// @brief Applies a function to each element in a tuple, set, or map-like container.
 template <class F, class... Ts>
 inline auto apply(F&& func, std::tuple<Ts...>& data) -> void {
   details::apply_tuple(std::forward<F>(func), data, std::make_index_sequence<sizeof...(Ts)>{});
 }
 
+/// @brief Applies a function to each element in a tuple, set, or map-like container.
 template <class F, class... Ts>
 inline auto apply(F&& func, const std::tuple<Ts...>& data) -> void {
   details::apply_tuple(std::forward<F>(func), data, std::make_index_sequence<sizeof...(Ts)>{});
 }
 
-template <class F, class T, if_set_like<T> = 0>
+/// @brief Applies a function to each element in a set-like container.
+template <class F, set_like T>
 inline auto apply(F&& func, T& data) -> void {
   details::apply_set(std::forward<F>(func), data);
 }
 
-template <class F, class T, if_set_like<T> = 0>
+/// @brief Applies a function to each element in a map-like container.
+template <class F, set_like T>
 inline auto apply(F&& func, const T& data) -> void {
   details::apply_set(std::forward<F>(func), data);
 }
 
-template <class F, class T, if_map_like<T> = 0>
+/// @brief Applies a function to each element in a map-like container.
+template <class F, map_like T>
 inline auto apply(F&& func, T& data) -> void {
   details::apply_map(std::forward<F>(func), data);
 }
 
-template <class F, class T, if_map_like<T> = 0>
+/// @brief Applies a function to each element in a map-like container.
+template <class F, map_like T>
 inline auto apply(F&& func, const T& data) -> void {
   details::apply_map(std::forward<F>(func), data);
 }

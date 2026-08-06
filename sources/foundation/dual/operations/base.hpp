@@ -48,7 +48,7 @@ struct unary_operation {
   template <class T>
   auto dvalue(const number<T>& n) const {
     using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(std::size(n), T{0}, helpers::MemoryScope::GetResource());
+    auto dv = dvalue_t(std::size(n), T{0}, memory());
     for (const auto i : n.dindex()) {
       dv[i] = self()->dvalue(duo(n, i));
     }

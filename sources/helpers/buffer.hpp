@@ -29,10 +29,10 @@ namespace vortex::helpers {
 /// which value-initializes every slot up front.
 /// @tparam Capacity Maximum number of retained elements. Must be greater than 0.
 template <class T, std::size_t Capacity>
-class Buffer {
+class buffer {
   static_assert(Capacity > 0, "Capacity must be greater than 0");
   static_assert(std::is_default_constructible_v<T>,
-                "Buffer<T, Capacity> requires T to be default-constructible "
+                "buffer<T, Capacity> requires T to be default-constructible "
                 "because storage is std::array<T, Capacity>; use a raw-storage "
                 "implementation if T has no default constructor.");
 
@@ -40,12 +40,13 @@ class Buffer {
   /// @brief Unsigned type used for sizes and internal indices.
   using size_type = std::size_t;
 
-  Buffer() = default;
-  Buffer(const Buffer&) = default;
-  Buffer(Buffer&&) = default;
-  auto operator=(const Buffer&) -> Buffer& = default;
-  auto operator=(Buffer&&) -> Buffer& = default;
-  ~Buffer() = default;
+  /// @brief Default constructor, copy/move constructors, and assignment operators.
+  buffer() = default;
+  buffer(const buffer&) = default;
+  buffer(buffer&&) = default;
+  auto operator=(const buffer&) -> buffer& = default;
+  auto operator=(buffer&&) -> buffer& = default;
+  ~buffer() = default;
 
   /// @brief Checks whether the buffer holds no elements.
   /// @return `true` if the buffer is empty, `false` otherwise.

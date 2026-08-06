@@ -11,7 +11,7 @@
 #include "helpers/contracts.hpp"
 
 namespace vortex::helpers {
-
+/// ===============================================================================================
 /// @brief A memory resource wrapper that enforces a maximum allocation size
 /// using assert.
 ///
@@ -20,12 +20,13 @@ namespace vortex::helpers {
 /// MaxAllocSize, an assertion failure occurs (in debug builds).
 ///
 /// @tparam MaxAllocSize The maximum number of bytes allowed per allocation.
+/// ================================================================================================
 template <std::size_t MaxAllocSize>
-class MemoryBoundedResource : public std::pmr::memory_resource {
+class bounded_memory_resource : public std::pmr::memory_resource {
  public:
   /// @brief Constructs the bounded memory resource.
   /// @param upstream The upstream memory resource to forward allocations to.
-  explicit MemoryBoundedResource(memory_resource* const upstream) : upstream_(upstream) {}
+  explicit bounded_memory_resource(std::pmr::memory_resource* const upstream) : upstream_(upstream) {}
 
  protected:
   /// @brief Allocates memory, checking against MaxAllocSize.
@@ -50,7 +51,7 @@ class MemoryBoundedResource : public std::pmr::memory_resource {
   /// @brief Compares this memory resource with another.
   /// @param other The other memory resource.
   /// @return true if the resources are the same object.
-  auto do_is_equal(const memory_resource& other) const noexcept -> bool override {
+  auto do_is_equal(const std::pmr::memory_resource& other) const noexcept -> bool override {
     return this == &other;
   }
 
@@ -58,49 +59,51 @@ class MemoryBoundedResource : public std::pmr::memory_resource {
   std::pmr::memory_resource* upstream_;
 };
 
+/// ===============================================================================================
 /// @brief RAII guard that temporarily installs a thread-local std::pmr::memory_resource, restoring
 /// the previous one on destruction. Supports nesting (LIFO).
 ///
-/// Not thread-safe to share a single MemoryScope instance across threads — each thread has its own
-/// independent active resource, and each MemoryScope must be constructed/destroyed on the same
+/// Not thread-safe to share a single memory_scope instance across threads — each thread has its own
+/// independent active resource, and each memory_scope must be constructed/destroyed on the same
 /// thread.
 ///
 /// The caller is responsible for ensuring the pointed-to resource
-/// outlives the MemoryScope.
-class MemoryScope final {
+/// outlives the memory_scope.
+/// ================================================================================================
+class memory_scope final {
  public:
-  using Resource = std::pmr::memory_resource;
+  using memory = std::pmr::memory_resource;
 
-  /// @brief Constructs a MemoryScope, setting the active resource for the current thread.
+  /// @brief Constructs a memory_scope, setting the active resource for the current thread.
   /// @param resource The memory resource to set as active.
-  explicit MemoryScope(Resource* const resource) noexcept : previous_(Current()) {
-    VORTEX_PRECONDITION(resource != nullptr, "MemoryScope requires a non-null resource");
-    Current() = resource;
+  explicit memory_scope(memory* const resource) noexcept : previous_(current()) {
+    VORTEX_PRECONDITION(resource != nullptr, "memory_scope requires a non-null resource");
+    current() = resource;
   }
 
-  /// @brief Destroys the MemoryScope, restoring the previous active resource.
-  ~MemoryScope() noexcept { Current() = previous_; }
+  /// @brief Destroys the memory_scope, restoring the previous active resource.
+  ~memory_scope() noexcept { current() = previous_; }
 
   /// @brief Deleted copy and move constructors and assignment operators to prevent copying/moving.
-  MemoryScope(const MemoryScope&) = delete;
-  MemoryScope(MemoryScope&&) = delete;
-  auto operator=(const MemoryScope&) -> MemoryScope& = delete;
-  auto operator=(MemoryScope&&) -> MemoryScope& = delete;
+  memory_scope(const memory_scope&) = delete;
+  memory_scope(memory_scope&&) = delete;
+  auto operator=(const memory_scope&) -> memory_scope& = delete;
+  auto operator=(memory_scope&&) -> memory_scope& = delete;
 
   /// @brief Returns the resource currently active on this thread.
   /// @return The active resource. Never null (falls back to
   /// std::pmr::get_default_resource()).
-  static auto GetResource() noexcept -> Resource* { return Current(); }
+  static auto get_resource() noexcept -> memory* { return current(); }
 
  private:
   /// @brief Returns a reference to the thread-local pointer to the current resource.
   /// @return Reference to the thread-local pointer.
-  static auto Current() noexcept -> Resource*& {
-    thread_local Resource* res = std::pmr::get_default_resource();
+  static auto current() noexcept -> memory*& {
+    thread_local memory* res = std::pmr::get_default_resource();
     return res;
   }
 
-  Resource* const previous_;
+  memory* const previous_;
 };
 
 }  // namespace vortex::helpers
