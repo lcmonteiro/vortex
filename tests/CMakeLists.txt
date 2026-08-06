@@ -3,6 +3,7 @@ include(GoogleTest)
 add_executable(vortex_tests
   dual_test.cpp
   optimization_test.cpp
+  optimization_trajectory_test.cpp
   graph_container_test.cpp
   vector_set_test.cpp
   linear_solver_test.cpp
