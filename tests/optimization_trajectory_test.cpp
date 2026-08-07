@@ -26,8 +26,8 @@ namespace {
 using namespace vortex::test;
 
 /// @brief Test parameters for the randomized trajectory optimization test.
-constexpr auto kNumberNodes = std::size_t{30};
-constexpr auto kLinksPerNode = std::size_t{4};
+constexpr auto kNumberNodes = std::size_t{100};
+constexpr auto kLinksPerNode = std::size_t{10};
 constexpr auto kAmplitude = double{10.0};
 constexpr auto kWidth = double{80.0};
 constexpr auto kInitialGuessMin = double{-10.0};
