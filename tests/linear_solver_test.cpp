@@ -13,8 +13,8 @@
 
 namespace {
 
-using Vector = vortex::math::DynamicVector<double>;
-using Matrix = vortex::math::DynamicMatrix<double>;
+using Vector = vortex::math::dynamic_vector<double>;
+using Matrix = vortex::math::dynamic_matrix<double>;
 
 void ClearUpper(Matrix& matrix) {
   for (std::size_t i = 0; i < matrix.rows(); ++i) {
