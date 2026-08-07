@@ -83,8 +83,7 @@ struct DiagonalInformationOption {
     // Ensure the number of received arguments matches the matrix dimension.
     static_assert((1 + sizeof...(Types)) == Dimension,
                   "The number of values must match the square matrix dimension.");
-
-    math::diagonal(matrix_) = math::static_vector{value, values...};
+    math::diagonal(matrix_) = math::static_vector<Type, 1 + sizeof...(Types)>{value, values...};
   }
 
   /// @brief Gets the matrix instance.
@@ -162,7 +161,6 @@ struct InformationVariant {
   constexpr InformationVariant()
       : matrix_(std::variant_alternative_t<Derived::kInformation, MatrixVariant>{}) {
     static_assert(Derived::kInformation >= kIdentityMatrix, "kInformation >= kIdentityMatrix");
-
     static_assert(Derived::kInformation <= kSymmetricMatrix, "kInformation <= kSymmetricMatrix");
   }
 
