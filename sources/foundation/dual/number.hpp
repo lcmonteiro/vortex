@@ -138,6 +138,7 @@ constexpr auto zeros() {
   }(make_sequence<D>{});
 }
 
+/// @brief Type trait to check if a type is a dual number.
 template <class T>
 struct is_number : std::false_type {};
 template <class T>
@@ -145,6 +146,7 @@ struct is_number<number<T>> : std::true_type {};
 template <class T>
 constexpr bool is_number_v = is_number<T>::value;
 
+/// @brief Type trait to check if a type is a dual number or a scalar.
 template <class T>
 struct is_number_like : std::is_arithmetic<T> {};
 template <class T>

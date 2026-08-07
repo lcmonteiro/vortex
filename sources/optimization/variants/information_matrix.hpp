@@ -15,16 +15,6 @@
 namespace vortex::graph::optimization {
 namespace variants {
 
-/// @brief Can be used to enable methods where a matrix is needed.
-/// @tparam Type Type to check if it is a matrix.
-template <class Type>
-using if_matrix = std::enable_if_t<math::IsMatrix<Type>::value, bool>;
-
-/// @brief Can be used to enable methods where a vector is needed.
-/// @tparam Type Type to check if it is a vector.
-template <class Type>
-using if_vector = std::enable_if_t<math::IsVector<Type>::value, bool>;
-
 /// ===============================================================================================
 /// @brief Information Matrices: Identity Matrix
 /// ===============================================================================================
@@ -44,7 +34,7 @@ struct IdentityInformationOption {
 
  private:
   /// @brief The matrix instance.
-  math::IdentityMatrix<Number> matrix_;
+  math::identity_matrix<Number> matrix_;
 };
 
 /// ===============================================================================================
@@ -58,24 +48,26 @@ struct IdentityInformationOption {
 template <class Number, std::size_t Dimension>
 struct DiagonalInformationOption {
   /// @brief Constructor of an information matrix that is a diagonal matrix.
-  DiagonalInformationOption() : matrix_{math::IdentityMatrix<Number>(Dimension)} {};
+  DiagonalInformationOption() : matrix_{math::identity_matrix<Number>(Dimension)} {};
 
   /// @brief Sets the value of the information matrix based on another matrix.
   /// @tparam Matrix The matrix type.
   /// @param matrix The matrix containing the values to set the information to.
   /// @note Only enabled for matrix types.
-  template <class Matrix, if_matrix<Matrix> = true>
+  template <class Matrix>
+  requires math::is_matrix_v<Matrix>
   auto set(const Matrix& matrix) -> void {
     matrix_ = matrix;
   }
 
-  /// @brief Sets the value of the information matrix diagonal based on a
+  /// @brief Sets the value of the information matrix diagonal\ based on a
   /// vector.
   /// @tparam Vector The vector type.
   /// @param vector The vector containing the values to set the information
   /// diagonal to.
   /// @note Only enabled for vector types.
-  template <class Vector, if_vector<Vector> = true>
+  template <class Vector>
+  requires math::is_vector_v<Vector>
   auto set(const Vector& vector) -> void {
     math::diagonal(matrix_) = vector;
   }
@@ -92,7 +84,7 @@ struct DiagonalInformationOption {
     static_assert((1 + sizeof...(Types)) == Dimension,
                   "The number of values must match the square matrix dimension.");
 
-    math::diagonal(matrix_) = math::StaticVector{value, values...};
+    math::diagonal(matrix_) = math::static_vector{value, values...};
   }
 
   /// @brief Gets the matrix instance.
@@ -101,10 +93,10 @@ struct DiagonalInformationOption {
 
  private:
   /// @brief Type of the base matrix.
-  using BaseMatrix = math::StaticMatrix<Number, Dimension, Dimension>;
+  using BaseMatrix = math::static_matrix<Number, Dimension, Dimension>;
 
   /// @brief The matrix instance.
-  math::DiagonalMatrix<BaseMatrix> matrix_;
+  math::diagonal_matrix<BaseMatrix> matrix_;
 };
 
 /// ===============================================================================================
@@ -118,13 +110,14 @@ struct DiagonalInformationOption {
 template <class Number, std::size_t Dimension>
 struct SymmetricInformationOption {
   /// @brief Constructor of an information matrix.
-  SymmetricInformationOption() : matrix_{math::IdentityMatrix<Number>(Dimension)} {};
+  SymmetricInformationOption() : matrix_{math::identity_matrix<Number>(Dimension)} {};
 
   /// @brief Sets the value of the information matrix based on another matrix.
   /// @tparam Matrix The matrix type.
   /// @param matrix The matrix containing the values to set the information to.
   /// @note Only enabled for matrix types.
-  template <class Matrix, if_matrix<Matrix> = true>
+  template <class Matrix>
+  requires math::is_matrix_v<Matrix>
   auto set(const Matrix& matrix) -> void {
     matrix_ = matrix;
   }
@@ -135,10 +128,10 @@ struct SymmetricInformationOption {
 
  private:
   /// @brief Type of the base matrix.
-  using BaseMatrix = math::StaticMatrix<Number, Dimension, Dimension>;
+  using BaseMatrix = math::static_matrix<Number, Dimension, Dimension>;
 
   /// @brief The matrix instance.
-  math::SymmetricMatrix<BaseMatrix> matrix_;
+  math::symmetric_matrix<BaseMatrix> matrix_;
 };
 
 /// ===============================================================================================

@@ -41,8 +41,8 @@ class Node : public helpers::types_build_t<graph::node, Edges> {
   using Key = typename Config::key_type;
 
   template <std::size_t D>
-  using Matrix = math::StaticMatrix<Number, D, kDimension>;
-  using Vector = math::StaticVector<Number, kDimension>;
+  using Matrix = math::static_matrix<Number, D, kDimension>;
+  using Vector = math::static_vector<Number, kDimension>;
 
   using Base = helpers::types_build_t<graph::node, Edges>;
   using Base::Base;

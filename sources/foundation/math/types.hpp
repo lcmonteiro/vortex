@@ -8,60 +8,61 @@
 
 #include <blaze/Math.h>
 
-#include <cstddef>
-
 namespace vortex::math {
 /// ===============================================================================================
 /// Matrix & Vector Types
 /// ===============================================================================================
-using blaze::columnMajor;
-using blaze::columnVector;
-using blaze::rowMajor;
-using blaze::rowVector;
+constexpr bool column_major = blaze::columnMajor;
+constexpr bool column_vector = blaze::columnVector;
+constexpr bool row_major = blaze::rowMajor;
+constexpr bool row_vector = blaze::rowVector;
 
-template <class Type, std::size_t R, std::size_t C, bool SO = columnMajor>
-using StaticMatrix = blaze::StaticMatrix<Type, R, C, SO>;
+template <class Type, std::size_t R, std::size_t C, bool SO = column_major>
+using static_matrix = blaze::StaticMatrix<Type, R, C, SO>;
 
-template <class Type, std::size_t R, std::size_t C, bool SO = columnMajor>
-using HybridMatrix = blaze::HybridMatrix<Type, R, C, SO>;
+template <class Type, std::size_t R, std::size_t C, bool SO = column_major>
+using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 
-template <class Type, bool SO = columnMajor>
-using DynamicMatrix = blaze::DynamicMatrix<Type, SO>;
+template <class Type, bool SO = column_major>
+using dynamic_matrix = blaze::DynamicMatrix<Type, SO>;
 
-template <class Type, bool SO = columnMajor>
-using IdentityMatrix = blaze::IdentityMatrix<Type, SO>;
+template <class Type, bool SO = column_major>
+using identity_matrix = blaze::IdentityMatrix<Type, SO>;
 
-template <class Type, bool TF = columnVector>
-using DynamicVector = blaze::DynamicVector<Type, TF>;
+template <class Type, bool TF = column_vector>
+using dynamic_vector = blaze::DynamicVector<Type, TF>;
 
-template <class Type, std::size_t Size, bool TF = columnVector>
-using StaticVector = blaze::StaticVector<Type, Size, TF>;
+template <class Type, std::size_t Size, bool TF = column_vector>
+using static_vector = blaze::StaticVector<Type, Size, TF>;
 
-template <class Type, std::size_t Size, bool TF = columnVector>
-using HybridVector = blaze::HybridVector<Type, Size, TF>;
+template <class Type, std::size_t Size, bool TF = column_vector>
+using hybrid_vector = blaze::HybridVector<Type, Size, TF>;
 
 /// ===============================================================================================
 /// Matrix Type Adapters
 /// ===============================================================================================
 template <class MatrixType>
-using SymmetricMatrix = blaze::SymmetricMatrix<MatrixType>;
+using symmetric_matrix = blaze::SymmetricMatrix<MatrixType>;
 
 template <class MatrixType>
-using DiagonalMatrix = blaze::DiagonalMatrix<MatrixType>;
+using diagonal_matrix = blaze::DiagonalMatrix<MatrixType>;
 
 /// ===============================================================================================
 /// Type Identifiers
 /// ===============================================================================================
-
 /// @brief Check if the given type is a matrix.
 /// @tparam Type The type to check.
 template <class Type>
-using IsMatrix = blaze::IsMatrix<Type>;
+using is_matrix = blaze::IsMatrix<Type>;
+template <class Type>
+constexpr bool is_matrix_v = is_matrix<Type>::value;
 
 /// @brief Check if the given type is a vector.
 /// @tparam Type The type to check.
 template <class Type>
-using IsVector = blaze::IsVector<Type>;
+using is_vector = blaze::IsVector<Type>;
+template <class Type>
+constexpr bool is_vector_v = is_vector<Type>::value;
 
 /// ===============================================================================================
 /// Forward Operations

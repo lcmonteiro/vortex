@@ -23,9 +23,9 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   using Edges = typename Graph::Edges;
   using Number = typename Graph::Number;
   using Enabled = typename Graph::Enabled;
-  using Vector = math::DynamicVector<Number>;
-  using Matrix = math::DynamicMatrix<Number>;
-  using Diagonal = math::DynamicVector<Number>;
+  using Vector = math::dynamic_vector<Number>;
+  using Matrix = math::dynamic_matrix<Number>;
+  using Diagonal = math::dynamic_vector<Number>;
   using Base = GraphSolver<Graph, LinearSolver>;
 
   explicit BlockGraphSolver(Graph& graph) : Base{graph}, x_{}, b_{}, h_{}, h_diagonal_backup_{} {

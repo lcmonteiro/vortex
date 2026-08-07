@@ -40,7 +40,7 @@ class Graph : public graph::storage<Nodes, Edges, Config> {
   using Base = graph::storage<Nodes, Edges, Config>;
   using Key = typename Config::key_type;
   using Number = typename Config::Number;
-  using Vector = math::DynamicVector<Number>;
+  using Vector = math::dynamic_vector<Number>;
   using Enabled = typename Base::enabled_type;
   using Disabled = typename Base::disabled_type;
 

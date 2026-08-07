@@ -65,8 +65,8 @@ class Edge : public helpers::types_build_t<graph::edge, Nodes> {
   using Number = typename Config::Number;
   using Measurement = Type;
   using Base = helpers::types_build_t<graph::edge, Nodes>;
-  using Matrix = math::StaticMatrix<Number, kDimension, kDimension>;
-  using Vector = math::StaticVector<Number, kDimension>;
+  using Matrix = math::static_matrix<Number, kDimension, kDimension>;
+  using Vector = math::static_vector<Number, kDimension>;
   using Base::Base;
 
   template <class Scalar>
@@ -164,9 +164,9 @@ class Edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @note The transpose version is assumed to already include the
   /// information matrix.
   template <typename Node>
-  using JacobianMatrixT = math::StaticMatrix<Number, Node::kDimension, kDimension, math::rowMajor>;
+  using JacobianMatrixT = math::static_matrix<Number, Node::kDimension, kDimension, math::row_major>;
   template <typename Node>
-  using JacobianMatrix = math::StaticMatrix<Number, kDimension, Node::kDimension>;
+  using JacobianMatrix = math::static_matrix<Number, kDimension, Node::kDimension>;
 
   /// @brief `kNodeDimension[I]` is `Node<I>::kDimension`, in `Nodes` order.
   static constexpr auto kNodeDimension = []<std::size_t... Is>(std::index_sequence<Is...>) {

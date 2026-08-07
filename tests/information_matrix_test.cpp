@@ -99,8 +99,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Identity_Get) {
   auto& information = edge_with_identity->information();
 
   // Then
-  math::DiagonalMatrix<EdgeWithIdentity::Matrix> expected_information{};
-  math::diagonal(expected_information) = math::StaticVector{1, 1};
+  math::diagonal_matrix<EdgeWithIdentity::Matrix> expected_information{};
+  math::diagonal(expected_information) = math::static_vector{1, 1};
 
   EXPECT_EQ(information, expected_information);
 }
@@ -115,8 +115,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_GetInitial) {
   auto& information = edge_with_diagonal->information();
 
   // Then
-  math::DiagonalMatrix<EdgeWithDiagonal::Matrix> expected_information{};
-  math::diagonal(expected_information) = math::StaticVector{1, 1};
+  math::diagonal_matrix<EdgeWithDiagonal::Matrix> expected_information{};
+  math::diagonal(expected_information) = math::static_vector{1, 1};
 
   EXPECT_EQ(information, expected_information);
 }
@@ -127,8 +127,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithMatrix) {
   auto n2 = g_.build<Node1>(Graph::Key{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
-  math::DiagonalMatrix<EdgeWithDiagonal::Matrix> new_information{};
-  math::diagonal(new_information) = math::StaticVector{2, 2};
+  math::diagonal_matrix<EdgeWithDiagonal::Matrix> new_information{};
+  math::diagonal(new_information) = math::static_vector{2, 2};
 
   // When
   edge_with_diagonal->information(new_information);
@@ -145,13 +145,13 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithVector) {
   auto n2 = g_.build<Node1>(Graph::Key{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
-  math::StaticVector new_information_vector{2, 3};
+  math::static_vector new_information_vector{2, 3};
 
   // When
   edge_with_diagonal->information(new_information_vector);
 
   // Then
-  math::DiagonalMatrix<EdgeWithDiagonal::Matrix> expected_information_matrix{};
+  math::diagonal_matrix<EdgeWithDiagonal::Matrix> expected_information_matrix{};
   math::diagonal(expected_information_matrix) = new_information_vector;
 
   auto& retrieved_information_matrix = edge_with_diagonal->information();
@@ -165,13 +165,13 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithValues) {
   auto n2 = g_.build<Node1>(Graph::Key{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
-  math::StaticVector new_information_vector{2.0, 3.0};
+  math::static_vector new_information_vector{2.0, 3.0};
 
   // When
   edge_with_diagonal->information(2.0, 3.0);
 
   // Then
-  math::DiagonalMatrix<EdgeWithDiagonal::Matrix> expected_information_matrix{};
+  math::diagonal_matrix<EdgeWithDiagonal::Matrix> expected_information_matrix{};
   math::diagonal(expected_information_matrix) = new_information_vector;
 
   auto& retrieved_information_matrix = edge_with_diagonal->information();
@@ -200,7 +200,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Symmetric_Set) {
   auto n2 = g_.build<Node1>(Graph::Key{2});
   auto edge_with_diagonal = g_.build<EdgeWithSymmetric>(n1, n2);
 
-  math::SymmetricMatrix<EdgeWithSymmetric::Matrix> new_information{{1, 2}, {2, 1}};
+  math::symmetric_matrix<EdgeWithSymmetric::Matrix> new_information{{1, 2}, {2, 1}};
 
   // When
   edge_with_diagonal->information(new_information);
