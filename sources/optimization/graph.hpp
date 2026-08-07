@@ -28,7 +28,7 @@ using graph::handle;
 /// parameters for the graph (default is `DefaultConfig`).
 /// ===============================================================================================
 template <class Nodes, class Edges, class Config = DefaultConfig>
-class Graph : public graph::Container<Nodes, Edges, Config> {
+class Graph : public graph::storage<Nodes, Edges, Config> {
   /// @brief Helper alias types.
   using LSolver = typename Config::LinearSolver;
   using GSolver = typename Config::template GraphSolver<Graph, LSolver>;
@@ -37,12 +37,12 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
  public:
   static constexpr auto kSystemCapacity = std::size_t{Config::SystemCapacity};
 
-  using Base = graph::Container<Nodes, Edges, Config>;
-  using Key = typename Config::Key;
+  using Base = graph::storage<Nodes, Edges, Config>;
+  using Key = typename Config::key_type;
   using Number = typename Config::Number;
   using Vector = math::DynamicVector<Number>;
-  using Enabled = typename Base::Enabled;
-  using Disabled = typename Base::Disabled;
+  using Enabled = typename Base::enabled_type;
+  using Disabled = typename Base::disabled_type;
 
   /// @brief Graph main constructor.
   /// @param memory_resource The memory resource used for allocating memory.

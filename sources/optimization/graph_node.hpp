@@ -32,19 +32,19 @@ using Edges = helpers::types<Ts...>;
 /// @tparam Config       Configuration settings for the node.
 /// ===============================================================================================
 template <class Derived, auto Dimension, class Type, class Edges, class Config = DefaultConfig>
-class Node : public helpers::types_build_t<graph::Node, Edges> {
+class Node : public helpers::types_build_t<graph::node, Edges> {
  public:
   /// @brief Helper aliases.
   static constexpr auto kDimension = std::size_t{Dimension};
 
   using Number = typename Config::Number;
-  using Key = typename Config::Key;
+  using Key = typename Config::key_type;
 
   template <std::size_t D>
   using Matrix = math::StaticMatrix<Number, D, kDimension>;
   using Vector = math::StaticVector<Number, kDimension>;
 
-  using Base = helpers::types_build_t<graph::Node, Edges>;
+  using Base = helpers::types_build_t<graph::node, Edges>;
   using Base::Base;
 
   /// @brief Node constructor.

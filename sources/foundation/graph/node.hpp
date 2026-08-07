@@ -5,6 +5,7 @@
 /// ===============================================================================================
 #ifndef VORTEX_FOUNDATION_GRAPH_GRAPH_NODE_HPP
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_NODE_HPP
+
 #include <memory>
 #include <memory_resource>
 #include <set>
@@ -25,17 +26,17 @@ namespace vortex::graph {
 /// node can manage.
 /// ===============================================================================================
 template <class... Edges>
-class Node {
+class node {
   template <class T>
-  using SetShared = std::pmr::set<helpers::handle<T>>;
-  using TupleSetShared = std::tuple<SetShared<Edges>...>;
+  using handler_set = std::pmr::set<helpers::handle<T>>;
+  using handler_set_tuple = std::tuple<handler_set<Edges>...>;
 
  public:
   static constexpr auto N_TYPES = sizeof...(Edges);
 
   template <class Key>
-  Node(const Key&, std::pmr::memory_resource* const memory)
-      : disable_{}, edges_{helpers::build<TupleSetShared>(memory)} {}
+  node(const Key&, std::pmr::memory_resource* const memory)
+      : disable_{}, edges_{helpers::build<handler_set_tuple>(memory)} {}
 
   /// @brief Applies a function to all edges.
   /// @tparam F Function type.
@@ -52,12 +53,12 @@ class Node {
 
   template <class T, class F>
   auto apply(F&& func) -> void {
-    helpers::apply(std::forward<F>(func), std::get<SetShared<T>>(edges_));
+    helpers::apply(std::forward<F>(func), std::get<handler_set<T>>(edges_));
   }
 
   template <class T, class F>
   auto apply(F&& func) const -> void {
-    helpers::apply(std::forward<F>(func), std::get<SetShared<T>>(edges_));
+    helpers::apply(std::forward<F>(func), std::get<handler_set<T>>(edges_));
   }
 
   /// @brief Checks if the node is disable.
@@ -66,7 +67,7 @@ class Node {
 
  protected:
   template <class, class, class>
-  friend class Container;
+  friend class storage;
 
   /// @brief Disables or enables the node.
   /// @param value If `true`, the node will be disabled; if `false`, it will
@@ -78,16 +79,16 @@ class Node {
   /// @param edge The edge to link.
   template <class T>
   auto link(const helpers::handle<T>& edge) -> void {
-    std::ignore = std::get<SetShared<T>>(edges_).insert(edge);
+    std::ignore = std::get<handler_set<T>>(edges_).insert(edge);
   }
 
   template <class T>
   auto unlink(const helpers::handle<T>& edge) -> void {
-    std::ignore = std::get<SetShared<T>>(edges_).erase(edge);
+    std::ignore = std::get<handler_set<T>>(edges_).erase(edge);
   }
   template <class T>
   auto unlink() -> void {
-    std::get<SetShared<T>>(edges_).clear();
+    std::get<handler_set<T>>(edges_).clear();
   }
   auto unlink() -> void {
     helpers::apply([&](auto& set) { set.clear(); }, edges_);
@@ -95,14 +96,14 @@ class Node {
 
  private:
   bool disable_;
-  std::tuple<SetShared<Edges>...> edges_;
+  std::tuple<handler_set<Edges>...> edges_;
 };
 
 /// ===============================================================================================
-/// @brief Concept satisfied by any specialization of `Node`.
+/// @brief Concept satisfied by any specialization of `node`.
 /// ===============================================================================================
 template <class T>
-concept node_type = requires { []<class... Ts>(const Node<Ts...>&) {}(std::declval<T>()); };
+concept node_type = requires { []<class... Ts>(const node<Ts...>&) {}(std::declval<T>()); };
 
 }  // namespace vortex::graph
 #endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_NODE_HPP

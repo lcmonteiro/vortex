@@ -1,6 +1,6 @@
 /// ===============================================================================================
 /// @file
-/// @brief Unit tests for `vortex::graph::Container` (build/size/apply/find/
+/// @brief Unit tests for `vortex::graph::storage` (build/size/apply/find/
 /// unlink/destroy/toggle) using a minimal, optimization-free node/edge graph.
 /// ===============================================================================================
 #include <gtest/gtest.h>
@@ -109,8 +109,8 @@ TEST_F(SimpleGraphFixture, CheckGraphDestroyAll) {
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphDestroyAllEnableDisable) {
-  g_.destroy(g_.kDisabled);
-  g_.destroy(g_.kEnabled);
+  g_.destroy(g_.disabled);
+  g_.destroy(g_.enabled);
   EXPECT_EQ(g_.size<Graph::Edges>(), 0);
   EXPECT_EQ(g_.size<Graph::Nodes>(), 0);
 }
@@ -135,101 +135,101 @@ TEST_F(SimpleGraphFixture, CheckGraphDestroyIf_SecondElement) {
 }
 
 TEST_F(SimpleGraphFixture, GivenDifferentTypes_ExpectNodeToggle) {
-  g_.toggle<Node1>(Graph::Enabled{});
+  g_.toggle<Node1>(Graph::enabled);
   ASSERT_TRUE((*n1_)->disable());
   ASSERT_FALSE((*n2_)->disable());
 
-  g_.toggle<Node1>(Graph::Disabled{});
+  g_.toggle<Node1>(Graph::disabled);
   EXPECT_FALSE((*n1_)->disable());
   EXPECT_FALSE((*n2_)->disable());
 }
 
 TEST_F(SimpleGraphFixture, GivenNodesToggle_ExpectEnabledCountChange) {
-  auto enabled{g_.size<Graph::Nodes>(g_.kEnabled)};
-  auto disabled{g_.size<Graph::Nodes>(g_.kDisabled)};
+  auto enabled{g_.size<Graph::Nodes>(g_.enabled)};
+  auto disabled{g_.size<Graph::Nodes>(g_.disabled)};
 
-  g_.toggle<Node1>(Graph::Enabled{});
+  g_.toggle<Node1>(Graph::enabled);
 
-  EXPECT_LE(g_.size<Graph::Nodes>(g_.kEnabled), enabled);
-  EXPECT_GE(g_.size<Graph::Nodes>(g_.kDisabled), disabled);
+  EXPECT_LE(g_.size<Graph::Nodes>(g_.enabled), enabled);
+  EXPECT_GE(g_.size<Graph::Nodes>(g_.disabled), disabled);
 }
 
 TEST_F(SimpleGraphFixture, GivenEdgesToggle_ExpectEnabledCountChange) {
-  auto enabled{g_.size<Graph::Edges>(g_.kEnabled)};
-  auto disabled{g_.size<Graph::Edges>(g_.kDisabled)};
+  auto enabled{g_.size<Graph::Edges>(g_.enabled)};
+  auto disabled{g_.size<Graph::Edges>(g_.disabled)};
 
-  g_.toggle<Edge1>(Graph::Enabled{});
+  g_.toggle<Edge1>(Graph::enabled);
 
-  EXPECT_LE(g_.size<Graph::Edges>(g_.kEnabled), enabled);
-  EXPECT_GE(g_.size<Graph::Nodes>(g_.kDisabled), disabled);
+  EXPECT_LE(g_.size<Graph::Edges>(g_.enabled), enabled);
+  EXPECT_GE(g_.size<Graph::Nodes>(g_.disabled), disabled);
 }
 
 TEST_F(SimpleGraphFixture, GivenDifferentKeys_ExpectNodeToggle) {
-  g_.toggle<Node1>(1, Graph::Enabled{});
+  g_.toggle<Node1>(1, Graph::enabled);
   ASSERT_TRUE((*n1_)->disable());
   ASSERT_FALSE((*n3_)->disable());
 
-  g_.toggle<Node1>(2, Graph::Enabled{});
+  g_.toggle<Node1>(2, Graph::enabled);
   ASSERT_TRUE((*n1_)->disable());
   ASSERT_TRUE((*n3_)->disable());
 
-  g_.toggle<Node1>(1, Graph::Disabled{});
+  g_.toggle<Node1>(1, Graph::disabled);
   ASSERT_FALSE((*n1_)->disable());
   ASSERT_TRUE((*n3_)->disable());
 
-  g_.toggle<Node1>(2, Graph::Disabled{});
+  g_.toggle<Node1>(2, Graph::disabled);
   EXPECT_FALSE((*n1_)->disable());
   EXPECT_FALSE((*n3_)->disable());
 }
 
 TEST_F(SimpleGraphFixture, GivenDifferentTypes_ExpectEdgeToggle) {
-  g_.toggle<Edge1>(Graph::Enabled{});
+  g_.toggle<Edge1>(Graph::enabled);
   ASSERT_TRUE((*e1_)->disable());
   ASSERT_FALSE((*e2_)->disable());
 
-  g_.toggle<Edge1>(Graph::Disabled{});
+  g_.toggle<Edge1>(Graph::disabled);
   EXPECT_FALSE((*e1_)->disable());
   EXPECT_FALSE((*e2_)->disable());
 }
 
 TEST_F(SimpleGraphFixture, GivenDifferentInstances_ExpectEdgeToggle) {
-  g_.toggle<Edge1>(*e1_, Graph::Enabled{});
+  g_.toggle<Edge1>(*e1_, Graph::enabled);
   ASSERT_TRUE((*e1_)->disable());
   ASSERT_FALSE((*e2_)->disable());
 
-  g_.toggle<Edge2>(*e2_, Graph::Enabled{});
+  g_.toggle<Edge2>(*e2_, Graph::enabled);
   ASSERT_TRUE((*e1_)->disable());
   ASSERT_TRUE((*e2_)->disable());
 
-  g_.toggle<Edge1>(*e1_, Graph::Disabled{});
+  g_.toggle<Edge1>(*e1_, Graph::disabled);
   ASSERT_FALSE((*e1_)->disable());
   ASSERT_TRUE((*e2_)->disable());
 
-  g_.toggle<Edge2>(*e2_, Graph::Disabled{});
+  g_.toggle<Edge2>(*e2_, Graph::disabled);
   EXPECT_FALSE((*e1_)->disable());
   EXPECT_FALSE((*e2_)->disable());
 }
 
 TEST_F(SimpleGraphFixture, GivenCondition_ExpectNodeToggle) {
   g_.toggle<Node1>([](const auto& node) { return (node->N_TYPES == 2) ? true : false; },
-                   Graph::Enabled{});
+                   Graph::enabled);
   EXPECT_TRUE((*n1_)->disable());
   EXPECT_FALSE((*n2_)->disable());
 
   g_.toggle<Node2>([](const auto& node) { return (node->N_TYPES == 1) ? true : false; },
-                   Graph::Enabled{});
+                   Graph::enabled);
   EXPECT_TRUE((*n1_)->disable());
   EXPECT_TRUE((*n2_)->disable());
 }
 
 TEST_F(SimpleGraphFixture, GivenCondition_ExpectEdgeToggle) {
-  g_.toggle<Edge1>([](const auto& edge) { return (edge->NNodes == 2) ? true : false; },
-                   Graph::Enabled{});
+  g_.toggle<Edge1>([](const auto& edge) { return (edge->n_nodes == 2) ? true : false; },
+                   Graph::enabled);
   EXPECT_TRUE((*e1_)->disable());
   EXPECT_FALSE((*e2_)->disable());
 
-  g_.toggle<Edge2>([](const auto& edge) { return (edge->NNodes == 1) ? true : false; },
-                   Graph::Enabled{});
+  g_.toggle<Edge2>([](const auto& edge) { return (edge->n_nodes == 1) ? true : false; },
+                   Graph::enabled);
   EXPECT_TRUE((*e1_)->disable());
   EXPECT_TRUE((*e2_)->disable());
 }

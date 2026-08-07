@@ -1,7 +1,7 @@
 /// ===============================================================================================
 /// @file
 /// @brief Minimal foundation-level graph fixture (nodes/edges with no
-/// optimization payload) used to exercise `vortex::graph::Container` directly.
+/// optimization payload) used to exercise `vortex::graph::storage` directly.
 /// ===============================================================================================
 #ifndef VORTEX_TESTS_FIXTURES_SIMPLE_GRAPH_HPP
 #define VORTEX_TESTS_FIXTURES_SIMPLE_GRAPH_HPP
@@ -15,24 +15,24 @@ struct SimpleGraphFixture : public ::testing::Test {
   /// @brief Simple graph definitions.
   struct Edge1;
   struct Edge2;
-  struct Node1 : graph::Node<Edge1, Edge2> {
-    using Base = graph::Node<Edge1, Edge2>;
+  struct Node1 : graph::node<Edge1, Edge2> {
+    using Base = graph::node<Edge1, Edge2>;
     using Base::Base;
   };
-  struct Node2 : graph::Node<Edge1> {
-    using Base = graph::Node<Edge1>;
+  struct Node2 : graph::node<Edge1> {
+    using Base = graph::node<Edge1>;
     using Base::Base;
   };
-  struct Edge1 : graph::Edge<Node1, Node2> {
-    using Base = graph::Edge<Node1, Node2>;
+  struct Edge1 : graph::edge<Node1, Node2> {
+    using Base = graph::edge<Node1, Node2>;
     using Base::Base;
   };
-  struct Edge2 : graph::Edge<Node1> {
-    using Base = graph::Edge<Node1>;
+  struct Edge2 : graph::edge<Node1> {
+    using Base = graph::edge<Node1>;
     using Base::Base;
   };
-  struct Graph : graph::Container<graph::types<Node1, Node2>, graph::types<Edge1, Edge2>> {
-    using Base = graph::Container<graph::types<Node1, Node2>, graph::types<Edge1, Edge2>>;
+  struct Graph : graph::storage<graph::types<Node1, Node2>, graph::types<Edge1, Edge2>> {
+    using Base = graph::storage<graph::types<Node1, Node2>, graph::types<Edge1, Edge2>>;
     using Base::Base;
     using Base::operator=;
   };
