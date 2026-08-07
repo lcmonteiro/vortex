@@ -10,6 +10,7 @@
 #include <variant>
 
 #include "foundation/math.hpp"
+#include "foundation/math/types.hpp"
 
 namespace vortex::graph::optimization {
 namespace variants {
@@ -91,7 +92,7 @@ struct DiagonalInformationOption {
     static_assert((1 + sizeof...(Types)) == Dimension,
                   "The number of values must match the square matrix dimension.");
 
-    math::diagonal(matrix_) = {value, values...};
+    math::diagonal(matrix_) = math::StaticVector{value, values...};
   }
 
   /// @brief Gets the matrix instance.

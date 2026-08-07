@@ -240,33 +240,33 @@ TEST_F(SimpleGraphFixture, GivenSharedObjects_ExpectCopyAssignment) {
   auto n_copy2 = *n2_;
   auto n_target = *n3_;
   n_target = n_copy;
-  EXPECT_EQ(n_target.get(), n_copy.get());
+  EXPECT_EQ(n_target.operator->(), n_copy.operator->());
 
   n_copy2 = *n2_;
-  EXPECT_EQ(n_copy2.get(), (*n2_).get());
+  EXPECT_EQ(n_copy2.operator->(), (*n2_).operator->());
 
   auto e_copy = *e1_;
   auto e_target = e_copy;
   e_target = e_copy;
-  EXPECT_EQ(e_target.get(), e_copy.get());
+  EXPECT_EQ(e_target.operator->(), e_copy.operator->());
 
   auto e2_copy = *e2_;
   auto e2_target = e2_copy;
   e2_target = e2_copy;
-  EXPECT_EQ(e2_target.get(), e2_copy.get());
+  EXPECT_EQ(e2_target.operator->(), e2_copy.operator->());
 }
 
 /// @brief Verifies shared move assignment for base graph types: the target
 /// steals the source's managed pointer.
 TEST_F(SimpleGraphFixture, GivenSharedObjects_ExpectMoveAssignment) {
   auto n_source = *n1_;
-  auto* const n_source_ptr = n_source.get();
+  auto* const n_source_ptr = n_source.operator->();
   auto n_target = *n3_;
-  ASSERT_NE(n_target.get(), n_source_ptr);
+  ASSERT_NE(n_target.operator->(), n_source_ptr);
 
   n_target = std::move(n_source);
 
-  EXPECT_EQ(n_target.get(), n_source_ptr);
+  EXPECT_EQ(n_target.operator->(), n_source_ptr);
 }
 
 /// @brief Verifies bounded_memory_resource::do_is_equal via PMR interface.

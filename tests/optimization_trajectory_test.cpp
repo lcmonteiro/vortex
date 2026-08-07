@@ -96,7 +96,7 @@ TEST_F(OptimizationTrajectoryTest, GivenNoisyTrajectory_ExpectConvergenceNearGro
     return RandomPoint(generator, kInitialGuessMin, kInitialGuessMax, kInitialGuessMin,
                        kInitialGuessMax);
   };
-  auto poses = std::vector<go::shared<PositionNode>>{};
+  auto poses = std::vector<go::handle<PositionNode>>{};
   for (std::size_t idx = 0; idx < kNumberNodes; ++idx) {
     auto pose = poses.emplace_back(g_.build<PositionNode>(Key{idx}));
     const auto estimation = generate_pose();

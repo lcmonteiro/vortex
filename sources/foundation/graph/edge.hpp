@@ -12,7 +12,7 @@
 #include <tuple>
 
 #include "helpers/apply.hpp"
-#include "helpers/shared.hpp"
+#include "helpers/handle.hpp"
 namespace vortex::graph {
 
 /// ===============================================================================================
@@ -31,20 +31,20 @@ class Edge {
  public:
   static constexpr auto NNodes = sizeof...(Nodes);
 
-  explicit Edge(const helpers::shared<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
+  explicit Edge(const helpers::handle<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
   // Move and copy constructors purposely omitted
 
   /// @brief Gets a node by type.
   /// @tparam T Node type.
-  /// @return The shared node.
+  /// @return The node handle.
   template <class T>
   const auto& node() const {
-    return std::get<helpers::shared<T>>(nodes_);
+    return std::get<helpers::handle<T>>(nodes_);
   }
 
   /// @brief Gets a node by index.
   /// @tparam I Index.
-  /// @return The shared node.
+  /// @return The node handle.
   template <std::size_t I>
   const auto& node() const {
     return std::get<I>(nodes_);
@@ -88,7 +88,7 @@ class Edge {
 
  private:
   bool disable_{};
-  std::tuple<helpers::shared<Nodes>...> nodes_;
+  std::tuple<helpers::handle<Nodes>...> nodes_;
 };
 
 /// ===============================================================================================

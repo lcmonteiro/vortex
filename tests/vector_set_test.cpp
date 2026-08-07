@@ -10,12 +10,12 @@
 #include <memory_resource>
 #include <vector>
 
-#include "helpers/shared.hpp"
+#include "helpers/handle.hpp"
 
 namespace {
 
 using vortex::graph::VectorSet;
-using vortex::helpers::shared;
+using vortex::helpers::handle;
 
 std::vector<int> Contents(const VectorSet<int>& set) {
   return std::vector<int>{set.begin(), set.end()};
@@ -103,16 +103,16 @@ TEST(VectorSet, GivenTwoSets_ExpectSwapExchangesContents) {
   EXPECT_EQ(Contents(right), (std::vector<int>{1, 2}));
 }
 
-/// @brief The graph stores `vortex::helpers::shared` elements. Verify that the
+/// @brief The graph stores `vortex::helpers::handle` elements. Verify that the
 /// move-assignment based erase-shift and the range insert work for such a type
 /// and keep insertion order.
 TEST(VectorSet, GivenSharedElements_ExpectEraseAndRangeInsertKeepOrder) {
   auto* const memory = std::pmr::new_delete_resource();
-  VectorSet<shared<int>> set{memory};
+  VectorSet<handle<int>> set{memory};
 
-  const shared<int> first{memory, 10};
-  const shared<int> second{memory, 20};
-  const shared<int> third{memory, 30};
+  const handle<int> first{memory, 10};
+  const handle<int> second{memory, 20};
+  const handle<int> third{memory, 30};
   set.insert(first);
   set.insert(second);
   set.insert(third);
@@ -121,7 +121,7 @@ TEST(VectorSet, GivenSharedElements_ExpectEraseAndRangeInsertKeepOrder) {
 
   std::vector<int> values;
   for (const auto& element : set) {
-    values.push_back(element.value());
+    values.push_back(*element);
   }
   EXPECT_EQ(values, (std::vector<int>{10, 30}));
 }
@@ -195,11 +195,11 @@ TEST(VectorSet, GivenEmptyAndPopulatedSets_ExpectSwapExchangesContents) {
 
 TEST(VectorSet, GivenSharedElement_ExpectEmplaceConstructsInPlace) {
   auto* const memory = std::pmr::new_delete_resource();
-  VectorSet<shared<int>> set{memory};
+  VectorSet<handle<int>> set{memory};
 
   const auto result = set.emplace(memory, 99);
 
-  EXPECT_EQ(result.first->value(), 99);
+  EXPECT_EQ(**result.first, 99);
   EXPECT_TRUE(result.second);
   EXPECT_EQ(set.size(), 1U);
 }
