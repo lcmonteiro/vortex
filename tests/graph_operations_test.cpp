@@ -319,7 +319,7 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectSt
   go::DisableIf<PositionNode>(g_,
                               [](const auto& node) { return (node->key() == 1) ? true : false; });
   go::DisableIf<PositionDistanceEdge>(
-      g_, [](const auto& edge) { return (edge->NNodes == 2) ? true : false; });
+      g_, [](const auto& edge) { return (edge->n_nodes == 2) ? true : false; });
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
@@ -329,7 +329,7 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectSt
   go::EnableIf<PositionNode>(g_,
                              [](const auto& node) { return (node->key() == 1) ? true : false; });
   go::EnableIf<PositionDistanceEdge>(
-      g_, [](const auto& edge) { return (edge->NNodes == 2) ? true : false; });
+      g_, [](const auto& edge) { return (edge->n_nodes == 2) ? true : false; });
   EXPECT_FALSE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());

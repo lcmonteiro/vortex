@@ -27,13 +27,15 @@ namespace vortex::graph {
 /// this edge.
 /// ===============================================================================================
 template <class... Nodes>
-class Edge {
+class edge {
  public:
-  static constexpr auto NNodes = sizeof...(Nodes);
+  /// @brief The number of node types connected by this edge.
+  static constexpr auto n_nodes = sizeof...(Nodes);
 
-  explicit Edge(const helpers::handle<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
-  // Move and copy constructors purposely omitted
-
+  /// @brief Constructs an edge connecting the specified nodes.
+  /// @note Move and copy constructors purposely omitted
+  explicit edge(const helpers::handle<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
+  
   /// @brief Gets a node by type.
   /// @tparam T Node type.
   /// @return The node handle.
@@ -79,7 +81,7 @@ class Edge {
 
  protected:
   template <class, class, class>
-  friend class Container;
+  friend class storage;
 
   /// @brief Disables or enables the edge.
   /// @param value If `true`, the edge will be disabled;
@@ -92,10 +94,10 @@ class Edge {
 };
 
 /// ===============================================================================================
-/// @brief Concept satisfied by any specialization of `Edge`.
+/// @brief Concept satisfied by any specialization of `edge`.
 /// ===============================================================================================
 template <class T>
-concept edge_type = requires { []<class... Ts>(const Edge<Ts...>&) {}(std::declval<T>()); };
+concept edge_type = requires { []<class... Ts>(const edge<Ts...>&) {}(std::declval<T>()); };
 
 }  // namespace vortex::graph
 #endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP

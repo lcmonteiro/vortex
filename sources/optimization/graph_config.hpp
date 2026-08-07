@@ -20,7 +20,7 @@ namespace vortex::graph::optimization {
 /// ===============================================================================================
 /// @brief Default configuration for graph optimization.
 /// ===============================================================================================
-struct DefaultConfig : graph::DefaultConfig {
+struct DefaultConfig : graph::default_config {
   /// @brief Capacity of the backlog buffer.
   static constexpr auto BacklogCapacity = std::size_t{3};
 
