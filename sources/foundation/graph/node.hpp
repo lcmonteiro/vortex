@@ -12,7 +12,7 @@
 
 #include "helpers/apply.hpp"
 #include "helpers/build.hpp"
-#include "helpers/shared.hpp"
+#include "helpers/handle.hpp"
 namespace vortex::graph {
 /// ===============================================================================================
 /// @brief A graph node that can manage edges of different types.
@@ -27,7 +27,7 @@ namespace vortex::graph {
 template <class... Edges>
 class Node {
   template <class T>
-  using SetShared = std::pmr::set<helpers::shared<T>>;
+  using SetShared = std::pmr::set<helpers::handle<T>>;
   using TupleSetShared = std::tuple<SetShared<Edges>...>;
 
  public:
@@ -77,12 +77,12 @@ class Node {
   /// @tparam T Edge type.
   /// @param edge The edge to link.
   template <class T>
-  auto link(const helpers::shared<T>& edge) -> void {
+  auto link(const helpers::handle<T>& edge) -> void {
     std::ignore = std::get<SetShared<T>>(edges_).insert(edge);
   }
 
   template <class T>
-  auto unlink(const helpers::shared<T>& edge) -> void {
+  auto unlink(const helpers::handle<T>& edge) -> void {
     std::ignore = std::get<SetShared<T>>(edges_).erase(edge);
   }
   template <class T>

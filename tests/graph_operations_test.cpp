@@ -37,12 +37,12 @@ class SlamGraphOperationsTest : public ::testing::Test {
   auto TearDown() -> void override { g_.destroy(); }
 
   SlamGraph g_{std::pmr::new_delete_resource()};
-  go::OptionalShared<PositionNode> p1_;
-  go::OptionalShared<PositionNode> p2_;
-  go::OptionalShared<PositionNode> p3_;
-  go::OptionalShared<PositionDistanceEdge> d1_;
-  go::OptionalShared<PositionDistanceEdge> d2_;
-  go::OptionalShared<PositionLocationEdge> l1_;
+  go::optional<PositionNode> p1_;
+  go::optional<PositionNode> p2_;
+  go::optional<PositionNode> p3_;
+  go::optional<PositionDistanceEdge> d1_;
+  go::optional<PositionDistanceEdge> d2_;
+  go::optional<PositionLocationEdge> l1_;
 };
 
 /// @brief Verifies that edge measurements can be set and retrieved.
@@ -444,17 +444,17 @@ TEST_F(SlamGraphOperationsTest, GivenSharedObjects_ExpectCopyAssignment) {
   auto pose_copy = *p1_;
   auto pose_target = *p2_;
   pose_target = pose_copy;
-  EXPECT_EQ(pose_target.get(), pose_copy.get());
+  EXPECT_EQ(pose_target.operator->(), pose_copy.operator->());
 
   auto edge_copy = *d1_;
   auto edge_target = *d2_;
   edge_target = edge_copy;
-  EXPECT_EQ(edge_target.get(), edge_copy.get());
+  EXPECT_EQ(edge_target.operator->(), edge_copy.operator->());
 
   auto loc_copy = *l1_;
   auto loc_target = loc_copy;
   loc_target = loc_copy;
-  EXPECT_EQ(loc_target.get(), loc_copy.get());
+  EXPECT_EQ(loc_target.operator->(), loc_copy.operator->());
 }
 
 /// @brief Verifies unlink of PositionLocationEdge edges from nodes.

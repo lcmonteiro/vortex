@@ -16,8 +16,8 @@
 #include "optimization/graph_node.hpp"  // IWYU pragma: export
 
 namespace vortex::graph::optimization {
-using graph::OptionalShared;
-using graph::shared;
+using graph::optional;
+using graph::handle;
 
 /// ===============================================================================================
 /// @brief A templated Graph class implementing optimization algorithms.
@@ -173,7 +173,7 @@ class Graph : public graph::Container<Nodes, Edges, Config> {
 /// @return A shared graph of type T.
 template <class T, class... A>
 auto Build(std::pmr::memory_resource* const memory, A&&... args) {
-  return shared<T>(memory, memory, std::forward<A>(args)...);
+  return handle<T>(memory, memory, std::forward<A>(args)...);
 }
 }  // namespace vortex::graph::optimization
 

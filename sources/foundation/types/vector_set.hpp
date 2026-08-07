@@ -23,7 +23,7 @@ namespace vortex::graph {
 /// std::pmr::set, which is not reproducible when the backing memory resource is
 /// exceeded.
 ///
-/// @tparam Value The element type stored in the set (e.g. @c shared<Edge>).
+/// @tparam Value The element type stored in the set (e.g. @c handle<Edge>).
 template <typename Value>
 class VectorSet : private std::pmr::vector<Value> {
   using Base = std::pmr::vector<Value>;

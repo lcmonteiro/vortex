@@ -48,11 +48,11 @@ struct SimpleGraphFixture : public ::testing::Test {
   }
 
   Graph g_{std::pmr::new_delete_resource()};
-  graph::OptionalShared<Node1> n1_;
-  graph::OptionalShared<Node2> n2_;
-  graph::OptionalShared<Node1> n3_;
-  graph::OptionalShared<Edge1> e1_;
-  graph::OptionalShared<Edge2> e2_;
+  graph::optional<Node1> n1_;
+  graph::optional<Node2> n2_;
+  graph::optional<Node1> n3_;
+  graph::optional<Edge1> e1_;
+  graph::optional<Edge2> e2_;
 };
 
 }  // namespace vortex::test
