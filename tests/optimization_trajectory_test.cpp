@@ -53,27 +53,46 @@ auto BuildReferenceTrajectory(std::size_t size, double amplitude, double width) 
   return points;
 }
 
+/// @brief Portable uniform real in [min, max), independent of which
+/// standard library implementation is in use.
+///
+/// `std::mt19937`'s raw output sequence is fully specified by the standard
+/// and identical across implementations for a given seed, but
+/// `std::uniform_real_distribution`'s algorithm for mapping that raw output
+/// to a floating-point value is implementation-defined -- it differs
+/// between e.g. the Microsoft STL and libstdc++/libc++. Since this test
+/// pins a fixed seed and asserts on the resulting SLAM problem's
+/// convergence, using `std::uniform_real_distribution` would make the test
+/// generate a *different* randomized problem (and therefore a different
+/// expected outcome) on Windows than on Linux. This bypasses that by only
+/// depending on the engine's raw, portable output and plain arithmetic.
+template <class Generator>
+auto PortableUniformReal(Generator& generator, double min, double max) -> double {
+  constexpr auto lo = static_cast<double>(Generator::min());
+  constexpr auto hi = static_cast<double>(Generator::max());
+  const auto unit = (static_cast<double>(generator()) - lo) / (hi - lo);
+  return min + unit * (max - min);
+}
+
 /// @brief Uniform multiplicative noise factor in [0.85, 1.15] per axis.
 template <class Generator>
 auto NoiseFactor(Generator& generator) -> Position {
-  auto distribution = std::uniform_real_distribution<double>{0.85, 1.15};
-  return Position{distribution(generator), distribution(generator)};
+  return Position{PortableUniformReal(generator, 0.85, 1.15),
+                  PortableUniformReal(generator, 0.85, 1.15)};
 }
 
 /// @brief Uniform random point within [x_min, x_max] x [y_min, y_max].
 template <class Generator>
 auto RandomPoint(Generator& generator, double x_min, double x_max, double y_min, double y_max)
     -> Position {
-  auto x_distribution = std::uniform_real_distribution<double>{x_min, x_max};
-  auto y_distribution = std::uniform_real_distribution<double>{y_min, y_max};
-  return Position{x_distribution(generator), y_distribution(generator)};
+  return Position{PortableUniformReal(generator, x_min, x_max),
+                  PortableUniformReal(generator, y_min, y_max)};
 }
 
 /// @brief Uniform random node index in [0, num_nodes).
 template <class Generator>
 auto RandomNodeIndex(Generator& generator, std::size_t num_nodes) -> std::size_t {
-  auto distribution = std::uniform_real_distribution<double>{0.0, static_cast<double>(num_nodes)};
-  return static_cast<std::size_t>(distribution(generator));
+  return static_cast<std::size_t>(PortableUniformReal(generator, 0.0, static_cast<double>(num_nodes)));
 }
 
 class OptimizationTrajectoryTest : public ::testing::Test {
