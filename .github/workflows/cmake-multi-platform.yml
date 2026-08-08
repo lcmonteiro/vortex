@@ -60,20 +60,31 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libblas-dev liblapack-dev
 
+    - name: Set up Fortran (required by vcpkg to build LAPACK on Windows)
+      if: ${{ matrix.os == 'windows-latest' }}
+      uses: fortran-lang/setup-fortran@v1
+      with:
+        compiler: gcc
+
     - name: Install BLAS/LAPACK on Windows (vcpkg)
       if: ${{ matrix.os == 'windows-latest' }}
       shell: pwsh
       run: |
-        # NOTE: deliberately openblas, not lapack/lapack-reference. The
-        # Netlib reference LAPACK build's Fortran calling convention
-        # (character-argument passing, name mangling) depends on whichever
-        # Fortran compiler vcpkg used to build it, and doesn't reliably
-        # match what Blaze's BLAS wrapper expects -- this previously
-        # manifested at runtime as "On entry to DGEMM parameter number 1
-        # had an illegal value" (a corrupted TRANSA character argument),
-        # silently producing wrong results rather than a build failure.
-        # openblas uses a consistent, widely-tested calling convention.
-        vcpkg install openblas:x64-windows
+        # NOTE: gfortran is preinstalled on windows-latest runners via
+        # Chocolatey but isn't reliably on PATH, so vcpkg's Fortran
+        # detection fails silently and it builds LAPACK-dependent ports
+        # without a working Fortran backend. This caused two different
+        # failures depending on which port was tried:
+        #   - lapack:x64-windows: its bundled reference BLAS ended up
+        #     malformed, causing runtime garbage ("On entry to DGEMM
+        #     parameter number 1 had an illegal value").
+        #   - openblas:x64-windows: fell back to BUILD_WITHOUT_LAPACK=ON,
+        #     leaving LAPACK symbols (dsysv_, dpotrf_, dpotrs_) unresolved
+        #     at link time -- vortex's own math::solve_ldlt/solve_cholesky
+        #     call these Fortran LAPACK routines directly.
+        # The fortran-lang/setup-fortran step above makes gfortran
+        # properly discoverable, so vcpkg can build a working LAPACK.
+        vcpkg install lapack:x64-windows
         # CMakeLists.txt's find_library(NAMES lapack/blas ...) needs vcpkg's
         # installed lib/bin dirs on the search path, and the runtime DLLs
         # need to be on PATH for the test binaries to load them at run time.
