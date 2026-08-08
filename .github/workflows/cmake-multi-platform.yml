@@ -64,7 +64,16 @@ jobs:
       if: ${{ matrix.os == 'windows-latest' }}
       shell: pwsh
       run: |
-        vcpkg install lapack:x64-windows
+        # NOTE: deliberately openblas, not lapack/lapack-reference. The
+        # Netlib reference LAPACK build's Fortran calling convention
+        # (character-argument passing, name mangling) depends on whichever
+        # Fortran compiler vcpkg used to build it, and doesn't reliably
+        # match what Blaze's BLAS wrapper expects -- this previously
+        # manifested at runtime as "On entry to DGEMM parameter number 1
+        # had an illegal value" (a corrupted TRANSA character argument),
+        # silently producing wrong results rather than a build failure.
+        # openblas uses a consistent, widely-tested calling convention.
+        vcpkg install openblas:x64-windows
         # CMakeLists.txt's find_library(NAMES lapack/blas ...) needs vcpkg's
         # installed lib/bin dirs on the search path, and the runtime DLLs
         # need to be on PATH for the test binaries to load them at run time.
@@ -88,5 +97,16 @@ jobs:
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      # --output-on-failure prints each failing test's full stdout/stderr
+      # directly in the Actions log, so a failure is debuggable from the CI
+      # output alone -- no need to reproduce locally just to see what broke.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }}
+      run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
+
+    - name: Upload test log on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ctest-log-${{ matrix.os }}-${{ matrix.c_compiler }}
+        path: ${{ steps.strings.outputs.build-output-dir }}/Testing/Temporary/LastTest.log
+        if-no-files-found: ignore
