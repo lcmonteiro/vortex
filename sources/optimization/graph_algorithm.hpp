@@ -13,7 +13,7 @@ namespace vortex::optimization {
 /// ===============================================================================================
 /// @brief Error codes reported by the optimization algorithm.
 /// ===============================================================================================
-enum class AlgorithmError { FAIL, NUMERIC_LIMIT };
+enum class algorithm_error { kFail, kNumericLimit };
 
 /// ===============================================================================================
 /// @brief Base class for optimization algorithms operating on a graph.
@@ -25,34 +25,38 @@ enum class AlgorithmError { FAIL, NUMERIC_LIMIT };
 /// @tparam GraphSolver The graph solver type used to build and solve the system.
 /// ===============================================================================================
 template <class Graph, class GraphSolver>
-class Algorithm {
+class algorithm {
+  using graph_type = Graph;
+  using graph_solver_type = GraphSolver;
+
  public:
-  explicit Algorithm(Graph& graph) : graph_{graph}, solver_(graph) {}
+  explicit algorithm(Graph& graph) : graph_{graph}, solver_(graph) {}
 
-  Algorithm(const Algorithm&) = delete;
-  auto operator=(const Algorithm&) -> Algorithm& = delete;
-  Algorithm(Algorithm&&) = default;
-  auto operator=(Algorithm&&) -> Algorithm& = delete;
+  algorithm(const algorithm&) = delete;
+  algorithm(algorithm&&) = default;
+  ~algorithm() = default;
 
-  ~Algorithm() = default;
+  auto operator=(const algorithm&) -> algorithm& = delete;
+  auto operator=(algorithm&&) -> algorithm& = delete;
 
   /// @brief Algorithm initialization.
   /// @return Nothing or an algorithm error.
-  auto init(bool reset) -> helpers::expected<void, AlgorithmError> {
+  auto init(bool reset) -> helpers::expected<void, algorithm_error> {
     auto result = solver_.init(reset);
     if (not result) {
-      return helpers::unexpected(AlgorithmError::FAIL);
+      return helpers::unexpected(algorithm_error::kFail);
     }
     return {};
   }
+
   /// @brief Algorithm solve
   /// @return a boolean value whether it was solved or an algorithm error
   template <bool first_iteration, bool last_iteration>
-  auto solve() -> helpers::expected<bool, AlgorithmError>;
+  auto solve() -> helpers::expected<bool, algorithm_error>;
 
  protected:
-  Graph& graph_;
-  GraphSolver solver_;
+  graph_type& graph_;
+  graph_solver_type solver_;
 };
 
 }  // namespace vortex::optimization

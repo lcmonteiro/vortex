@@ -40,8 +40,8 @@ struct LevenbergConfig {
 /// @brief Levenberg-Marquardt optimization algorithm.
 /// ===============================================================================================
 template <class Graph, class GraphSolver, class Config = LevenbergConfig>
-class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
-  using Base = Algorithm<Graph, GraphSolver>;
+class LevenbergAlgorithm : public algorithm<Graph, GraphSolver> {
+  using Base = algorithm<Graph, GraphSolver>;
   using Number = typename Graph::number_type;
 
  public:
@@ -55,7 +55,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
   /// @brief Algorithm initialization
   /// @return nothing or an algorithm error
-  auto init(bool reset) -> helpers::expected<void, AlgorithmError> {
+  auto init(bool reset) -> helpers::expected<void, algorithm_error> {
     auto result = Base::init(reset);
     if (not result) {
       return result;
@@ -63,7 +63,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
     if (reset) {
       if (not solver_.buildStructure()) {
-        return helpers::unexpected(AlgorithmError::FAIL);
+        return helpers::unexpected(algorithm_error::kFail);
       }
     }
 
@@ -73,7 +73,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   /// @brief Performs a Levenberg-Marquardt solve iteration.
   /// @return Whether the optimization converged, or an algorithm error.
   template <bool first_iteration, bool last_iteration>
-  auto solve() -> helpers::expected<bool, AlgorithmError> {
+  auto solve() -> helpers::expected<bool, algorithm_error> {
     if constexpr (first_iteration) {
       graph_.update_edges();
       solver_.buildSystem();
@@ -120,7 +120,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
       // Check for numeric instability in lambda
       if (not std::isfinite(lambda_)) {
-        return helpers::unexpected(AlgorithmError::NUMERIC_LIMIT);
+        return helpers::unexpected(algorithm_error::kNumericLimit);
       }
     }
     return true;

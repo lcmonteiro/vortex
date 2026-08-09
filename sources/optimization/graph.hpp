@@ -58,7 +58,7 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   /// @param reset Whether to reset the algorithm state.
   /// @return The number of completed iterations or an unexpected error.
   auto optimize(std::size_t iterations, bool reset = true)
-      -> helpers::expected<std::size_t, AlgorithmError> {
+      -> helpers::expected<std::size_t, algorithm_error> {
     // Route transient dual-number (Jacobian) allocations through the graph's
     // memory arena for the duration of the optimization.
     const helpers::memory_scope scope{this->memory()};
