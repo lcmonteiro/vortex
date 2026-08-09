@@ -14,7 +14,7 @@
 
 namespace {
 
-namespace go = vortex::graph::optimization;
+namespace go = vortex::optimization;
 namespace math = vortex::math;
 
 /// @brief Dimension for Nodes and Edges.
@@ -77,8 +77,8 @@ struct EdgeWithSymmetric : EdgeWithSymmetricBase<EdgeWithSymmetric> {
 };
 
 // Graph Definition
-struct Graph : go::Graph<go::Nodes<Node1>, Edges> {
-  using Base = go::Graph<go::Nodes<Node1>, Edges>;
+struct Graph : go::graph<go::Nodes<Node1>, Edges> {
+  using Base = go::graph<go::Nodes<Node1>, Edges>;
   using Base::Base;
 };
 
@@ -91,8 +91,8 @@ struct InformationMatrixTestFixture : public ::testing::Test {
 
 TEST_F(InformationMatrixTestFixture, InformationMatrix_Identity_Get) {
   // Given
-  auto n1 = g_.build<Node1>(Graph::Key{1});
-  auto n2 = g_.build<Node1>(Graph::Key{2});
+  auto n1 = g_.build<Node1>(Graph::key_type{1});
+  auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_identity = g_.build<EdgeWithIdentity>(n1, n2);
 
   // When
@@ -107,8 +107,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Identity_Get) {
 
 TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_GetInitial) {
   // Given
-  auto n1 = g_.build<Node1>(Graph::Key{1});
-  auto n2 = g_.build<Node1>(Graph::Key{2});
+  auto n1 = g_.build<Node1>(Graph::key_type{1});
+  auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
   // When
@@ -123,8 +123,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_GetInitial) {
 
 TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithMatrix) {
   // Given
-  auto n1 = g_.build<Node1>(Graph::Key{1});
-  auto n2 = g_.build<Node1>(Graph::Key{2});
+  auto n1 = g_.build<Node1>(Graph::key_type{1});
+  auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
   math::diagonal_matrix<EdgeWithDiagonal::Matrix> new_information{};
@@ -141,8 +141,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithMatrix) {
 
 TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithVector) {
   // Given
-  auto n1 = g_.build<Node1>(Graph::Key{1});
-  auto n2 = g_.build<Node1>(Graph::Key{2});
+  auto n1 = g_.build<Node1>(Graph::key_type{1});
+  auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
   math::static_vector<int, 2> new_information_vector{2, 3};
@@ -161,8 +161,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithVector) {
 
 TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithValues) {
   // Given
-  auto n1 = g_.build<Node1>(Graph::Key{1});
-  auto n2 = g_.build<Node1>(Graph::Key{2});
+  auto n1 = g_.build<Node1>(Graph::key_type{1});
+  auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
   math::static_vector<double, 2> new_information_vector{2.0, 3.0};
@@ -181,8 +181,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithValues) {
 
 TEST_F(InformationMatrixTestFixture, InformationMatrix_Symmetric_Get) {
   // Given
-  auto n1 = g_.build<Node1>(Graph::Key{1});
-  auto n2 = g_.build<Node1>(Graph::Key{2});
+  auto n1 = g_.build<Node1>(Graph::key_type{1});
+  auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithSymmetric>(n1, n2);
 
   EdgeWithSymmetric::Matrix expected_information{{1, 0}, {0, 1}};
@@ -196,8 +196,8 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Symmetric_Get) {
 
 TEST_F(InformationMatrixTestFixture, InformationMatrix_Symmetric_Set) {
   // Given
-  auto n1 = g_.build<Node1>(Graph::Key{1});
-  auto n2 = g_.build<Node1>(Graph::Key{2});
+  auto n1 = g_.build<Node1>(Graph::key_type{1});
+  auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithSymmetric>(n1, n2);
 
   math::symmetric_matrix<EdgeWithSymmetric::Matrix> new_information{{1, 2}, {2, 1}};

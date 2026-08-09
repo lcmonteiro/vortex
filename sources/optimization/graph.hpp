@@ -15,9 +15,9 @@
 #include "optimization/graph_edge.hpp"  // IWYU pragma: export
 #include "optimization/graph_node.hpp"  // IWYU pragma: export
 
-namespace vortex::graph::optimization {
-using graph::optional;
+namespace vortex::optimization {
 using graph::handle;
+using graph::optional;
 
 /// ===============================================================================================
 /// @brief A templated Graph class implementing optimization algorithms.
@@ -28,30 +28,30 @@ using graph::handle;
 /// parameters for the graph (default is `DefaultConfig`).
 /// ===============================================================================================
 template <class Nodes, class Edges, class Config = DefaultConfig>
-class Graph : public graph::storage<Nodes, Edges, Config> {
+class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   /// @brief Helper alias types.
-  using LSolver = typename Config::LinearSolver;
-  using GSolver = typename Config::template GraphSolver<Graph, LSolver>;
-  using Algorithm = typename Config::template Algorithm<Graph, GSolver>;
+  using linear_solver_type = typename Config::LinearSolver;
+  using graph_solver_type = typename Config::template GraphSolver<graph, linear_solver_type>;
+  using algorithm_type = typename Config::template Algorithm<graph, graph_solver_type>;
 
  public:
   static constexpr auto kSystemCapacity = std::size_t{Config::SystemCapacity};
 
-  using Base = graph::storage<Nodes, Edges, Config>;
-  using Key = typename Config::key_type;
-  using Number = typename Config::Number;
-  using Vector = math::dynamic_vector<Number>;
-  using Enabled = typename Base::enabled_type;
-  using Disabled = typename Base::disabled_type;
+  using base_type = vortex::graph::storage<Nodes, Edges, Config>;
+  using key_type = typename Config::key_type;
+  using number_type = typename Config::Number;
+  using vector_type = math::dynamic_vector<number_type>;
+  using enabled_type = typename base_type::enabled_type;
+  using disabled_type = typename base_type::disabled_type;
 
   /// @brief Graph main constructor.
   /// @param memory_resource The memory resource used for allocating memory.
-  explicit Graph(std::pmr::memory_resource* const memory_resource)
-      : Base{memory_resource}, algorithm_{*this}, optimizer_revision_{} {}
+  explicit graph(std::pmr::memory_resource* const memory_resource)
+      : base_type{memory_resource}, algorithm_{*this}, optimizer_revision_{} {}
 
   /// @brief Node and edge construction is inherited as-is from the base graph --
-  /// optimization::Graph adds no extra construction arguments.
-  using Base::build;
+  /// optimization::graph adds no extra construction arguments.
+  using base_type::build;
 
   /// @brief Runs the graph optimization algorithm.
   /// @param iterations The number of iterations to run.
@@ -121,29 +121,29 @@ class Graph : public graph::storage<Nodes, Edges, Config> {
   ///
   /// This group includes functions to push, pull and revert estimations.
   auto push() -> void {
-    ForEach<Nodes>(*this, [](auto& node) { node->push(); }, Enabled{});
+    ForEach<Nodes>(*this, [](auto& node) { node->push(); }, enabled_type{});
   }
   auto pull() -> void {
-    ForEach<Nodes>(*this, [](auto& node) { node->pull(); }, Enabled{});
+    ForEach<Nodes>(*this, [](auto& node) { node->pull(); }, enabled_type{});
   }
   auto revert(std::size_t n = 1) -> void {
-    ForEach<Nodes>(*this, [&](auto& node) { node->revert(n); }, Enabled{});
+    ForEach<Nodes>(*this, [&](auto& node) { node->revert(n); }, enabled_type{});
   }
 
   /// @brief Computes cached chi2 of the active portion of the graph.
-  auto chi2() const -> Number {
-    Number chi = 0;
-    ForEach<Edges>(*this, [&](auto& edge) { chi += edge->chi2(); }, Enabled{});
+  auto chi2() const -> number_type {
+    number_type chi = 0;
+    ForEach<Edges>(*this, [&](auto& edge) { chi += edge->chi2(); }, enabled_type{});
     return chi;
   }
 
   /// @brief Updates cached edge quantities for all active edges.
-  auto updateEdges() -> void {
-    ForEach<Edges>(*this, [](auto& edge) { edge->update(); }, Enabled{});
+  auto update_edges() -> void {
+    ForEach<Edges>(*this, [](auto& edge) { edge->update(); }, enabled_type{});
   }
 
   /// @brief Updates the active nodes from the stacked state increment vector.
-  auto updateNodes(const Vector& delta) -> void {
+  auto update_nodes(const vector_type& delta) -> void {
     std::size_t idx = 0;
     ForEach<Nodes>(
         *this,
@@ -151,30 +151,30 @@ class Graph : public graph::storage<Nodes, Edges, Config> {
           node->update(math::subvector(delta, idx, node->dimension()));
           idx += node->dimension();
         },
-        Enabled{});
+        enabled_type{});
   }
 
   /// @brief Provides read-only access to the internal Algorithm object.
   /// This constant reference allows the user to access the underlying
   /// Algorithm object without modifying it.
-  /// @return const Algorithm& A reference to the internal Algorithm object.
-  const Algorithm& algorithm{algorithm_};
+  /// @return const algorithm_type& A reference to the internal Algorithm object.
+  const algorithm_type& algorithm{algorithm_};
 
  private:
-  Algorithm algorithm_;
+  algorithm_type algorithm_;
   helpers::revision optimizer_revision_;
 };
 
-/// @brief Builds a shared graph using the provided memory resource.
+/// @brief Builds a graph handle using the provided memory resource.
 /// @tparam T The type of the Graph to build.
 /// @tparam A Additional arguments for construction.
 /// @param memory The memory resource to use for allocation.
 /// @param args Additional arguments for object construction.
-/// @return A shared graph of type T.
+/// @return A handle to a graph of type T.
 template <class T, class... A>
-auto Build(std::pmr::memory_resource* const memory, A&&... args) {
+auto build(std::pmr::memory_resource* const memory, A&&... args) {
   return handle<T>(memory, memory, std::forward<A>(args)...);
 }
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_HPP

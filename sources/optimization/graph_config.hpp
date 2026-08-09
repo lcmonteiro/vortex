@@ -15,7 +15,7 @@
 #include "optimization/linear_solver_default.hpp"
 #include "optimization/linear_solver_pcg.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Default configuration for graph optimization.
@@ -42,6 +42,6 @@ struct DefaultConfig : graph::default_config {
   using LinearSolver = DefaultLinearSolver;
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_CONFIG_HPP

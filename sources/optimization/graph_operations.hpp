@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <utility>
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// @brief Alternative operations API for interacting with the Graph class.
 /// These free functions helper provide a simplified and convenient way to
@@ -68,32 +68,32 @@ inline auto RemoveIf(Graph& graph, Fn&& func) -> void {
 
 template <class Types, class Graph>
 inline auto Enable(Graph& graph) -> void {
-  graph.template toggle<Types>(typename Graph::Disabled{});
+  graph.template toggle<Types>(typename Graph::disabled_type{});
 }
 
 template <class Types, class Graph, class Key>
 inline auto Enable(Graph& graph, const Key& key) -> void {
-  graph.template toggle<Types>(key, typename Graph::Disabled{});
+  graph.template toggle<Types>(key, typename Graph::disabled_type{});
 }
 
 template <class Types, class Graph>
 inline auto Disable(Graph& graph) -> void {
-  graph.template toggle<Types>(typename Graph::Enabled{});
+  graph.template toggle<Types>(typename Graph::enabled_type{});
 }
 
 template <class Types, class Graph, class Key>
 inline auto Disable(Graph& graph, const Key& key) -> void {
-  graph.template toggle<Types>(key, typename Graph::Enabled{});
+  graph.template toggle<Types>(key, typename Graph::enabled_type{});
 }
 
 template <class Types, class Graph, class Fn>
 inline auto EnableIf(Graph& graph, Fn&& func) -> void {
-  graph.template toggle<Types>(std::forward<Fn>(func), typename Graph::Disabled{});
+  graph.template toggle<Types>(std::forward<Fn>(func), typename Graph::disabled_type{});
 }
 
 template <class Types, class Graph, class Fn>
 inline auto DisableIf(Graph& graph, Fn&& func) -> void {
-  graph.template toggle<Types>(std::forward<Fn>(func), typename Graph::Enabled{});
+  graph.template toggle<Types>(std::forward<Fn>(func), typename Graph::enabled_type{});
 }
 
 template <std::size_t I, class Type>
@@ -101,6 +101,6 @@ inline auto GetNode(Type& obj) -> decltype(auto) {
   return obj.template node<I>();
 }
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_OPERATIONS_HPP

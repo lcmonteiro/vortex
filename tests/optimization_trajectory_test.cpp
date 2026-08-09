@@ -78,7 +78,7 @@ auto RandomNodeIndex(Generator& generator, std::size_t num_nodes) -> std::size_t
 
 class OptimizationTrajectoryTest : public ::testing::Test {
  protected:
-  using Key = SlamGraph::Key;
+  using Key = SlamGraph::key_type;
 
   auto TearDown() -> void override { g_.destroy(); }
 

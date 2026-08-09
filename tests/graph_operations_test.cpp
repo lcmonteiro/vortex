@@ -23,7 +23,7 @@ void ExpectPositionEq(const Position& actual, const Position& expected) {
 
 class SlamGraphOperationsTest : public ::testing::Test {
  protected:
-  using Key = SlamGraph::Key;
+  using Key = SlamGraph::key_type;
 
   auto SetUp() -> void override {
     p1_ = g_.build<PositionNode>(Key{1});
@@ -128,8 +128,8 @@ TEST_F(SlamGraphOperationsTest, CheckOptimizeProcess) {
 
 /// @brief Verifies optimization fails when all nodes and edges are disabled.
 TEST_F(SlamGraphOperationsTest, GivenDisabledGraph_ExpectLevenbergReset) {
-  g_.toggle<PositionNode>(SlamGraph::Enabled{});
-  g_.toggle<PositionDistanceEdge>(SlamGraph::Enabled{});
+  g_.toggle<PositionNode>(SlamGraph::enabled_type{});
+  g_.toggle<PositionDistanceEdge>(SlamGraph::enabled_type{});
 
   const auto iterations = std::size_t{10};
   auto result = g_.optimize(iterations);
@@ -346,7 +346,7 @@ TEST_F(SlamGraphOperationsTest, GivenMeasuredGraph_ExpectNonZeroChi2) {
   (*d2_)->measurement(Position{0, 1});
   (*l1_)->measurement(Position{1, 1});
 
-  g_.updateEdges();
+  g_.update_edges();
   auto chi2 = g_.chi2();
   EXPECT_GT(chi2, 0.0);
 }
@@ -360,7 +360,7 @@ TEST_F(SlamGraphOperationsTest, GivenPerfectEstimations_ExpectZeroChi2) {
   (*d2_)->measurement(Position{0, 1});
   (*l1_)->measurement(Position{0, 0});
 
-  g_.updateEdges();
+  g_.update_edges();
   auto chi2 = g_.chi2();
   EXPECT_NEAR(chi2, 0.0, 1e-9);
 }
@@ -374,11 +374,11 @@ TEST_F(SlamGraphOperationsTest, GivenUpdateEdges_ExpectChi2ReflectsCurrentState)
   (*d2_)->measurement(Position{0, 1});
   (*l1_)->measurement(Position{0, 0});
 
-  g_.updateEdges();
+  g_.update_edges();
   EXPECT_NEAR(g_.chi2(), 0.0, 1e-9);
 
   (*p1_)->estimation(Position{5, 5});
-  g_.updateEdges();
+  g_.update_edges();
   EXPECT_GT(g_.chi2(), 0.0);
 }
 
@@ -389,8 +389,8 @@ TEST_F(SlamGraphOperationsTest, GivenDeltaVector_ExpectEstimationsUpdated) {
   (*p2_)->estimation(Position{1, 1});
   (*p3_)->estimation(Position{2, 2});
 
-  auto x = SlamGraph::Vector{0.5, -0.5, 1.0, 2.0, -1.0, 0.0};
-  g_.updateNodes(x);
+  auto x = SlamGraph::vector_type{0.5, -0.5, 1.0, 2.0, -1.0, 0.0};
+  g_.update_nodes(x);
 
   EXPECT_NEAR((*p1_)->estimation().x, 0.5, 1e-9);
   EXPECT_NEAR((*p1_)->estimation().y, -0.5, 1e-9);

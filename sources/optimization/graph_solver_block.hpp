@@ -11,7 +11,7 @@
 #include "foundation/math.hpp"
 #include "optimization/graph_operations.hpp"
 #include "optimization/graph_solver.hpp"
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Block graph solver.
@@ -21,8 +21,8 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
  public:
   using Nodes = typename Graph::Nodes;
   using Edges = typename Graph::Edges;
-  using Number = typename Graph::Number;
-  using Enabled = typename Graph::Enabled;
+  using Number = typename Graph::number_type;
+  using Enabled = typename Graph::enabled_type;
   using Vector = math::dynamic_vector<Number>;
   using Matrix = math::dynamic_matrix<Number>;
   using Diagonal = math::dynamic_vector<Number>;
@@ -155,6 +155,6 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   Diagonal h_diagonal_backup_;
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_SOLVER_BLOCK_HPP

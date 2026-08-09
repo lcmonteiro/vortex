@@ -14,7 +14,7 @@
 #include "helpers/numeric.hpp"
 #include "optimization/graph_algorithm.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Constexpr-friendly identity cast
@@ -42,7 +42,7 @@ struct LevenbergConfig {
 template <class Graph, class GraphSolver, class Config = LevenbergConfig>
 class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   using Base = Algorithm<Graph, GraphSolver>;
-  using Number = typename Graph::Number;
+  using Number = typename Graph::number_type;
 
  public:
   explicit LevenbergAlgorithm(Graph& graph)
@@ -75,7 +75,7 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   template <bool first_iteration, bool last_iteration>
   auto solve() -> helpers::expected<bool, AlgorithmError> {
     if constexpr (first_iteration) {
-      graph_.updateEdges();
+      graph_.update_edges();
       solver_.buildSystem();
       lambda_ = computeLambdaInit();
       lambda_factor_ = 2;
@@ -87,8 +87,8 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
 
       if (solver_.solve()) {
         graph_.push();
-        graph_.updateNodes(solver_.x());
-        graph_.updateEdges();
+        graph_.update_nodes(solver_.x());
+        graph_.update_edges();
 
         const Number chi = graph_.chi2();
         const Number scale = computeScale() + Constant<Number>(1e-3);
@@ -174,6 +174,6 @@ class LevenbergAlgorithm : public Algorithm<Graph, GraphSolver> {
   Number current_chi_;
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_ALGORITHM_LEVENBERG_HPP

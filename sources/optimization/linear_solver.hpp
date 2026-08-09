@@ -8,7 +8,7 @@
 
 #include "foundation/math.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Base class for linear solvers of the system h * x = b.
@@ -34,6 +34,6 @@ class LinearSolver {
   auto solve(const Matrix& h, const Vector& b, Vector& x) -> bool;
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_HPP

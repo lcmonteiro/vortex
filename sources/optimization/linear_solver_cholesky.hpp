@@ -9,7 +9,7 @@
 #include "foundation/math/solver.hpp"
 #include "optimization/linear_solver.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Linear solver that solves h * x = b using Cholesky factorization
@@ -31,6 +31,6 @@ class CholeskyLinearSolver : public LinearSolver {
   }
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_CHOLESKY_HPP
