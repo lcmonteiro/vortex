@@ -32,7 +32,7 @@ struct DefaultConfig : graph::default_config {
 
   /// @brief Default optimization algorithm.
   template <class Graph, class GraphSolver>
-  using Algorithm = LevenbergAlgorithm<Graph, GraphSolver>;
+  using Algorithm = levenberg_algorithm<Graph, GraphSolver>;
 
   /// @brief Default graph solver.
   template <class Graph, class LinearSolver>
