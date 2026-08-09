@@ -8,7 +8,7 @@
 
 #include "helpers/expected.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Error codes reported by the optimization algorithm.
@@ -55,6 +55,6 @@ class Algorithm {
   GraphSolver solver_;
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_ALGORITHM_HPP

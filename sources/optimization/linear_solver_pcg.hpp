@@ -10,7 +10,7 @@
 
 #include "optimization/linear_solver.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Preconditioned Conjugate Gradient (PCG) linear solver for h * x = b.
@@ -66,6 +66,6 @@ class PCGLinearSolver : public LinearSolver {
   }
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_PCG_HPP

@@ -9,7 +9,7 @@
 #include "foundation/math/solver.hpp"
 #include "optimization/linear_solver.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Default linear solver for the system h * x = b.
@@ -27,6 +27,6 @@ class DefaultLinearSolver : public LinearSolver {
   }
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_LINEAR_SOLVER_DEFAULT_HPP

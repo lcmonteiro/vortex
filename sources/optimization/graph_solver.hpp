@@ -6,7 +6,7 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_SOLVER_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_SOLVER_HPP
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 /// ===============================================================================================
 /// @brief A templated class that provides solver functionality for a graph
 /// using a linear solver.
@@ -42,6 +42,6 @@ class GraphSolver {
   LinearSolver lsolver_;
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_SOLVER_HPP

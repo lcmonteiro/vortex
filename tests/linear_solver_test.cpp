@@ -40,7 +40,7 @@ TEST(DefaultLinearSolver, GivenPositiveDefinedMatrixExpectSuccess) {
 
   ClearUpper(coefs);
 
-  auto solver = vortex::graph::optimization::DefaultLinearSolver{};
+  auto solver = vortex::optimization::DefaultLinearSolver{};
   EXPECT_EQ(solver.solve(coefs, output, result), true);
   EXPECT_EQ(input, result);
 }
@@ -59,7 +59,7 @@ TEST(DefaultLinearSolver, GivenZeroMatrixExpectFailed) {
   auto result = Vector();
   output = coefs * input;
 
-  auto solver = vortex::graph::optimization::DefaultLinearSolver{};
+  auto solver = vortex::optimization::DefaultLinearSolver{};
   EXPECT_EQ(solver.solve(coefs, output, result), false);
 }
 
@@ -79,7 +79,7 @@ TEST(CholeskyLinearSolver, GivenPositiveDefinedMatrixExpectSuccess) {
   output = coefs * input;
   ClearUpper(coefs);
 
-  auto solver = vortex::graph::optimization::CholeskyLinearSolver{};
+  auto solver = vortex::optimization::CholeskyLinearSolver{};
   EXPECT_EQ(solver.solve(coefs, output, result), true);
   EXPECT_EQ(input, result);
 }
@@ -98,7 +98,7 @@ TEST(CholeskyLinearSolver, GivenZeroMatrixExpectFailed) {
   auto result = Vector();
   output = coefs * input;
 
-  auto solver = vortex::graph::optimization::CholeskyLinearSolver{};
+  auto solver = vortex::optimization::CholeskyLinearSolver{};
   EXPECT_EQ(solver.solve(coefs, output, result), false);
 }
 

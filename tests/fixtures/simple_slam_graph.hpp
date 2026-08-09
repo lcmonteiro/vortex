@@ -17,7 +17,7 @@
 
 namespace vortex::test {
 
-namespace go = graph::optimization;
+namespace go = vortex::optimization;
 
 using Position = go::types::Position<double>;
 using PositionNode = go::types::PositionNode<double>;
@@ -26,8 +26,8 @@ using PositionLocationEdge = go::types::PositionLocationEdge<double>;
 
 using Nodes = go::Nodes<PositionNode>;
 using Edges = go::Edges<PositionDistanceEdge, PositionLocationEdge>;
-struct SlamGraph : go::Graph<Nodes, Edges> {
-  using Base = go::Graph<Nodes, Edges>;
+struct SlamGraph : go::graph<Nodes, Edges> {
+  using Base = go::graph<Nodes, Edges>;
   using Base::Base;
 };
 

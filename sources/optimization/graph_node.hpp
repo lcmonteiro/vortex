@@ -14,7 +14,7 @@
 #include "helpers/contracts.hpp"
 #include "optimization/graph_config.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Utility alias to define the edge types of a node.
@@ -127,6 +127,6 @@ class Node : public helpers::types_build_t<graph::node, Edges> {
   Key key_;
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_NODE_HPP

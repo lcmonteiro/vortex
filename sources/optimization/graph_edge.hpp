@@ -22,7 +22,7 @@
 #include "optimization/variants/information_matrix.hpp"
 #include "optimization/variants/robust_kernel.hpp"
 
-namespace vortex::graph::optimization {
+namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Type Container: A utility template to define nodes types.
@@ -291,6 +291,6 @@ class Edge : public helpers::types_build_t<graph::edge, Nodes> {
   JacobianTuple jacobian_{};
 };
 
-}  // namespace vortex::graph::optimization
+}  // namespace vortex::optimization
 
 #endif  // VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP

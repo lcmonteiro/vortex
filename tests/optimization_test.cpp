@@ -15,7 +15,7 @@ using namespace vortex::test;
 
 class SlamOptimizationTest : public ::testing::Test {
  protected:
-  using Key = SlamGraph::Key;
+  using Key = SlamGraph::key_type;
 
   auto SetUp() -> void override {
     p1_ = g_.build<PositionNode>(Key{1});

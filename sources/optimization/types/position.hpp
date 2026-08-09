@@ -9,7 +9,7 @@
 #include "optimization/graph_edge.hpp"
 #include "optimization/graph_node.hpp"
 
-namespace vortex::graph::optimization::types {
+namespace vortex::optimization::types {
 
 /// @brief A scalar-generic 2D position / translation.
 ///
@@ -160,6 +160,6 @@ struct PositionLocationEdge : PositionLocationEdgeBase<PositionLocationEdge<Numb
   }
 };
 
-}  // namespace vortex::graph::optimization::types
+}  // namespace vortex::optimization::types
 
 #endif  // VORTEX_OPTIMIZATION_TYPES_POSITION_HPP
