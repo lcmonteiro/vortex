@@ -19,7 +19,7 @@ enum class algorithm_error { fail, numeric_limit, not_converged };
 /// @brief Base class for optimization algorithms operating on a graph.
 ///
 /// Owns the graph and its solver and provides the common initialization shared
-/// by concrete algorithms (e.g. LevenbergAlgorithm).
+/// by concrete algorithms (e.g. levenberg_algorithm).
 ///
 /// @tparam Graph       The graph type to optimize.
 /// @tparam GraphSolver The graph solver type used to build and solve the system.
