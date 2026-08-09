@@ -63,7 +63,7 @@ class LevenbergAlgorithm : public algorithm<Graph, GraphSolver> {
 
     if (reset) {
       if (not solver_.buildStructure()) {
-        return helpers::unexpected(algorithm_error::kFail);
+        return helpers::unexpected(algorithm_error::fail);
       }
     }
 
@@ -120,10 +120,13 @@ class LevenbergAlgorithm : public algorithm<Graph, GraphSolver> {
 
       // Check for numeric instability in lambda
       if (not std::isfinite(lambda_)) {
-        return helpers::unexpected(algorithm_error::kNumericLimit);
+        return helpers::unexpected(algorithm_error::numeric_limit);
       }
     }
-    return true;
+    // Retries exhausted without ever accepting an improving step -- this is
+    // not convergence, so it must not be reported the same as `return true`
+    // above (which means "found a good enough step and can stop").
+    return helpers::unexpected(algorithm_error::not_converged);
   }
 
   /// @brief Retrieves the lambda value from the algorithm.
