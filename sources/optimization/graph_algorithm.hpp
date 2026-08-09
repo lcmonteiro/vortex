@@ -13,7 +13,7 @@ namespace vortex::optimization {
 /// ===============================================================================================
 /// @brief Error codes reported by the optimization algorithm.
 /// ===============================================================================================
-enum class algorithm_error { kFail, kNumericLimit };
+enum class algorithm_error { fail, numeric_limit, not_converged };
 
 /// ===============================================================================================
 /// @brief Base class for optimization algorithms operating on a graph.
@@ -44,7 +44,7 @@ class algorithm {
   auto init(bool reset) -> helpers::expected<void, algorithm_error> {
     auto result = solver_.init(reset);
     if (not result) {
-      return helpers::unexpected(algorithm_error::kFail);
+      return helpers::unexpected(algorithm_error::fail);
     }
     return {};
   }
