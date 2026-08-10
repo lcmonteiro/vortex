@@ -16,7 +16,7 @@ namespace vortex::optimization {
 /// Concrete solvers implement a `solve(h, b, x)` member and may override
 /// `kRequiresFullMatrix` to request a fully populated symmetric matrix.
 /// ===============================================================================================
-class LinearSolver {
+class linear_solver {
  public:
   /// @brief Whether this solver requires the full symmetric matrix
   /// (both triangles populated) rather than just the lower triangle.

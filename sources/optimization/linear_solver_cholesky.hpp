@@ -15,7 +15,7 @@ namespace vortex::optimization {
 /// @brief Linear solver that solves h * x = b using Cholesky factorization
 /// (L * L^T = h) followed by forward/backward substitution.
 /// ===============================================================================================
-class CholeskyLinearSolver : public LinearSolver {
+class cholesky_linear_solver : public linear_solver {
  public:
   /// @brief Solves a linear system like h * x = b using Cholesky factorization
   /// (L * L^T = h) followed by forward/backward substitution.
