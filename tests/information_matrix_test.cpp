@@ -1,7 +1,7 @@
 /// ===============================================================================================
 /// @file
 /// @brief Unit tests for the edge information matrix variants (identity,
-/// diagonal, symmetric) in `optimization::variants::InformationVariant`.
+/// diagonal, symmetric) in `optimization::variants::information_variant`.
 /// ===============================================================================================
 #include <gtest/gtest.h>
 
@@ -49,7 +49,7 @@ struct EdgeWithIdentity : EdgeWithIdentityBase<EdgeWithIdentity> {
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t information_option = go::variants::kIdentityMatrix;
+  static constexpr std::size_t information_option = go::variants::identity_information;
 };
 
 template <class Derived>
@@ -61,7 +61,7 @@ struct EdgeWithDiagonal : EdgeWithDiagonalBase<EdgeWithDiagonal> {
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t information_option = go::variants::kDiagonalMatrix;
+  static constexpr std::size_t information_option = go::variants::diagonal_information;
 };
 
 template <class Derived>
@@ -73,7 +73,7 @@ struct EdgeWithSymmetric : EdgeWithSymmetricBase<EdgeWithSymmetric> {
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t information_option = go::variants::kSymmetricMatrix;
+  static constexpr std::size_t information_option = go::variants::symmetric_information;
 };
 
 // Graph Definition
