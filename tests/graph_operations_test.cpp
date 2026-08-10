@@ -3,7 +3,7 @@
 /// @brief Unit tests for SLAM graph optimization operations: measurements,
 /// estimations, estimation backlog (push/pull/revert), chi2, node/edge
 /// enable-disable, and the `graph_operations.hpp` free-function API
-/// (ForEach/FindIf/RemoveIf/Enable/Disable/EnableIf/DisableIf).
+/// (for_each/find_if/remove_if/enable/disable/enable_if/disable_if).
 /// ===============================================================================================
 #include <gtest/gtest.h>
 
@@ -136,189 +136,189 @@ TEST_F(SlamGraphOperationsTest, GivenDisabledGraph_ExpectLevenbergReset) {
   ASSERT_FALSE(result.has_value());
 }
 
-/// @brief Verifies bulk measurement assignment via ForEach on edge types.
+/// @brief Verifies bulk measurement assignment via for_each on edge types.
 TEST_F(SlamGraphOperationsTest, GivenMeasurementForEachEdgeTypeGivenCondition_ExpectCorrectStatus) {
   auto d1 = Position{1, 0};
   auto l1 = Position{0.5, 0};
-  go::ForEach<PositionDistanceEdge>(g_, [&](const auto& edge) { edge->measurement(d1); });
-  go::ForEach<PositionLocationEdge>(g_, [&](const auto& edge) { edge->measurement(l1); });
+  go::for_each<PositionDistanceEdge>(g_, [&](const auto& edge) { edge->measurement(d1); });
+  go::for_each<PositionLocationEdge>(g_, [&](const auto& edge) { edge->measurement(l1); });
   ExpectPositionEq((*d1_)->measurement(), d1);
   ExpectPositionEq((*d2_)->measurement(), d1);
   ExpectPositionEq((*l1_)->measurement(), l1);
 }
 
-/// @brief Verifies FindIf retrieves the correct node by key.
+/// @brief Verifies find_if retrieves the correct node by key.
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectCorrectFind) {
   constexpr auto key_that_exists = Key{2};
-  const auto& node_found = go::FindIf<PositionNode>(g_, key_that_exists);
+  const auto& node_found = go::find_if<PositionNode>(g_, key_that_exists);
   EXPECT_EQ(node_found, p2_);
 }
 
-/// @brief Verifies FindIf on a const graph retrieves the correct node by key.
+/// @brief Verifies find_if on a const graph retrieves the correct node by key.
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectCorrectFind_Const) {
   constexpr auto key_that_exists = Key{2};
   const auto& node_found =
-      go::FindIf<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_exists);
+      go::find_if<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_exists);
   EXPECT_EQ(node_found, p2_);
 }
 
-/// @brief Verifies FindIf with a predicate lambda finds the correct node.
+/// @brief Verifies find_if with a predicate lambda finds the correct node.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectFind) {
   constexpr auto key_that_exists = Key{2};
-  const auto& node_found = go::FindIf<PositionNode>(
+  const auto& node_found = go::find_if<PositionNode>(
       g_, [](const auto& node) { return (node->key() == key_that_exists) ? true : false; });
   EXPECT_EQ(node_found, p2_);
 }
 
-/// @brief Verifies FindIf with a predicate on a const graph.
+/// @brief Verifies find_if with a predicate on a const graph.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectFind_Const) {
   constexpr auto key_that_exists = Key{2};
-  const auto& node_found = go::FindIf<PositionNode>(
+  const auto& node_found = go::find_if<PositionNode>(
       const_cast<const SlamGraph&>(g_),
       [](const auto& node) { return (node->key() == key_that_exists) ? true : false; });
   EXPECT_EQ(node_found, p2_);
 }
 
-/// @brief Verifies FindIf returns empty when key does not exist.
+/// @brief Verifies find_if returns empty when key does not exist.
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectNoFind) {
   constexpr auto key_that_does_not_exist = Key{100};
-  const auto& node_found = go::FindIf<PositionNode>(g_, key_that_does_not_exist);
+  const auto& node_found = go::find_if<PositionNode>(g_, key_that_does_not_exist);
   EXPECT_FALSE(node_found.has_value());
 }
 
-/// @brief Verifies FindIf on a const graph returns empty for missing key.
+/// @brief Verifies find_if on a const graph returns empty for missing key.
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectNoFind_Const) {
   constexpr auto key_that_does_not_exist = Key{100};
   const auto& node_found =
-      go::FindIf<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_does_not_exist);
+      go::find_if<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_does_not_exist);
   EXPECT_FALSE(node_found.has_value());
 }
 
-/// @brief Verifies FindIf with a predicate returns empty when no match.
+/// @brief Verifies find_if with a predicate returns empty when no match.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectNoFind) {
   constexpr auto key_that_does_not_exist = Key{100};
-  const auto& node_found = go::FindIf<PositionNode>(
+  const auto& node_found = go::find_if<PositionNode>(
       g_, [](const auto& node) { return (node->key() == key_that_does_not_exist) ? true : false; });
   EXPECT_FALSE(node_found.has_value());
 }
 
-/// @brief Verifies FindIf with a predicate on a const graph returns empty.
+/// @brief Verifies find_if with a predicate on a const graph returns empty.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectNoFind_Const) {
   constexpr auto key_that_does_not_exist = Key{100};
-  const auto& node_found = go::FindIf<PositionNode>(
+  const auto& node_found = go::find_if<PositionNode>(
       const_cast<const SlamGraph&>(g_),
       [](const auto& node) { return (node->key() == key_that_does_not_exist) ? true : false; });
   EXPECT_FALSE(node_found.has_value());
 }
 
-/// @brief Verifies RemoveIf with a false predicate removes nothing.
+/// @brief Verifies remove_if with a false predicate removes nothing.
 TEST_F(SlamGraphOperationsTest, GivenFalseCondition_ExpectNonRemoval) {
   ASSERT_EQ(g_.size<PositionNode>(), 3U);
-  go::RemoveIf<PositionNode>(g_, [](const auto&) { return false; });
+  go::remove_if<PositionNode>(g_, [](const auto&) { return false; });
   EXPECT_EQ(g_.size<PositionNode>(), 3U);
 }
 
-/// @brief Verifies RemoveIf with a true predicate removes all nodes.
+/// @brief Verifies remove_if with a true predicate removes all nodes.
 TEST_F(SlamGraphOperationsTest, GivenTrueCondition_ExpectRemoval) {
   ASSERT_EQ(g_.size<PositionNode>(), 3U);
-  go::RemoveIf<PositionNode>(g_, [](const auto&) { return true; });
+  go::remove_if<PositionNode>(g_, [](const auto&) { return true; });
   EXPECT_EQ(g_.size<PositionNode>(), 0U);
 }
 
-/// @brief Verifies RemoveIf with a key predicate removes only the matching node.
+/// @brief Verifies remove_if with a key predicate removes only the matching node.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectRemoval) {
   ASSERT_EQ(g_.size<PositionNode>(), 3U);
-  go::RemoveIf<PositionNode>(g_,
+  go::remove_if<PositionNode>(g_,
                              [](const auto& node) { return (node->key() == 1) ? true : false; });
   ASSERT_EQ(g_.size<PositionNode>(), 2U);
   EXPECT_FALSE(g_.find<PositionNode>(1).has_value());
 }
 
-/// @brief Verifies Disable/Enable by type toggles nodes and edges correctly.
+/// @brief Verifies disable/enable by type toggles nodes and edges correctly.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByType_ExpectCorrectStatus) {
-  go::Disable<PositionNode>(g_);
-  go::Disable<PositionDistanceEdge>(g_);
+  go::disable<PositionNode>(g_);
+  go::disable<PositionDistanceEdge>(g_);
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_TRUE((*p2_)->disable());
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::Enable<PositionNode>(g_);
-  go::Enable<PositionDistanceEdge>(g_);
+  go::enable<PositionNode>(g_);
+  go::enable<PositionDistanceEdge>(g_);
   EXPECT_FALSE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::Disable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
+  go::disable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_TRUE((*l1_)->disable());
 
-  go::Enable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
+  go::enable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
 
 /// @brief Verifies that disabling twice is idempotent.
 TEST_F(SlamGraphOperationsTest, GivenDisableTwice_ExpectCorrectStatus) {
-  go::Disable<PositionNode>(g_);
-  go::Disable<PositionDistanceEdge>(g_);
+  go::disable<PositionNode>(g_);
+  go::disable<PositionDistanceEdge>(g_);
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_TRUE((*p2_)->disable());
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::Disable<PositionNode>(g_);
-  go::Disable<PositionDistanceEdge>(g_);
+  go::disable<PositionNode>(g_);
+  go::disable<PositionDistanceEdge>(g_);
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_TRUE((*p2_)->disable());
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
 
-/// @brief Verifies Disable/Enable by key or edge reference targets correctly.
+/// @brief Verifies disable/enable by key or edge reference targets correctly.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByKey_ExpectCorrectStatus) {
-  go::Disable<PositionNode>(g_, Key{1});
-  go::Disable<PositionDistanceEdge>(g_, *d1_);
+  go::disable<PositionNode>(g_, Key{1});
+  go::disable<PositionDistanceEdge>(g_, *d1_);
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::Enable<PositionNode>(g_, Key{1});
-  go::Enable<PositionDistanceEdge>(g_, *d1_);
+  go::enable<PositionNode>(g_, Key{1});
+  go::enable<PositionDistanceEdge>(g_, *d1_);
   EXPECT_FALSE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::Disable<PositionDistanceEdge>(g_, *p1_);
+  go::disable<PositionDistanceEdge>(g_, *p1_);
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::Enable<PositionDistanceEdge>(g_, *p1_);
+  go::enable<PositionDistanceEdge>(g_, *p1_);
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
 
-/// @brief Verifies Disable/Enable of multiple edge types by node reference.
+/// @brief Verifies disable/enable of multiple edge types by node reference.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByKeyList_ExpectCorrectStatus) {
-  go::Disable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
+  go::disable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_TRUE((*l1_)->disable());
-  go::Enable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
+  go::enable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
 
-/// @brief Verifies DisableIf/EnableIf with predicates on nodes and edges.
+/// @brief Verifies disable_if/enable_if with predicates on nodes and edges.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectStatus) {
-  go::DisableIf<PositionNode>(g_,
+  go::disable_if<PositionNode>(g_,
                               [](const auto& node) { return (node->key() == 1) ? true : false; });
-  go::DisableIf<PositionDistanceEdge>(
+  go::disable_if<PositionDistanceEdge>(
       g_, [](const auto& edge) { return (edge->n_nodes == 2) ? true : false; });
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
@@ -326,9 +326,9 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectSt
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::EnableIf<PositionNode>(g_,
+  go::enable_if<PositionNode>(g_,
                              [](const auto& node) { return (node->key() == 1) ? true : false; });
-  go::EnableIf<PositionDistanceEdge>(
+  go::enable_if<PositionDistanceEdge>(
       g_, [](const auto& edge) { return (edge->n_nodes == 2) ? true : false; });
   EXPECT_FALSE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());

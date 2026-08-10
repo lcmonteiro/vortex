@@ -46,7 +46,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   auto build_structure() -> bool {
     auto total_dimension = std::size_t{0};
 
-    ForEach<Nodes>(
+    for_each<Nodes>(
         this->graph_,
         [&total_dimension](auto& node) {
           node->position(total_dimension);
@@ -67,7 +67,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
     this->h_.reset();
     this->b_.reset();
 
-    ForEach<Edges>(
+    for_each<Edges>(
         this->graph_,
         [this](const auto& edge) {
           edge->foreach_h_block(UpdateHBlock{this});
