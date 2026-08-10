@@ -41,9 +41,15 @@ using Nodes = helpers::types<Ts...>;
 /// ===============================================================================================
 template <class Derived, auto Dimension, class Type, class Nodes, class Config = default_config>
 class edge : public helpers::types_build_t<graph::edge, Nodes> {
-  using kernel_variant = variants::KernelVariant<Derived, Config>;
+  using kernel_variant_type = variants::KernelVariant<Derived, Config>;
   /// @brief Information matrix alternatives.
-  using information_variant = variants::InformationVariant<Derived, Config, Dimension>;
+  using information_variant_type = variants::InformationVariant<Derived, Config, Dimension>;
+
+  /// @brief Helper alias types.
+  template <std::size_t I>
+  using node_type = helpers::types_element_build_t<I, Nodes>;
+  using base_type = helpers::types_build_t<graph::edge, Nodes>;
+  using number_type = typename Config::number_type;
 
  public:
   /// @brief The dimension of the edge.
@@ -58,17 +64,17 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @brief Robust kernel alternatives.
   using kernel_types = variants::KernelVariant<Derived, Config>;
 
-  /// @brief Helper alias types.
-  template <std::size_t I>
-  using node_type = helpers::types_element_build_t<I, Nodes>;
-  using number_type = typename Config::number_type;
+  /// @brief Measurement type of the edge.
   using measurement_type = Type;
-  using base_type = helpers::types_build_t<graph::edge, Nodes>;
-  using matrix_type = math::static_matrix<number_type, dimension, dimension>;
 
+  /// @brief Information matrix type of the edge.
+  using information_matrix_type = math::static_matrix<number_type, dimension, dimension>;
+
+  /// @brief Error type of the edge.
   template <class Scalar>
-  using error_type = math::static_vector<Scalar, dimension>;
+  using error_vector_type = math::static_vector<Scalar, dimension>;
 
+  /// @brief Constructor of the edge.
   using base_type::base_type;
 
   /// @brief Gets measurement.
@@ -103,7 +109,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
 
   /// @brief Robust kernel public accessor.
   struct KernelVariantAcessor {
-    explicit KernelVariantAcessor(kernel_variant& variant) : variant_{variant} {}
+    explicit KernelVariantAcessor(kernel_variant_type& variant) : variant_{variant} {}
 
     /// @brief Sets the robust kernel delta.
     /// @param value The new delta value.
@@ -113,7 +119,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
     auto delta() const -> number_type { return variant_->delta(); }
 
    private:
-    kernel_variant& variant_;
+    kernel_variant_type& variant_;
   } kernel{kernel_};
 
   /// @brief Updates the error, chi-squared value, and both jacobian forms
@@ -121,8 +127,8 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   auto update() -> void {
     // Evaluate the derived edge's `error(...)` with dual estimations for every node at once.
     const auto residual = helpers::invoke(  // Invoke error function with dual estimations
-        ErrorCallback{self()},              // Invoke the error function of the derived edge
-        EstimationCallback{self()},         // Get the dual estimation
+        error_callback{self()},             // Invoke the error function of the derived edge
+        estimation_callback{self()},        // Get the dual estimation
         helpers::Expand<base_type::n_nodes>{});
 
     // Copy the dual residual into the error vector and update the robust kernel's chi-squared.
@@ -134,16 +140,16 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
     kernel_->update(math::dot(error_, information() * error_));
 
     // Extract the jacobian and jacobian_transpose blocks for each node from the dual residual.
-    helpers::unroll(                              // Iterate over each node index
-        helpers::Indexes<base_type::n_nodes>{},   // Index sequence for the number of nodes
-        JacobianUpdateCallback{self(), residual}  // update the jacobian and jacobian_transposs
+    helpers::unroll(                                // Iterate over each node index
+        helpers::Indexes<base_type::n_nodes>{},     // Index sequence for the number of nodes
+        jacobian_update_callback{self(), residual}  // update the jacobian and jacobian_transposs
     );
   }
 
   /// @brief Applies a function to each H block.
   /// @param callable Function that receives the nodes and the block value.
   template <class Fn>
-  auto forEachHBlock(Fn&& callable) -> void {
+  auto foreach_h_block(Fn&& callable) -> void {
     helpers::unroll_pair(helpers::Indexes<base_type::n_nodes>{},
                          HBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
@@ -151,7 +157,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @brief Applies a function to each B block.
   /// @param callable Function that receives the nodes and the block value.
   template <class Fn>
-  auto forEachBBlock(Fn&& callable) -> void {
+  auto foreach_b_block(Fn&& callable) -> void {
     helpers::unroll(helpers::Indexes<base_type::n_nodes>{},
                     BBlockCallback<Fn>{this, std::forward<Fn>(callable)});
   }
@@ -163,7 +169,8 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @note The transpose version is assumed to already include the
   /// information matrix.
   template <typename Node>
-  using jacobian_matrix_t_type = math::static_matrix<number_type, Node::kDimension, dimension, math::row_major>;
+  using jacobian_matrix_t_type =
+      math::static_matrix<number_type, Node::kDimension, dimension, math::row_major>;
   template <typename Node>
   using jacobian_matrix = math::static_matrix<number_type, dimension, Node::kDimension>;
 
@@ -173,11 +180,12 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   }(std::make_index_sequence<base_type::n_nodes>{});
 
   /// @brief `kNodeOffset[I]` is node `I`'s starting index in the edge's combined tangent space.
-  static constexpr auto kNodeOffset = []<std::size_t I, std::size_t... Is>(std::index_sequence<I, Is...>) {
-    std::array<std::size_t, sizeof...(Is) + 1> offset{0};
-    ((offset[Is] = offset[Is - 1] + kNodeDimension[Is - 1]), ...);
-    return offset;
-  }(std::make_index_sequence<base_type::n_nodes>{});
+  static constexpr auto kNodeOffset =
+      []<std::size_t I, std::size_t... Is>(std::index_sequence<I, Is...>) {
+        std::array<std::size_t, sizeof...(Is) + 1> offset{0};
+        ((offset[Is] = offset[Is - 1] + kNodeDimension[Is - 1]), ...);
+        return offset;
+      }(std::make_index_sequence<base_type::n_nodes>{});
 
  private:
   /// @brief Helper function for casting to derived type.
@@ -185,7 +193,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   auto self() -> Derived* { return static_cast<Derived*>(this); }
 
   /// @brief Invoke the error function
-  struct ErrorCallback {
+  struct error_callback {
     Derived* self;
     template <class... T>
     auto operator()(T&&... values) {
@@ -196,7 +204,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @brief Produces dual-number estimations for *every* connected node at
   /// once, each seeded at its own non-overlapping range within the edge's
   /// combined tangent space.
-  struct EstimationCallback {
+  struct estimation_callback {
     Derived* self;
     template <std::size_t I>
     auto operator()() {
@@ -208,7 +216,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
 
   /// @brief Reads node `I`'s jacobian block from its offset range in the combined dual residual.
   template <class Residual>
-  struct JacobianUpdateCallback {
+  struct jacobian_update_callback {
     Derived* self;
     const Residual& residual;
 
@@ -219,7 +227,6 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
 
     template <std::size_t I>
     auto operator()() -> void {
-      using NodeType = node_type<I>;
       constexpr auto D = std::get<I>(kNodeDimension);
       constexpr auto O = std::get<I>(kNodeOffset);
 
@@ -275,13 +282,13 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   measurement_type measurement_{};
 
   /// @brief Error vector.
-  error_type<number_type> error_{};
+  error_vector_type<number_type> error_{};
 
   /// @brief Information matrix.
-  information_variant information_{};
+  information_variant_type information_{};
 
   /// @brief Robust kernel alternatives.
-  kernel_variant kernel_{};
+  kernel_variant_type kernel_{};
 
   /// @brief Jacobian types.
   using tuple_jacobian_t = helpers::types_wrap_build_t<std::tuple, jacobian_matrix_t_type, Nodes>;
