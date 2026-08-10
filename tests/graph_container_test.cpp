@@ -28,12 +28,12 @@ TEST_F(SimpleGraphFixture, CheckGraphStructure) {
   result = size([&, this](auto f) { g_.apply(f); });
   EXPECT_EQ(expect, result);
 
-  expect = g_.size<Graph::Nodes>();
-  result = size([&, this](auto f) { g_.apply<Graph::Nodes>(f); });
+  expect = g_.size<Graph::node_list_type>();
+  result = size([&, this](auto f) { g_.apply<Graph::node_list_type>(f); });
   EXPECT_EQ(expect, result);
 
-  expect = g_.size<Graph::Edges>();
-  result = size([&, this](auto f) { g_.apply<Graph::Edges>(f); });
+  expect = g_.size<Graph::edge_list_type>();
+  result = size([&, this](auto f) { g_.apply<Graph::edge_list_type>(f); });
   EXPECT_EQ(expect, result);
 
   expect = g_.size<vortex::graph::types<Node2, Edge1>>();
@@ -42,11 +42,11 @@ TEST_F(SimpleGraphFixture, CheckGraphStructure) {
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphStructureWhenDuplicatedKeys) {
-  auto nodes_count = g_.size<Graph::Nodes>();
+  auto nodes_count = g_.size<Graph::node_list_type>();
 
   std::ignore = g_.build<Node1>(1);
-  EXPECT_EQ(g_.size<Graph::Edges>(), 0);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), nodes_count);
+  EXPECT_EQ(g_.size<Graph::edge_list_type>(), 0);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), nodes_count);
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphFind) {
@@ -55,20 +55,20 @@ TEST_F(SimpleGraphFixture, CheckGraphFind) {
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphUnlink) {
-  auto nodes_count = g_.size<Graph::Nodes>();
-  auto edges_count = g_.size<Graph::Edges>();
+  auto nodes_count = g_.size<Graph::node_list_type>();
+  auto edges_count = g_.size<Graph::edge_list_type>();
 
   g_.unlink<Node1, Edge1>();
-  EXPECT_EQ(g_.size<Graph::Edges>(), --edges_count);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), nodes_count);
+  EXPECT_EQ(g_.size<Graph::edge_list_type>(), --edges_count);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), nodes_count);
 
   g_.unlink<Node2>();
-  EXPECT_EQ(g_.size<Graph::Edges>(), edges_count);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), nodes_count);
+  EXPECT_EQ(g_.size<Graph::edge_list_type>(), edges_count);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), nodes_count);
 
   g_.unlink<Node1>(1);
-  EXPECT_EQ(g_.size<Graph::Edges>(), --edges_count);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), nodes_count);
+  EXPECT_EQ(g_.size<Graph::edge_list_type>(), --edges_count);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), nodes_count);
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphNodeUnlink) {
@@ -90,48 +90,48 @@ TEST_F(SimpleGraphFixture, CheckGraphNodeUnlink) {
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphDestroy) {
-  auto nodes_count = g_.size<Graph::Nodes>();
-  auto edges_count = g_.size<Graph::Edges>();
+  auto nodes_count = g_.size<Graph::node_list_type>();
+  auto edges_count = g_.size<Graph::edge_list_type>();
 
   g_.destroy<Node2>(1);
-  EXPECT_EQ(g_.size<Graph::Edges>(), --edges_count);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), --nodes_count);
+  EXPECT_EQ(g_.size<Graph::edge_list_type>(), --edges_count);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), --nodes_count);
 
   g_.destroy<Node1>(1);
-  EXPECT_EQ(g_.size<Graph::Edges>(), --edges_count);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), --nodes_count);
+  EXPECT_EQ(g_.size<Graph::edge_list_type>(), --edges_count);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), --nodes_count);
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphDestroyAll) {
   g_.destroy();
-  EXPECT_EQ(g_.size<Graph::Edges>(), 0);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), 0);
+  EXPECT_EQ(g_.size<Graph::edge_list_type>(), 0);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), 0);
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphDestroyAllEnableDisable) {
   g_.destroy(g_.disabled);
   g_.destroy(g_.enabled);
-  EXPECT_EQ(g_.size<Graph::Edges>(), 0);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), 0);
+  EXPECT_EQ(g_.size<Graph::edge_list_type>(), 0);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), 0);
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphDestroyIf_FirstElement) {
   g_.destroy<Node1>([this](auto& node) { return node == n1_.value(); });
-  EXPECT_EQ(g_.size<Graph::Nodes>(), 2);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), 2);
 }
 
 TEST_F(SimpleGraphFixture, CheckGraphDestroyIf_SecondElement) {
   // We start with the same 3 nodes that were SetUp(), two of type Node1
   // and one Node2
-  EXPECT_EQ(g_.size<Graph::Nodes>(), 3);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), 3);
 
   // We create one more node of type Node1, for a total of 4 nodes
   auto n1_2 = g_.build<Node1>(3);
-  EXPECT_EQ(g_.size<Graph::Nodes>(), 4);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), 4);
 
   // We remove one of the nodes of type Node1
   g_.destroy<Node1>([n1_2](auto& node) { return node == n1_2; });
-  EXPECT_EQ(g_.size<Graph::Nodes>(), 3);
+  EXPECT_EQ(g_.size<Graph::node_list_type>(), 3);
 }
 
 TEST_F(SimpleGraphFixture, GivenDifferentTypes_ExpectNodeToggle) {
@@ -145,23 +145,23 @@ TEST_F(SimpleGraphFixture, GivenDifferentTypes_ExpectNodeToggle) {
 }
 
 TEST_F(SimpleGraphFixture, GivenNodesToggle_ExpectEnabledCountChange) {
-  auto enabled{g_.size<Graph::Nodes>(g_.enabled)};
-  auto disabled{g_.size<Graph::Nodes>(g_.disabled)};
+  auto enabled{g_.size<Graph::node_list_type>(g_.enabled)};
+  auto disabled{g_.size<Graph::node_list_type>(g_.disabled)};
 
   g_.toggle<Node1>(Graph::enabled);
 
-  EXPECT_LE(g_.size<Graph::Nodes>(g_.enabled), enabled);
-  EXPECT_GE(g_.size<Graph::Nodes>(g_.disabled), disabled);
+  EXPECT_LE(g_.size<Graph::node_list_type>(g_.enabled), enabled);
+  EXPECT_GE(g_.size<Graph::node_list_type>(g_.disabled), disabled);
 }
 
 TEST_F(SimpleGraphFixture, GivenEdgesToggle_ExpectEnabledCountChange) {
-  auto enabled{g_.size<Graph::Edges>(g_.enabled)};
-  auto disabled{g_.size<Graph::Edges>(g_.disabled)};
+  auto enabled{g_.size<Graph::edge_list_type>(g_.enabled)};
+  auto disabled{g_.size<Graph::edge_list_type>(g_.disabled)};
 
   g_.toggle<Edge1>(Graph::enabled);
 
-  EXPECT_LE(g_.size<Graph::Edges>(g_.enabled), enabled);
-  EXPECT_GE(g_.size<Graph::Nodes>(g_.disabled), disabled);
+  EXPECT_LE(g_.size<Graph::edge_list_type>(g_.enabled), enabled);
+  EXPECT_GE(g_.size<Graph::node_list_type>(g_.disabled), disabled);
 }
 
 TEST_F(SimpleGraphFixture, GivenDifferentKeys_ExpectNodeToggle) {

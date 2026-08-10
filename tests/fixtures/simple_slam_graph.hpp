@@ -24,8 +24,8 @@ using PositionNode = go::types::position_node<double>;
 using PositionDistanceEdge = go::types::position_distance_edge<double>;
 using PositionLocationEdge = go::types::position_location_edge<double>;
 
-using Nodes = go::Nodes<PositionNode>;
-using Edges = go::Edges<PositionDistanceEdge, PositionLocationEdge>;
+using Nodes = go::nodes<PositionNode>;
+using Edges = go::edges<PositionDistanceEdge, PositionLocationEdge>;
 struct SlamGraph : go::graph<Nodes, Edges> {
   using Base = go::graph<Nodes, Edges>;
   using Base::Base;

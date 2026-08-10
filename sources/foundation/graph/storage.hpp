@@ -30,9 +30,29 @@ namespace vortex::graph {
 /// ===============================================================================================
 using helpers::handle;
 using helpers::optional;
-using helpers::type_list;
 using helpers::types;
 using revision_handler = handle<helpers::revision>;
+
+/// ===============================================================================================
+/// @brief Concept satisfied by anything that is either a `node_type` or an
+/// `edge_type`.
+/// ===============================================================================================
+template <class T>
+concept item_type = edge_type<T> or node_type<T>;
+
+/// @note Unconstrained pack for the same reason as `nodes`/`edges`.
+template <class... T>
+struct items : helpers::types<T...> {};
+
+/// ===============================================================================================
+/// @brief Concept satisfied by any `types<Ts...>`-derived list -- including
+/// `nodes<...>`, `edges<...>` and `items<...>`.
+/// @note Checks the list's shape only, not that each element satisfies
+/// `item_type`: node and edge types are mutually recursive, so an element-wise
+/// check here makes constraint satisfaction depend on itself.
+/// ===============================================================================================
+template <class T>
+concept items_list = requires { []<class... Ts>(const types<Ts...>&) {}(std::declval<T>()); };
 
 /// ===============================================================================================
 /// @brief Represents a graph with customizable node and edge types, and
@@ -48,7 +68,7 @@ using revision_handler = handle<helpers::revision>;
 /// @tparam Config The configuration for memory resource management (default is
 /// default_config).
 /// ===============================================================================================
-template <class Tnodes, class Tedges, class Config = default_config>
+template <class Nodes, class Edges, class Config = default_config>
 class storage {
  protected:
   // types
@@ -64,8 +84,8 @@ class storage {
   template <class T>
   using handle_set = set_type<handle<T>>;
 
-  using handle_map_tuple = helpers::types_wrap_build_t<std::tuple, handle_map, Tnodes>;
-  using handle_set_tuple = helpers::types_wrap_build_t<std::tuple, handle_set, Tedges>;
+  using handle_map_tuple = helpers::types_wrap_build_t<std::tuple, handle_map, Nodes>;
+  using handle_set_tuple = helpers::types_wrap_build_t<std::tuple, handle_set, Edges>;
 
   template <helpers::selection value>
   using selection_constant = helpers::selection_constant<value>;
@@ -76,8 +96,8 @@ class storage {
   using disabled_type = selection_constant<selection::kRight>;
 
  public:
-  using Nodes = Tnodes;
-  using Edges = Tedges;
+  using node_list_type = Nodes;
+  using edge_list_type = Edges;
 
   static constexpr auto all = all_type{};
   static constexpr auto enabled = enabled_type{};
@@ -163,14 +183,14 @@ class storage {
     return result;
   }
 
-  template <type_list T, selection value = selection::kAll>
+  template <items_list I, selection value = selection::kAll>
   auto size(const selection_constant<value> side = all) const {
-    return size(T{}, side);
+    return size(I{}, side);
   }
 
   template <selection value = selection::kAll>
   auto size(const selection_constant<value> side = all) const {
-    return size<Nodes>(side) + size<Edges>(side);
+    return size<node_list_type>(side) + size<edge_list_type>(side);
   }
 
   /// @defgroup ApplyFunctions Apply Functions
@@ -204,16 +224,16 @@ class storage {
     }
   }
 
-  template <type_list T, class Fn, selection value = selection::kAll>
+  template <items_list I, class Fn, selection value = selection::kAll>
   auto apply(Fn&& func, const selection_constant<value> side = all) const -> void {
-    apply(std::forward<Fn>(func), T{}, side);
+    apply(std::forward<Fn>(func), I{}, side);
   }
 
   template <class Fn, selection value = selection::kAll>
   auto apply(Fn&& func, const selection_constant<value> side = all) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
-    apply<Nodes>(ref_func, side);
-    apply<Edges>(ref_func, side);
+    apply<node_list_type>(ref_func, side);
+    apply<edge_list_type>(ref_func, side);
   }
 
   /// @defgroup FindFunctions Find Functions
@@ -285,11 +305,11 @@ class storage {
     }
   }
 
-  template <node_type N, type_list E, selection value = selection::kAll>
+  template <node_type N, items_list T, selection value = selection::kAll>
   auto unlink(key_type key, const selection_constant<value> side = all) -> void {
     for (handle_map<N>& map : select<N>(nodes_enable_, nodes_disable_, side)) {
       if (auto iter = map.find(key); iter != map.end()) {
-        unlink_node(std::get<handle<N>>(*iter), E{});
+        unlink_node(std::get<handle<N>>(*iter), T{});
         revision_->update();
         return;
       }
@@ -316,11 +336,11 @@ class storage {
     revision_->update();
   }
 
-  template <node_type N, type_list E, selection value = selection::kAll>
+  template <node_type N, items_list T, selection value = selection::kAll>
   auto unlink(const selection_constant<value> side = all) -> void {
     for (handle_map<N>& map : select<N>(nodes_enable_, nodes_disable_, side)) {
       for (const auto& node : map) {
-        unlink_node(std::get<handle<N>>(node), E{});
+        unlink_node(std::get<handle<N>>(node), T{});
       }
     }
     revision_->update();
@@ -381,7 +401,7 @@ class storage {
 
   template <selection value = selection::kAll>
   auto destroy(const selection_constant<value> side = all) -> void {
-    destroy(Nodes{}, side);
+    destroy(node_list_type{}, side);
   }
 
   /// @defgroup ToggleFunctions Toggle Functions
@@ -495,14 +515,14 @@ class storage {
                      [](const auto& edge) { edge->disable(false); });
   }
 
-  template <type_list E, selection value>
+  template <items_list I, selection value>
   auto toggle(const selection_constant<value> side) -> void {
-    toggle(E{}, side);
+    toggle(I{}, side);
   }
 
-  template <type_list E, class T, selection value>
+  template <items_list I, class T, selection value>
   auto toggle(T&& variant, const selection_constant<value> side) -> void {
-    toggle(E{}, side, std::forward<T>(variant));
+    toggle(I{}, side, std::forward<T>(variant));
   }
 
   /// @brief Provides the memory resource in use.
@@ -529,7 +549,8 @@ class storage {
   }
 
   template <class T, selection value = selection::kAll>
-  auto select(handle_map_tuple& enable, handle_map_tuple& disable, const selection_constant<value> side) {
+  auto select(handle_map_tuple& enable, handle_map_tuple& disable,
+              const selection_constant<value> side) {
     return helpers::select(get<T>(enable), get<T>(disable), side);
   }
 
@@ -540,7 +561,8 @@ class storage {
   }
 
   template <class T, selection value = selection::kAll>
-  auto select(handle_set_tuple& enable, handle_set_tuple& disable, const selection_constant<value> side) {
+  auto select(handle_set_tuple& enable, handle_set_tuple& disable,
+              const selection_constant<value> side) {
     return helpers::select(get<T>(enable), get<T>(disable), side);
   }
   template <class T, selection value = selection::kAll>

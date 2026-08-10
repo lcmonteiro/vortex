@@ -18,9 +18,12 @@ namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Utility alias to define the edge types of a node.
+/// @note `edge_list` constrains the *shape* of the list below (it must be a
+/// `graph::edges<...>`), not each element -- see the note on `nodes` in
+/// node.hpp for why an element-wise constraint isn't possible here.
 /// ===============================================================================================
-template <class... Ts>
-using Edges = helpers::types<Ts...>;
+using graph::edge_list;
+using graph::edges;
 
 /// ===============================================================================================
 /// @brief Represents a graph node used for estimations.
@@ -31,7 +34,7 @@ using Edges = helpers::types<Ts...>;
 /// @tparam Edges        The type of edges connected to the node.
 /// @tparam Config       Configuration settings for the node.
 /// ===============================================================================================
-template <class Derived, auto Dimension, class Type, class Edges, class Config = default_config>
+template <class Derived, auto Dimension, class Type, edge_list Edges, class Config = default_config>
 class node : public helpers::types_build_t<graph::node, Edges> {
   using estimation_type = Type;
   using base_type = helpers::types_build_t<graph::node, Edges>;
