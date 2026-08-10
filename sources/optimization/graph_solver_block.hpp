@@ -43,7 +43,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   /// @brief this function build the system stucture
   ///  - matrix and vector shapes
   ///  - update nodes positions
-  auto buildStructure() -> bool {
+  auto build_structure() -> bool {
     auto total_dimension = std::size_t{0};
 
     ForEach<Nodes>(
@@ -63,7 +63,7 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   }
 
   /// @brief this function compute system matrix
-  auto buildSystem() -> void {
+  auto build_system() -> void {
     this->h_.reset();
     this->b_.reset();
 
@@ -78,13 +78,13 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
 
   /// @brief this function updates the system matrix diagonal
   /// @param update value that will be added
-  auto updateDiagonal(Number update) -> void {
+  auto update_diagonal(Number update) -> void {
     h_diagonal_backup_ = math::diagonal(h_);
     math::diagonal(h_) += update;
   }
 
   /// @brief this function restores the system matrix diagonal
-  auto restoreDiagonal() -> void { math::diagonal(h_) = h_diagonal_backup_; }
+  auto restore_diagonal() -> void { math::diagonal(h_) = h_diagonal_backup_; }
 
   /// @brief Get solution vector
   auto x() const -> const Vector& { return x_; }
