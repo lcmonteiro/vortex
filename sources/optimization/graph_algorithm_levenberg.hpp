@@ -125,9 +125,11 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
         return helpers::unexpected(algorithm_error::numeric_limit);
       }
     }
-    // Retries exhausted without ever accepting an improving step -- this is
-    // not convergence, so it must not be reported the same as `return true`
-    // above (which means "found a good enough step and can stop").
+    // Retries exhausted without accepting a step. Whether this is a failure
+    // or simply "nothing left to improve" depends on context the algorithm
+    // doesn't have (namely, whether earlier iterations already made
+    // progress), so just report it and let the caller decide -- see
+    // graph::optimize().
     return helpers::unexpected(algorithm_error::not_converged);
   }
 
