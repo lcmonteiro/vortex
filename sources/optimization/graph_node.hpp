@@ -32,32 +32,31 @@ using Edges = helpers::types<Ts...>;
 /// @tparam Config       Configuration settings for the node.
 /// ===============================================================================================
 template <class Derived, auto Dimension, class Type, class Edges, class Config = default_config>
-class Node : public helpers::types_build_t<graph::node, Edges> {
+class node : public helpers::types_build_t<graph::node, Edges> {
+  using estimation_type = Type;
+  using base_type = helpers::types_build_t<graph::node, Edges>;
+  using base_type::base_type;
+
  public:
   /// @brief Helper aliases.
-  static constexpr auto kDimension = std::size_t{Dimension};
-
-  using Number = typename Config::number_type;
-  using Key = typename Config::key_type;
+  using number_type = typename Config::number_type;
+  using key_type = typename Config::key_type;
 
   template <std::size_t D>
-  using Matrix = math::static_matrix<Number, D, kDimension>;
-  using Vector = math::static_vector<Number, kDimension>;
-
-  using Base = helpers::types_build_t<graph::node, Edges>;
-  using Base::Base;
+  using matrix_type = math::static_matrix<number_type, D, Dimension>;
+  using vector_type = math::static_vector<number_type, Dimension>;
 
   /// @brief Node constructor.
   /// @param key Node identifier.
   /// @param memory Memory resource.
-  Node(const Key& key, std::pmr::memory_resource* const memory)
-      : Base{key, memory}, estimation_{}, backlog_{}, key_{key} {
+  node(const key_type& key, std::pmr::memory_resource* const memory)
+      : base_type{key, memory}, estimation_{}, backlog_{}, key_{key} {
     push();
   }
 
-  /// @brief Gets the node dimension.
-  /// @return The dimension.
-  constexpr auto dimension() -> std::size_t { return kDimension; }
+  /// @brief Gets the dimension of the node.
+  /// @return The dimension of the node.
+  static constexpr auto dimension() -> std::size_t { return Dimension; }
 
   /// @brief Gets estimation.
   /// @return The current estimation.
@@ -67,12 +66,12 @@ class Node : public helpers::types_build_t<graph::node, Edges> {
   /// @param value The new estimation.
   auto estimation(const Type& value) -> void {
     estimation_ = value;
-    self()->postEstimation();
+    self()->on_estimation_update();
   }
 
   /// @brief Gets the key (identifier).
   /// @return The identifier value.
-  auto key() const -> const Key& { return key_; }
+  auto key() const -> const key_type& { return key_; }
 
   /// @brief Backlog handling functions.
   auto push() -> void { backlog_.push(estimation_); }
@@ -89,7 +88,7 @@ class Node : public helpers::types_build_t<graph::node, Edges> {
   /// @brief Graph solver support information.
   /// This has the internal position that should be only accessed by
   /// BlockGraphSolver type.
-  class Position {
+  class position_accessor {
     template <class, class>
     friend class BlockGraphSolver;
 
@@ -116,15 +115,17 @@ class Node : public helpers::types_build_t<graph::node, Edges> {
   /// @return A pointer to derived type.
   auto self() -> Derived* { return static_cast<Derived*>(this); }
 
-  /// @brief Runs after a new estimation is set.
-  auto postEstimation() -> void {}
+  /// @brief Callback function invoked when the estimation is updated.
+  /// This function can be overridden in derived classes to perform custom actions
+  /// when the estimation is updated.
+  auto on_estimation_update() -> void {}
 
  private:
-  using Backlog = helpers::buffer<Type, Config::backlog_capacity>;
+  using backlog_type = helpers::buffer<Type, Config::backlog_capacity>;
 
-  Type estimation_;
-  Backlog backlog_;
-  Key key_;
+  estimation_type estimation_;
+  backlog_type backlog_;
+  key_type key_;
 };
 
 }  // namespace vortex::optimization

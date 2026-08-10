@@ -58,7 +58,7 @@ struct PositionNode;
 /// @tparam Number  Scalar type of the estimation coordinates.
 template <class Derived, class Number>
 using PositionNodeBase =                                                    //< Node base alias
-    Node<Derived,                                                           //< Derived
+    node<Derived,                                                           //< Derived
          2,                                                                 //< Dimension
          Position<Number>,                                                  //< Type
          Edges<PositionLocationEdge<Number>, PositionDistanceEdge<Number>>  //< Edges
