@@ -30,7 +30,7 @@ using Edges = go::Edges<EdgeWithIdentity, EdgeWithDiagonal, EdgeWithSymmetric>;
 using EstimationType = std::uint8_t;
 
 template <class Derived>
-using Node1Base = go::Node<Derived, kDimension, EstimationType, Edges>;
+using Node1Base = go::node<Derived, kDimension, EstimationType, Edges>;
 
 struct Node1 : Node1Base<Node1> {
   using Base = Node1Base<Node1>;
