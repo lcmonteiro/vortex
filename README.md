@@ -190,9 +190,9 @@ The defaults are:
 | Algorithm | `LevenbergAlgorithm` |
 | Graph solver | `BlockGraphSolver` |
 | Linear solver | `DefaultLinearSolver` (also available: `Cholesky`, `PCG`) |
-| `SystemCapacity` | `0x200` |
+| `system_capacity` | `0x200` |
 
-Provide your own struct deriving from `graph::optimization::DefaultConfig` and
+Provide your own struct deriving from `vortex::optimization::default_config` and
 pass it as the third template parameter of `go::Graph` to swap any of these.
 
 ---
