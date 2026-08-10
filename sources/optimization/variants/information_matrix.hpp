@@ -24,9 +24,11 @@ namespace variants {
 /// @tparam Dimension The dimension the matrix. The matrix is square
 /// (Dimension*Dimension).
 template <class Number, std::size_t Dimension>
-struct IdentityInformationOption {
+struct identity_information_option {
+  using number_type = Number;
+
   /// @brief Constructor of an information matrix that is an identity matrix.
-  IdentityInformationOption() : matrix_{Dimension} {};
+  identity_information_option() : matrix_{Dimension} {};
 
   /// @brief Gets the matrix instance.
   /// @return The matrix instance.
@@ -34,7 +36,7 @@ struct IdentityInformationOption {
 
  private:
   /// @brief The matrix instance.
-  math::identity_matrix<Number> matrix_;
+  math::identity_matrix<number_type> matrix_;
 };
 
 /// ===============================================================================================
@@ -46,9 +48,11 @@ struct IdentityInformationOption {
 /// @tparam Dimension The dimension the matrix. The matrix is square
 /// (Dimension*Dimension).
 template <class Number, std::size_t Dimension>
-struct DiagonalInformationOption {
+struct diagonal_information_option {
+  using number_type = Number;
+
   /// @brief Constructor of an information matrix that is a diagonal matrix.
-  DiagonalInformationOption() : matrix_{math::identity_matrix<Number>(Dimension)} {};
+  diagonal_information_option() : matrix_{math::identity_matrix<number_type>(Dimension)} {};
 
   /// @brief Sets the value of the information matrix based on another matrix.
   /// @tparam Matrix The matrix type.
@@ -92,10 +96,10 @@ struct DiagonalInformationOption {
 
  private:
   /// @brief Type of the base matrix.
-  using BaseMatrix = math::static_matrix<Number, Dimension, Dimension>;
+  using base_matrix_type = math::static_matrix<number_type, Dimension, Dimension>;
 
   /// @brief The matrix instance.
-  math::diagonal_matrix<BaseMatrix> matrix_;
+  math::diagonal_matrix<base_matrix_type> matrix_;
 };
 
 /// ===============================================================================================
@@ -107,9 +111,11 @@ struct DiagonalInformationOption {
 /// @tparam Dimension The dimension the matrix. The matrix is square
 /// (Dimension*Dimension).
 template <class Number, std::size_t Dimension>
-struct SymmetricInformationOption {
+struct symmetric_information_option {
+  using number_type = Number;
+
   /// @brief Constructor of an information matrix.
-  SymmetricInformationOption() : matrix_{math::identity_matrix<Number>(Dimension)} {};
+  symmetric_information_option() : matrix_{math::identity_matrix<number_type>(Dimension)} {};
 
   /// @brief Sets the value of the information matrix based on another matrix.
   /// @tparam Matrix The matrix type.
@@ -127,10 +133,10 @@ struct SymmetricInformationOption {
 
  private:
   /// @brief Type of the base matrix.
-  using BaseMatrix = math::static_matrix<Number, Dimension, Dimension>;
+  using base_matrix_type = math::static_matrix<number_type, Dimension, Dimension>;
 
   /// @brief The matrix instance.
-  math::symmetric_matrix<BaseMatrix> matrix_;
+  math::symmetric_matrix<base_matrix_type> matrix_;
 };
 
 /// ===============================================================================================
@@ -138,30 +144,32 @@ struct SymmetricInformationOption {
 /// ===============================================================================================
 
 /// @brief Information matrix options.
-constexpr std::size_t kIdentityMatrix = 0;
-constexpr std::size_t kDiagonalMatrix = 1;
-constexpr std::size_t kSymmetricMatrix = 2;
+constexpr std::size_t identity_information = 0;
+constexpr std::size_t diagonal_information = 1;
+constexpr std::size_t symmetric_information = 2;
 
 /// @brief Information matrix variant.
 /// @tparam Derived The derived edge type.
 /// @tparam Config The edge configuration.
 /// @tparam Dimension The information matrix dimension.
 template <class Derived, class Config, std::size_t Dimension>
-struct InformationVariant {
-  using Number = typename Config::number_type;
+struct information_variant {
+  using number_type = typename Config::number_type;
 
   /// @brief Variant containing the Information matrix format options.
-  using MatrixVariant = std::variant<IdentityInformationOption<Number, Dimension>,
-                                     DiagonalInformationOption<Number, Dimension>,
-                                     SymmetricInformationOption<Number, Dimension>>;
+  using storage_type = std::variant<identity_information_option<number_type, Dimension>,
+                                    diagonal_information_option<number_type, Dimension>,
+                                    symmetric_information_option<number_type, Dimension>>;
 
-  /// @brief Constructor of the InformationVariant, according to the option set
+  /// @brief Constructor of the information_variant, according to the option set
   /// in Derived::information_option.
   /// @warning Asserts if the value set in Derived::information_option is valid.
-  constexpr InformationVariant()
-      : matrix_(std::variant_alternative_t<Derived::information_option, MatrixVariant>{}) {
-    static_assert(Derived::information_option >= kIdentityMatrix, "kInformation >= kIdentityMatrix");
-    static_assert(Derived::information_option <= kSymmetricMatrix, "kInformation <= kSymmetricMatrix");
+  constexpr information_variant()
+      : matrix_(std::variant_alternative_t<Derived::information_option, storage_type>{}) {
+    static_assert(Derived::information_option >= identity_information,
+                  "information_option >= identity_information");
+    static_assert(Derived::information_option <= symmetric_information,
+                  "information_option <= symmetric_information");
   }
 
   /// @brief Gets the pointer of the active information matrix.
@@ -182,7 +190,7 @@ struct InformationVariant {
 
  private:
   /// @brief Holds the information matrix.
-  MatrixVariant matrix_;
+  storage_type matrix_;
 };
 
 }  // namespace variants

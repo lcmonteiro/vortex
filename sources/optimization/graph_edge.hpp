@@ -43,7 +43,7 @@ template <class Derived, auto Dimension, class Type, class Nodes, class Config =
 class edge : public helpers::types_build_t<graph::edge, Nodes> {
   using kernel_variant_type = variants::kernel_variant<Derived, Config>;
   /// @brief Information matrix alternatives.
-  using information_variant_type = variants::InformationVariant<Derived, Config, Dimension>;
+  using information_variant_type = variants::information_variant<Derived, Config, Dimension>;
 
   /// @brief Helper alias types.
   template <std::size_t I>
@@ -53,7 +53,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
 
  public:
   /// @brief Default information matrix type.
-  static constexpr std::size_t information_option = variants::kIdentityMatrix;
+  static constexpr std::size_t information_option = variants::identity_information;
 
   /// @brief Default kernel type.
   static constexpr std::size_t kernel_option = variants::null_kernel;
