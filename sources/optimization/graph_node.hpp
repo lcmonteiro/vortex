@@ -31,13 +31,13 @@ using Edges = helpers::types<Ts...>;
 /// @tparam Edges        The type of edges connected to the node.
 /// @tparam Config       Configuration settings for the node.
 /// ===============================================================================================
-template <class Derived, auto Dimension, class Type, class Edges, class Config = DefaultConfig>
+template <class Derived, auto Dimension, class Type, class Edges, class Config = default_config>
 class Node : public helpers::types_build_t<graph::node, Edges> {
  public:
   /// @brief Helper aliases.
   static constexpr auto kDimension = std::size_t{Dimension};
 
-  using Number = typename Config::Number;
+  using Number = typename Config::number_type;
   using Key = typename Config::key_type;
 
   template <std::size_t D>
@@ -120,7 +120,7 @@ class Node : public helpers::types_build_t<graph::node, Edges> {
   auto postEstimation() -> void {}
 
  private:
-  using Backlog = helpers::buffer<Type, Config::BacklogCapacity>;
+  using Backlog = helpers::buffer<Type, Config::backlog_capacity>;
 
   Type estimation_;
   Backlog backlog_;

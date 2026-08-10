@@ -100,7 +100,7 @@ constexpr std::size_t kHuberKernel = 1;
 /// @tparam Config The edge configuration.
 template <class Derived, class Config>
 struct KernelVariant {
-  using Number = typename Config::Number;
+  using Number = typename Config::number_type;
   using Storage = std::variant<NullKernel<Number>, HuberKernel<Number>>;
 
   constexpr KernelVariant() : storage_(std::variant_alternative_t<Derived::kKernel, Storage>{}) {

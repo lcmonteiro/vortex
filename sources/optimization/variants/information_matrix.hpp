@@ -148,7 +148,7 @@ constexpr std::size_t kSymmetricMatrix = 2;
 /// @tparam Dimension The information matrix dimension.
 template <class Derived, class Config, std::size_t Dimension>
 struct InformationVariant {
-  using Number = typename Config::Number;
+  using Number = typename Config::number_type;
 
   /// @brief Variant containing the Information matrix format options.
   using MatrixVariant = std::variant<IdentityInformationOption<Number, Dimension>,

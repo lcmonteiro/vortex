@@ -25,21 +25,21 @@ using graph::optional;
 /// @tparam Nodes The collection of nodes in the graph.
 /// @tparam Edges The collection of edges in the graph.
 /// @tparam Config The configuration class that defines various types and
-/// parameters for the graph (default is `DefaultConfig`).
+/// parameters for the graph (default is `default_config`).
 /// ===============================================================================================
-template <class Nodes, class Edges, class Config = DefaultConfig>
+template <class Nodes, class Edges, class Config = default_config>
 class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   /// @brief Helper alias types.
-  using linear_solver_type = typename Config::LinearSolver;
-  using graph_solver_type = typename Config::template GraphSolver<graph, linear_solver_type>;
-  using algorithm_type = typename Config::template Algorithm<graph, graph_solver_type>;
+  using linear_solver_type = typename Config::linear_solver_type;
+  using graph_solver_type = typename Config::template graph_solver_type<graph, linear_solver_type>;
+  using algorithm_type = typename Config::template algorithm_type<graph, graph_solver_type>;
 
  public:
-  static constexpr auto kSystemCapacity = std::size_t{Config::SystemCapacity};
+  static constexpr auto kSystemCapacity = std::size_t{Config::system_capacity};
 
   using base_type = vortex::graph::storage<Nodes, Edges, Config>;
   using key_type = typename Config::key_type;
-  using number_type = typename Config::Number;
+  using number_type = typename Config::number_type;
   using vector_type = math::dynamic_vector<number_type>;
   using enabled_type = typename base_type::enabled_type;
   using disabled_type = typename base_type::disabled_type;

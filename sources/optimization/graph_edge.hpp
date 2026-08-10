@@ -39,7 +39,7 @@ using Nodes = helpers::types<Ts...>;
 /// @tparam Nodes      The type of nodes connected by the edge.
 /// @tparam Config     Configuration settings for the edge.
 /// ===============================================================================================
-template <class Derived, auto Dimension, class Type, class Nodes, class Config = DefaultConfig>
+template <class Derived, auto Dimension, class Type, class Nodes, class Config = default_config>
 class Edge : public helpers::types_build_t<graph::edge, Nodes> {
   using KernelVariant = variants::KernelVariant<Derived, Config>;
 
@@ -62,7 +62,7 @@ class Edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @brief Helper alias types.
   template <std::size_t I>
   using Node = helpers::types_element_build_t<I, Nodes>;
-  using Number = typename Config::Number;
+  using Number = typename Config::number_type;
   using Measurement = Type;
   using Base = helpers::types_build_t<graph::edge, Nodes>;
   using Matrix = math::static_matrix<Number, kDimension, kDimension>;

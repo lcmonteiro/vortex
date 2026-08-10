@@ -46,7 +46,7 @@ using revision_handler = handle<helpers::revision>;
 /// @tparam Tnodes The set of node types used in the graph.
 /// @tparam Tedges The set of edge types used in the graph.
 /// @tparam Config The configuration for memory resource management (default is
-/// DefaultConfig).
+/// default_config).
 /// ===============================================================================================
 template <class Tnodes, class Tedges, class Config = default_config>
 class storage {
