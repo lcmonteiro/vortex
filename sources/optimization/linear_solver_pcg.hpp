@@ -20,7 +20,7 @@ namespace vortex::optimization {
 /// @tparam IterationsLimit  Maximum number of PCG iterations.
 /// ===============================================================================================
 template <class Number, int ResidualExponent = -6, auto IterationsLimit = 1000>
-class PCGLinearSolver : public LinearSolver {
+class pcg_linear_solver : public linear_solver {
  public:
   static constexpr auto kRequiresFullMatrix = true;
 
