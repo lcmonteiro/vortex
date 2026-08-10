@@ -188,7 +188,7 @@ The defaults are:
 | --- | --- |
 | Scalar `Number` | `double` |
 | Algorithm | `LevenbergAlgorithm` |
-| Graph solver | `BlockGraphSolver` |
+| Graph solver | `block_graph_solver` |
 | Linear solver | `DefaultLinearSolver` (also available: `Cholesky`, `PCG`) |
 | `system_capacity` | `0x200` |
 
