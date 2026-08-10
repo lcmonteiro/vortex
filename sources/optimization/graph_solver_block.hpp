@@ -17,42 +17,49 @@ namespace vortex::optimization {
 /// @brief Block graph solver.
 /// ===============================================================================================
 template <class Graph, class LinearSolver>
-class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
+class block_graph_solver : public graph_solver<Graph, LinearSolver> {
  public:
-  using Nodes = typename Graph::Nodes;
-  using Edges = typename Graph::Edges;
-  using Number = typename Graph::number_type;
-  using Enabled = typename Graph::enabled_type;
-  using Vector = math::dynamic_vector<Number>;
-  using Matrix = math::dynamic_matrix<Number>;
-  using Diagonal = math::dynamic_vector<Number>;
-  using Base = GraphSolver<Graph, LinearSolver>;
+  using base_type = graph_solver<Graph, LinearSolver>;
+  using nodes_list = typename Graph::Nodes;
+  using edges_list = typename Graph::Edges;
+  using number_type = typename Graph::number_type;
+  using enabled_type = typename Graph::enabled_type;
+  using vector_type = math::dynamic_vector<number_type>;
+  using matrix_type = math::dynamic_matrix<number_type>;
+  using diagonal_type = math::dynamic_vector<number_type>;
 
-  explicit BlockGraphSolver(Graph& graph) : Base{graph}, x_{}, b_{}, h_{}, h_diagonal_backup_{} {
+  /// @brief Constructor of the block_graph_solver.
+  /// @param graph The graph to be solved.
+  explicit block_graph_solver(Graph& graph)
+      : base_type{graph}, x_{}, b_{}, h_{}, h_diagonal_backup_{} {
     h_.reserve(Graph::kSystemCapacity * Graph::kSystemCapacity);
     x_.reserve(Graph::kSystemCapacity);
     b_.reserve(Graph::kSystemCapacity);
     h_diagonal_backup_.reserve(Graph::kSystemCapacity);
   }
-  ~BlockGraphSolver() = default;
-  BlockGraphSolver(const BlockGraphSolver&) = delete;
-  auto operator=(const BlockGraphSolver&) -> BlockGraphSolver& = delete;
-  BlockGraphSolver(BlockGraphSolver&&) = default;
-  auto operator=(BlockGraphSolver&&) -> BlockGraphSolver& = default;
+  
+  /// @brief Deleted copy constructor and defaulted move constructor.
+  block_graph_solver(const block_graph_solver&) = delete;
+  block_graph_solver(block_graph_solver&&) = default;
+  ~block_graph_solver() = default;
 
+  /// @brief Deleted copy assignment operator and defaulted move assignment operator.
+  auto operator=(const block_graph_solver&) -> block_graph_solver& = delete;
+  auto operator=(block_graph_solver&&) -> block_graph_solver& = default;
+  
   /// @brief this function build the system stucture
   ///  - matrix and vector shapes
   ///  - update nodes positions
   auto build_structure() -> bool {
     auto total_dimension = std::size_t{0};
 
-    for_each<Nodes>(
+    for_each<nodes_list>(
         this->graph_,
         [&total_dimension](auto& node) {
           node->position(total_dimension);
           total_dimension += node->dimension();
         },
-        Enabled{});
+        enabled_type{});
 
     x_.resize(total_dimension, false);
     b_.resize(total_dimension, false);
@@ -67,18 +74,18 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
     this->h_.reset();
     this->b_.reset();
 
-    for_each<Edges>(
+    for_each<edges_list>(
         this->graph_,
         [this](const auto& edge) {
-          edge->foreach_h_block(UpdateHBlock{this});
-          edge->foreach_b_block(UpdateBBlock{this});
+          edge->foreach_h_block(update_h_block{this});
+          edge->foreach_b_block(update_b_block{this});
         },
-        Enabled{});
+        enabled_type{});
   }
 
   /// @brief this function updates the system matrix diagonal
   /// @param update value that will be added
-  auto update_diagonal(Number update) -> void {
+  auto update_diagonal(number_type update) -> void {
     h_diagonal_backup_ = math::diagonal(h_);
     math::diagonal(h_) += update;
   }
@@ -87,22 +94,22 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
   auto restore_diagonal() -> void { math::diagonal(h_) = h_diagonal_backup_; }
 
   /// @brief Get solution vector
-  auto x() const -> const Vector& { return x_; }
+  auto x() const -> const vector_type& { return x_; }
 
   /// @brief Get right hand side of the system
-  auto b() const -> const Vector& { return b_; }
+  auto b() const -> const vector_type& { return b_; }
 
   /// @brief Get hessian matrix
-  auto h() const -> const Matrix& { return h_; }
+  auto h() const -> const matrix_type& { return h_; }
 
   /// @brief Algorithm solve
   /// @return a boolean value whether it was solved or an algorithm error
-  auto solve() -> bool { return Base::lsolver_.solve(h_, b_, x_); }
+  auto solve() -> bool { return base_type::lsolver_.solve(h_, b_, x_); }
 
  protected:
   /// @brief Functor that accumulates a Hessian block update into the system
   /// matrix, honoring the solver's full or triangular storage requirement.
-  struct UpdateHBlock {
+  struct update_h_block {
     template <class Ni, class Nj, class H>
     auto operator()(const Ni& node_i, const Nj& node_j, const H& update) -> void {
       if constexpr (LinearSolver::kRequiresFullMatrix) {
@@ -136,23 +143,24 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
             math::trans(update);
       }
     }
-    BlockGraphSolver* self;
+    block_graph_solver* self;
   };
+  
   /// @brief Functor that accumulates a gradient block update into the system
   /// right-hand-side vector.
-  struct UpdateBBlock {
+  struct update_b_block {
     template <class N, class B>
     auto operator()(const N& node, const B& update) -> void {
       math::subvector(self->b_, node->position(), node->dimension()) -= update;
     }
-    BlockGraphSolver* self;
+    block_graph_solver* self;
   };
 
  private:
-  Vector x_;
-  Vector b_;
-  Matrix h_;
-  Diagonal h_diagonal_backup_;
+  vector_type x_;
+  vector_type b_;
+  matrix_type h_;
+  diagonal_type h_diagonal_backup_;
 };
 
 }  // namespace vortex::optimization

@@ -34,7 +34,7 @@ struct default_config : graph::default_config {
 
   /// @brief Default graph solver.
   template <class Graph, class LinearSolver>
-  using graph_solver_type = BlockGraphSolver<Graph, LinearSolver>;
+  using graph_solver_type = block_graph_solver<Graph, LinearSolver>;
 
   /// @brief Default linear solver.
   using linear_solver_type = DefaultLinearSolver;

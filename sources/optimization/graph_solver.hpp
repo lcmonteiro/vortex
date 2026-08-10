@@ -8,27 +8,28 @@
 
 namespace vortex::optimization {
 /// ===============================================================================================
-/// @brief A templated class that provides solver functionality for a graph
-/// using a linear solver.
+/// @brief A templated class that provides solver functionality for a graph using a linear solver.
 ///
-/// @tparam Graph The graph type to be solved (can be any graph type, as long as
-/// it is compatible).
+/// @tparam Graph The graph type to be solved (can be any graph type, as long as it is compatible).
 /// @tparam LinearSolver The linear solver type used to perform solving
 /// operations on the graph.
 /// ===============================================================================================
 template <class Graph, class LinearSolver>
-class GraphSolver {
+class graph_solver {
  public:
-  explicit GraphSolver(Graph& graph) : graph_{graph} {}
+  /// @brief Constructor of the graph_solver.
+  explicit graph_solver(Graph& graph) : graph_{graph} {}
 
-  ~GraphSolver() = default;
-  GraphSolver(const GraphSolver&) = delete;
-  GraphSolver(GraphSolver&&) = default;
+  /// @brief Deleted copy constructor and defaulted move constructor.
+  graph_solver(const graph_solver&) = delete;
+  graph_solver(graph_solver&&) = default;
+  ~graph_solver() = default;
 
-  auto operator=(const GraphSolver&) -> GraphSolver& = delete;
-  auto operator=(GraphSolver&&) -> GraphSolver& = delete;
+  /// @brief Deleted copy assignment operator and defaulted move assignment operator.
+  auto operator=(const graph_solver&) -> graph_solver& = delete;
+  auto operator=(graph_solver&&) -> graph_solver& = delete;
 
-  /// @brief Initializes the GraphSolver.
+  /// @brief Initializes the graph_solver.
   ///
   /// @param bool A boolean parameter, which could be used to specify additional
   /// initialization options (optional usage depending on the solver

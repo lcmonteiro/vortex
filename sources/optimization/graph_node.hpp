@@ -87,10 +87,10 @@ class node : public helpers::types_build_t<graph::node, Edges> {
 
   /// @brief Graph solver support information.
   /// This has the internal position that should be only accessed by
-  /// BlockGraphSolver type.
+  /// block_graph_solver type.
   class position_accessor {
     template <class, class>
-    friend class BlockGraphSolver;
+    friend class block_graph_solver;
 
    protected:
     auto operator()() { return value_; }
