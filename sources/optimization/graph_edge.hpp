@@ -41,7 +41,7 @@ using Nodes = helpers::types<Ts...>;
 /// ===============================================================================================
 template <class Derived, auto Dimension, class Type, class Nodes, class Config = default_config>
 class edge : public helpers::types_build_t<graph::edge, Nodes> {
-  using kernel_variant_type = variants::KernelVariant<Derived, Config>;
+  using kernel_variant_type = variants::kernel_variant<Derived, Config>;
   /// @brief Information matrix alternatives.
   using information_variant_type = variants::InformationVariant<Derived, Config, Dimension>;
 
@@ -59,7 +59,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   static constexpr std::size_t kernel_option = variants::null_kernel;
 
   /// @brief Robust kernel alternatives.
-  using kernel_types = variants::KernelVariant<Derived, Config>;
+  using kernel_types = variants::kernel_variant<Derived, Config>;
 
   /// @brief Measurement type of the edge.
   using measurement_type = Type;

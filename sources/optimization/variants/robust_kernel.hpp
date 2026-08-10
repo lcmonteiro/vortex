@@ -6,6 +6,7 @@
 #ifndef VORTEX_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
 #define VORTEX_OPTIMIZATION_VARIANTS_ROBUST_KERNEL_HPP
 
+#include <cmath>
 #include <cstddef>
 #include <variant>
 
@@ -16,10 +17,12 @@ namespace variants {
 /// @brief Robust Kernels
 /// ===============================================================================================
 template <class Number>
-struct NullKernel {
+struct null_kernel_option {
+  using number_type = Number;
+
   /// @brief Updates the chi-squared value.
   /// @param chi2 The chi-squared value.
-  auto update(Number chi2) -> void { chi2_ = chi2; }
+  auto update(number_type chi2) -> void { chi2_ = chi2; }
 
   /// @brief Gets the chi-squared value.
   /// @return The chi-squared value.
@@ -35,33 +38,34 @@ struct NullKernel {
   }
 
  private:
-  Number chi2_;
+  number_type chi2_;
 };
 
-/// @brief Huber robust kernel: down-weights large residuals to reduce the
-/// influence of outliers.
+/// @brief Huber robust kernel: down-weights large residuals to reduce the influence of outliers.
 /// @tparam Number Scalar type used for the kernel computation.
 template <class Number>
-struct HuberKernel {
+struct huber_kernel_option {
+  using number_type = Number;
+  
   /// @brief Setter for robust kernel delta.
   /// @param value New delta value.
-  auto delta(Number value) -> void {
+  auto delta(number_type value) -> void {
     delta_ = value;
     delta_sqr_ = value * value;
   }
 
   /// @brief Getter for robust kernel delta.
   /// @return The current delta value.
-  auto delta() const -> Number { return delta_; }
+  auto delta() const -> number_type { return delta_; }
 
   /// @brief Updates the internal state.
   /// @param chi2 The chi-squared value.
-  auto update(Number chi2) -> void {
+  auto update(number_type chi2) -> void {
     if (chi2 <= delta_sqr_) {
       rho_ = chi2;
       rho_prime_ = 1.;
     } else {
-      const Number chi2_sqrt = std::sqrt(chi2);
+      const number_type chi2_sqrt = std::sqrt(chi2);
       rho_ = (2 * chi2_sqrt * delta_) - delta_sqr_;
       rho_prime_ = delta_ / chi2_sqrt;
     }
@@ -81,10 +85,10 @@ struct HuberKernel {
   }
 
  private:
-  Number delta_{1.};
-  Number delta_sqr_;
-  Number rho_;
-  Number rho_prime_;
+  number_type delta_{1.};
+  number_type delta_sqr_;
+  number_type rho_;
+  number_type rho_prime_;
 };
 
 /// ===============================================================================================
@@ -93,19 +97,20 @@ struct HuberKernel {
 
 /// @brief Robust kernel options.
 constexpr std::size_t null_kernel = 0;
-constexpr std::size_t kHuberKernel = 1;
+constexpr std::size_t huber_kernel = 1;
 
 /// @brief Robust kernel variant.
 /// @tparam Derived The derived edge type.
 /// @tparam Config The edge configuration.
 template <class Derived, class Config>
-struct KernelVariant {
-  using Number = typename Config::number_type;
-  using Storage = std::variant<NullKernel<Number>, HuberKernel<Number>>;
+struct kernel_variant {
+  using number_type = typename Config::number_type;
+  using storage_type = std::variant<null_kernel_option<number_type>, huber_kernel_option<number_type>>;
 
-  constexpr KernelVariant() : storage_(std::variant_alternative_t<Derived::kernel_option, Storage>{}) {
-    static_assert(Derived::kernel_option >= null_kernel, "kKernel >= kNullKernel");
-    static_assert(Derived::kernel_option <= kHuberKernel, "kKernel <= kHuberKernel");
+  constexpr kernel_variant()
+      : storage_(std::variant_alternative_t<Derived::kernel_option, storage_type>{}) {
+    static_assert(Derived::kernel_option >= null_kernel, "kernel_option >= null_kernel");
+    static_assert(Derived::kernel_option <= huber_kernel, "kernel_option <= huber_kernel");
   }
 
   /// @brief Gets the pointer of the active kernel.
@@ -119,7 +124,7 @@ struct KernelVariant {
   constexpr auto& get() const { return std::get<Derived::kernel_option>(storage_); }
 
  private:
-  Storage storage_;
+  storage_type storage_;
 };
 
 }  // namespace variants
