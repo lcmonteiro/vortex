@@ -37,7 +37,7 @@ struct default_config : graph::default_config {
   using graph_solver_type = block_graph_solver<Graph, LinearSolver>;
 
   /// @brief Default linear solver.
-  using linear_solver_type = DefaultLinearSolver;
+  using linear_solver_type = default_linear_solver;
 };
 
 }  // namespace vortex::optimization

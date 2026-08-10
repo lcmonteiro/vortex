@@ -189,7 +189,7 @@ The defaults are:
 | Scalar `Number` | `double` |
 | Algorithm | `LevenbergAlgorithm` |
 | Graph solver | `block_graph_solver` |
-| Linear solver | `DefaultLinearSolver` (also available: `Cholesky`, `PCG`) |
+| Linear solver | `default_linear_solver` (also available: `Cholesky`, `PCG`) |
 | `system_capacity` | `0x200` |
 
 Provide your own struct deriving from `vortex::optimization::default_config` and

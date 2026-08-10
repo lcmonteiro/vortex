@@ -1,7 +1,7 @@
 /// ===============================================================================================
 /// @file
 /// @brief Unit tests for the graph optimization linear solvers
-/// (`DefaultLinearSolver`, `cholesky_linear_solver`).
+/// (`default_linear_solver`, `cholesky_linear_solver`).
 /// ===============================================================================================
 #include <gtest/gtest.h>
 
@@ -40,7 +40,7 @@ TEST(DefaultLinearSolver, GivenPositiveDefinedMatrixExpectSuccess) {
 
   ClearUpper(coefs);
 
-  auto solver = vortex::optimization::DefaultLinearSolver{};
+  auto solver = vortex::optimization::default_linear_solver{};
   EXPECT_EQ(solver.solve(coefs, output, result), true);
   EXPECT_EQ(input, result);
 }
@@ -59,7 +59,7 @@ TEST(DefaultLinearSolver, GivenZeroMatrixExpectFailed) {
   auto result = Vector();
   output = coefs * input;
 
-  auto solver = vortex::optimization::DefaultLinearSolver{};
+  auto solver = vortex::optimization::default_linear_solver{};
   EXPECT_EQ(solver.solve(coefs, output, result), false);
 }
 

@@ -14,7 +14,10 @@
 namespace vortex::optimization {
 
 /// ===============================================================================================
-/// @brief Block graph solver.
+/// @brief A templated class that provides solver functionality for a graph using a linear solver.
+///
+/// @tparam Graph The graph type to be solved (can be any graph type, as long as it is compatible).
+/// @tparam LinearSolver The linear solver type used to perform solving operations on the graph.
 /// ===============================================================================================
 template <class Graph, class LinearSolver>
 class block_graph_solver : public graph_solver<Graph, LinearSolver> {
@@ -37,7 +40,7 @@ class block_graph_solver : public graph_solver<Graph, LinearSolver> {
     b_.reserve(Graph::kSystemCapacity);
     h_diagonal_backup_.reserve(Graph::kSystemCapacity);
   }
-  
+
   /// @brief Deleted copy constructor and defaulted move constructor.
   block_graph_solver(const block_graph_solver&) = delete;
   block_graph_solver(block_graph_solver&&) = default;
@@ -46,7 +49,7 @@ class block_graph_solver : public graph_solver<Graph, LinearSolver> {
   /// @brief Deleted copy assignment operator and defaulted move assignment operator.
   auto operator=(const block_graph_solver&) -> block_graph_solver& = delete;
   auto operator=(block_graph_solver&&) -> block_graph_solver& = default;
-  
+
   /// @brief this function build the system stucture
   ///  - matrix and vector shapes
   ///  - update nodes positions
@@ -145,7 +148,7 @@ class block_graph_solver : public graph_solver<Graph, LinearSolver> {
     }
     block_graph_solver* self;
   };
-  
+
   /// @brief Functor that accumulates a gradient block update into the system
   /// right-hand-side vector.
   struct update_b_block {

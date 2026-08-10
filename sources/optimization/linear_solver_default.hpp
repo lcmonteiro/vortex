@@ -14,7 +14,7 @@ namespace vortex::optimization {
 /// ===============================================================================================
 /// @brief Default linear solver for the system h * x = b.
 /// ===============================================================================================
-class DefaultLinearSolver : public linear_solver {
+class default_linear_solver : public linear_solver {
  public:
   /// @brief Solves a linear system like h * x = b.
   /// It is assumed that matrix shapes are correct.
