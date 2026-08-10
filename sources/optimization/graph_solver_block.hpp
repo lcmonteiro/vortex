@@ -70,8 +70,8 @@ class BlockGraphSolver : public GraphSolver<Graph, LinearSolver> {
     ForEach<Edges>(
         this->graph_,
         [this](const auto& edge) {
-          edge->forEachHBlock(UpdateHBlock{this});
-          edge->forEachBBlock(UpdateBBlock{this});
+          edge->foreach_h_block(UpdateHBlock{this});
+          edge->foreach_b_block(UpdateBBlock{this});
         },
         Enabled{});
   }
