@@ -100,6 +100,9 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
     for (std::size_t it = 1; it < (iterations - 1); ++it) {
       auto result_next = algorithm_.template solve<false, false>();
       if (not result_next) {
+        if (algorithm_error::not_converged == result_next.error()) {
+          return it;
+        }
         return helpers::unexpected(result_next.error());
       }
       if (result_next.value()) {
@@ -110,6 +113,9 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
     // Perform the last iteration, which may have special finalization logic.
     auto result_last = algorithm_.template solve<false, true>();
     if (not result_last) {
+      if (algorithm_error::not_converged == result_last.error()) {
+        return iterations;
+      }
       return helpers::unexpected(result_last.error());
     }
 
