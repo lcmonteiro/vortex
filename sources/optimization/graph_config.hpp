@@ -11,9 +11,7 @@
 #include "foundation/graph/config.hpp"
 #include "optimization/graph_algorithm_levenberg.hpp"
 #include "optimization/graph_solver_block.hpp"
-#include "optimization/linear_solver_cholesky.hpp"
 #include "optimization/linear_solver_default.hpp"
-#include "optimization/linear_solver_pcg.hpp"
 
 namespace vortex::optimization {
 

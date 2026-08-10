@@ -98,7 +98,7 @@ struct PositionNode : PositionNodeBase<PositionNode<Number>, Number> {
 /// @tparam Number  Scalar type of the measurement coordinates.
 template <class Derived, class Number>
 using PositionDistanceEdgeBase =                            //< Edge base alias
-    Edge<Derived,                                           //< Derived
+    edge<Derived,                                           //< Derived
          2,                                                 //< Dimension
          Position<Number>,                                  //< Type
          Nodes<PositionNode<Number>, PositionNode<Number>>  //< Nodes
@@ -122,7 +122,7 @@ struct PositionDistanceEdge : PositionDistanceEdgeBase<PositionDistanceEdge<Numb
   /// @param b Estimate of the second (target) position.
   /// @return Error vector [observed_dx − measured_x, observed_dy − measured_y].
   template <class T>
-  auto error(const Position<T>& a, const Position<T>& b) -> typename Base::template Error<T> {
+  auto error(const Position<T>& a, const Position<T>& b) -> typename Base::template error_type<T> {
     return {(b.x - a.x) - this->measurement().x, (b.y - a.y) - this->measurement().y};
   }
 };
@@ -133,7 +133,7 @@ struct PositionDistanceEdge : PositionDistanceEdgeBase<PositionDistanceEdge<Numb
 /// @tparam Number  Scalar type of the measurement coordinates.
 template <class Derived, class Number>
 using PositionLocationEdgeBase =      //< Edge base alias
-    Edge<Derived,                     //< Derived
+    edge<Derived,                     //< Derived
          2,                           //< Dimension
          Position<Number>,            //< Type
          Nodes<PositionNode<Number>>  //< Nodes
@@ -155,7 +155,7 @@ struct PositionLocationEdge : PositionLocationEdgeBase<PositionLocationEdge<Numb
   /// @param a Estimate of the position.
   /// @return Error vector [a.x − measured_x, a.y − measured_y].
   template <class T>
-  auto error(const Position<T>& a) -> typename Base::template Error<T> {
+  auto error(const Position<T>& a) -> typename Base::template error_type<T> {
     return {a.x - this->measurement().x, a.y - this->measurement().y};
   }
 };

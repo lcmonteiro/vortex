@@ -156,12 +156,12 @@ struct InformationVariant {
                                      SymmetricInformationOption<Number, Dimension>>;
 
   /// @brief Constructor of the InformationVariant, according to the option set
-  /// in Derived::kInformation.
-  /// @warning Asserts if the value set in Derived::kInformation is valid.
+  /// in Derived::information_option.
+  /// @warning Asserts if the value set in Derived::information_option is valid.
   constexpr InformationVariant()
-      : matrix_(std::variant_alternative_t<Derived::kInformation, MatrixVariant>{}) {
-    static_assert(Derived::kInformation >= kIdentityMatrix, "kInformation >= kIdentityMatrix");
-    static_assert(Derived::kInformation <= kSymmetricMatrix, "kInformation <= kSymmetricMatrix");
+      : matrix_(std::variant_alternative_t<Derived::information_option, MatrixVariant>{}) {
+    static_assert(Derived::information_option >= kIdentityMatrix, "kInformation >= kIdentityMatrix");
+    static_assert(Derived::information_option <= kSymmetricMatrix, "kInformation <= kSymmetricMatrix");
   }
 
   /// @brief Gets the pointer of the active information matrix.
@@ -174,11 +174,11 @@ struct InformationVariant {
 
   /// @brief Gets the reference of the active information matrix.
   /// @return Information matrix reference.
-  constexpr auto& get() { return std::get<Derived::kInformation>(matrix_); }
+  constexpr auto& get() { return std::get<Derived::information_option>(matrix_); }
 
   /// @brief Gets the reference of the active information matrix.
   /// @return Information matrix reference.
-  constexpr auto& get() const { return std::get<Derived::kInformation>(matrix_); }
+  constexpr auto& get() const { return std::get<Derived::information_option>(matrix_); }
 
  private:
   /// @brief Holds the information matrix.

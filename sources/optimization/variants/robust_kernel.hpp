@@ -92,7 +92,7 @@ struct HuberKernel {
 /// ===============================================================================================
 
 /// @brief Robust kernel options.
-constexpr std::size_t kNullKernel = 0;
+constexpr std::size_t null_kernel = 0;
 constexpr std::size_t kHuberKernel = 1;
 
 /// @brief Robust kernel variant.
@@ -103,9 +103,9 @@ struct KernelVariant {
   using Number = typename Config::number_type;
   using Storage = std::variant<NullKernel<Number>, HuberKernel<Number>>;
 
-  constexpr KernelVariant() : storage_(std::variant_alternative_t<Derived::kKernel, Storage>{}) {
-    static_assert(Derived::kKernel >= kNullKernel, "kKernel >= kNullKernel");
-    static_assert(Derived::kKernel <= kHuberKernel, "kKernel <= kHuberKernel");
+  constexpr KernelVariant() : storage_(std::variant_alternative_t<Derived::kernel_option, Storage>{}) {
+    static_assert(Derived::kernel_option >= null_kernel, "kKernel >= kNullKernel");
+    static_assert(Derived::kernel_option <= kHuberKernel, "kKernel <= kHuberKernel");
   }
 
   /// @brief Gets the pointer of the active kernel.
@@ -115,8 +115,8 @@ struct KernelVariant {
 
   /// @brief Gets the reference of the active kernel.
   /// @return Kernel reference.
-  constexpr auto& get() { return std::get<Derived::kKernel>(storage_); }
-  constexpr auto& get() const { return std::get<Derived::kKernel>(storage_); }
+  constexpr auto& get() { return std::get<Derived::kernel_option>(storage_); }
+  constexpr auto& get() const { return std::get<Derived::kernel_option>(storage_); }
 
  private:
   Storage storage_;

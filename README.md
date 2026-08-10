@@ -63,11 +63,11 @@ Each derived edge implements **one** scalar-generic residual function, e.g.
 
 ```cpp
 struct PositionDistanceEdge
-    : go::Edge<PositionDistanceEdge, 2, Position, go::Nodes<PositionNode, PositionNode>> {
+    : go::edge<PositionDistanceEdge, 2, Position, go::Nodes<PositionNode, PositionNode>> {
   using Base::Base;
 
   template <class A, class B>
-  auto error(const Position<A>& a, const Position<B>& b) -> Base::Error<A, B> {
+  auto error(const Position<A>& a, const Position<B>& b) -> Base::error_type<A, B> {
     return {(b.x - a.x) - this->measurement().x,
             (b.y - a.y) - this->measurement().y};
   }
@@ -171,8 +171,8 @@ if (result) {
 
 1. **Node** — subclass `go::Node<Derived, Dim, EstimationType, go::Edges<...>>`
    and implement a scalar-generic `plus(delta)` manifold retraction.
-2. **Edge** — subclass `go::Edge<Derived, Dim, MeasurementType, go::Nodes<...>>`
-   and implement a scalar-generic `error(...)` returning `Base::Error<T>`.
+2. **Edge** — subclass `go::edge<Derived, Dim, MeasurementType, go::Nodes<...>>`
+   and implement a scalar-generic `error(...)` returning `Base::error_type<T>`.
 3. **Graph** — subclass `go::Graph<go::Nodes<...>, go::Edges<...>>`.
 4. Build nodes/edges, set estimations & measurements, call `optimize()`.
 

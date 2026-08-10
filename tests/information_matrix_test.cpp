@@ -42,38 +42,38 @@ using MeasurementType = std::uint8_t;
 
 template <class Derived>
 using EdgeWithIdentityBase =
-    go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+    go::edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
 
 struct EdgeWithIdentity : EdgeWithIdentityBase<EdgeWithIdentity> {
   using Base = EdgeWithIdentityBase<EdgeWithIdentity>;
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t kInformation = go::variants::kIdentityMatrix;
+  static constexpr std::size_t information_option = go::variants::kIdentityMatrix;
 };
 
 template <class Derived>
 using EdgeWithDiagonalBase =
-    go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+    go::edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
 
 struct EdgeWithDiagonal : EdgeWithDiagonalBase<EdgeWithDiagonal> {
   using Base = EdgeWithDiagonalBase<EdgeWithDiagonal>;
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t kInformation = go::variants::kDiagonalMatrix;
+  static constexpr std::size_t information_option = go::variants::kDiagonalMatrix;
 };
 
 template <class Derived>
 using EdgeWithSymmetricBase =
-    go::Edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+    go::edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
 
 struct EdgeWithSymmetric : EdgeWithSymmetricBase<EdgeWithSymmetric> {
   using Base = EdgeWithSymmetricBase<EdgeWithSymmetric>;
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t kInformation = go::variants::kSymmetricMatrix;
+  static constexpr std::size_t information_option = go::variants::kSymmetricMatrix;
 };
 
 // Graph Definition
@@ -99,7 +99,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Identity_Get) {
   auto& information = edge_with_identity->information();
 
   // Then
-  math::diagonal_matrix<EdgeWithIdentity::Matrix> expected_information{};
+  math::diagonal_matrix<EdgeWithIdentity::matrix_type> expected_information{};
   math::diagonal(expected_information) = math::static_vector<int, 2>{1, 1};
 
   EXPECT_EQ(information, expected_information);
@@ -115,7 +115,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_GetInitial) {
   auto& information = edge_with_diagonal->information();
 
   // Then
-  math::diagonal_matrix<EdgeWithDiagonal::Matrix> expected_information{};
+  math::diagonal_matrix<EdgeWithDiagonal::matrix_type> expected_information{};
   math::diagonal(expected_information) = math::static_vector<int, 2>{1, 1};
 
   EXPECT_EQ(information, expected_information);
@@ -127,7 +127,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithMatrix) {
   auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithDiagonal>(n1, n2);
 
-  math::diagonal_matrix<EdgeWithDiagonal::Matrix> new_information{};
+  math::diagonal_matrix<EdgeWithDiagonal::matrix_type> new_information{};
   math::diagonal(new_information) = math::static_vector<int, 2>{2, 2};
 
   // When
@@ -151,7 +151,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithVector) {
   edge_with_diagonal->information(new_information_vector);
 
   // Then
-  math::diagonal_matrix<EdgeWithDiagonal::Matrix> expected_information_matrix{};
+  math::diagonal_matrix<EdgeWithDiagonal::matrix_type> expected_information_matrix{};
   math::diagonal(expected_information_matrix) = new_information_vector;
 
   auto& retrieved_information_matrix = edge_with_diagonal->information();
@@ -171,7 +171,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Diagonal_SetWithValues) {
   edge_with_diagonal->information(2.0, 3.0);
 
   // Then
-  math::diagonal_matrix<EdgeWithDiagonal::Matrix> expected_information_matrix{};
+  math::diagonal_matrix<EdgeWithDiagonal::matrix_type> expected_information_matrix{};
   math::diagonal(expected_information_matrix) = new_information_vector;
 
   auto& retrieved_information_matrix = edge_with_diagonal->information();
@@ -185,7 +185,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Symmetric_Get) {
   auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithSymmetric>(n1, n2);
 
-  EdgeWithSymmetric::Matrix expected_information{{1, 0}, {0, 1}};
+  EdgeWithSymmetric::matrix_type expected_information{{1, 0}, {0, 1}};
 
   // When
   auto& retrieved_information = edge_with_diagonal->information();
@@ -200,7 +200,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Symmetric_Set) {
   auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithSymmetric>(n1, n2);
 
-  math::symmetric_matrix<EdgeWithSymmetric::Matrix> new_information{{1, 2}, {2, 1}};
+  math::symmetric_matrix<EdgeWithSymmetric::matrix_type> new_information{{1, 2}, {2, 1}};
 
   // When
   edge_with_diagonal->information(new_information);
