@@ -37,7 +37,6 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
   using config_type = Config;
   using base_type = algorithm<Graph, GraphSolver>;
   using number_type = typename Graph::number_type;
-  
 
  public:
   /// @brief Constructor of the Levenberg-Marquardt optimization algorithm.
@@ -63,7 +62,7 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
     }
 
     if (reset) {
-      if (not solver_.buildStructure()) {
+      if (not solver_.build_structure()) {
         return helpers::unexpected(algorithm_error::fail);
       }
     }
@@ -77,14 +76,14 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
   auto solve() -> helpers::expected<bool, algorithm_error> {
     if constexpr (first_iteration) {
       graph_.update_edges();
-      solver_.buildSystem();
+      solver_.build_system();
       lambda_ = compute_lambda_init();
       lambda_factor_ = 2;
       current_chi_ = graph_.chi2();
     }
 
-    for (std::size_t it = 0; it < helpers::constant(Config::retries); ++it) {
-      solver_.updateDiagonal(lambda_);
+    for (std::size_t it = 0; it < helpers::constant(config_type::retries); ++it) {
+      solver_.update_diagonal(lambda_);
 
       if (solver_.solve()) {
         graph_.push();
@@ -97,10 +96,10 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
 
         // If the improvement ratio (rho) is positive,
         // it continues adjusting lambda
-        if (rho > helpers::constant<number_type>(Config::rho_epsilon)) {
+        if (rho > helpers::constant<number_type>(config_type::rho_epsilon)) {
           if constexpr (not last_iteration) {
-            adjust_lambda_adaptive(rho);
-            solver_.buildSystem();
+            update_lambda_adaptive(rho);
+            solver_.build_system();
             current_chi_ = chi;
           }
           return false;  // Continue solving
@@ -108,7 +107,7 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
 
         // If rho is not negative,
         // it indicates sufficient improvement, and it can stop
-        if (rho > helpers::constant<number_type>(-Config::rho_epsilon)) {
+        if (rho > helpers::constant<number_type>(-config_type::rho_epsilon)) {
           return true;  // Optimization converged
         }
 
@@ -116,8 +115,8 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
       }
 
       // On failure, increase lambda aggressively to slow down optimization
-      increase_lambda_aggressive();
-      solver_.restoreDiagonal();
+      update_lambda_aggressive();
+      solver_.restore_diagonal();
 
       // Check for numeric instability in lambda
       if (not std::isfinite(lambda_)) {
@@ -140,31 +139,31 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
   /// @brief Computes the initial lambda or returns the one from config.
   /// @return The initial lambda value.
   auto compute_lambda_init() {
-    if constexpr (Config::lambda_init > 0) {
-      return helpers::constant<number_type>(Config::lambda_init);
+    if constexpr (config_type::lambda_init > 0) {
+      return helpers::constant<number_type>(config_type::lambda_init);
     } else {
-      return helpers::constant<number_type>(Config::tau) * math::max(math::diagonal(solver_.h()));
+      return helpers::constant<number_type>(config_type::tau) * math::max(math::diagonal(solver_.h()));
     }
   }
 
-  /// @brief Computes the scaler for the chi2 difference.
-  /// @return The scaler value.
+  /// @brief Computes the scale for the chi2 difference.
+  /// @return The scale value.
   auto compute_scale() -> number_type {
     return math::dot(solver_.x(), (solver_.x() * lambda_) + solver_.b());
   }
 
-  /// @brief Increases lambda aggressively when the step fails.
-  auto increase_lambda_aggressive() -> void {
+  /// @brief Updates lambda aggressively when the step fails.
+  auto update_lambda_aggressive() -> void {
     lambda_ *= lambda_factor_;
     lambda_factor_ *= 2;
   }
 
-  /// @brief Adjusts lambda adaptively when the step succeeds.
+  /// @brief Updates lambda adaptively when the step succeeds.
   /// Scales lambda based on the `rho` value, ensuring smooth convergence.
   /// @param rho Gain ratio, indicating how much to scale lambda.
-  auto adjust_lambda_adaptive(number_type rho) -> void {
-    constexpr number_type alpha_min = helpers::constant<number_type>(Config::lower_scale);
-    constexpr number_type alpha_max = helpers::constant<number_type>(Config::upper_scale);
+  auto update_lambda_adaptive(number_type rho) -> void {
+    constexpr number_type alpha_min = helpers::constant<number_type>(config_type::lower_scale);
+    constexpr number_type alpha_max = helpers::constant<number_type>(config_type::upper_scale);
     const number_type alpha = 1. - helpers::int_pow<3>((2 * rho) - 1);
     const number_type alpha_clamp = std::clamp(alpha, alpha_min, alpha_max);
     lambda_ *= alpha_clamp;
@@ -174,6 +173,7 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
  private:
   using base_type::graph_;
   using base_type::solver_;
+  
   // Levenberg state
   number_type lambda_;
   number_type lambda_factor_;
