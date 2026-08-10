@@ -19,10 +19,10 @@ namespace vortex::test {
 
 namespace go = vortex::optimization;
 
-using Position = go::types::Position<double>;
-using PositionNode = go::types::PositionNode<double>;
-using PositionDistanceEdge = go::types::PositionDistanceEdge<double>;
-using PositionLocationEdge = go::types::PositionLocationEdge<double>;
+using Position = go::types::position<double>;
+using PositionNode = go::types::position_node<double>;
+using PositionDistanceEdge = go::types::position_distance_edge<double>;
+using PositionLocationEdge = go::types::position_location_edge<double>;
 
 using Nodes = go::Nodes<PositionNode>;
 using Edges = go::Edges<PositionDistanceEdge, PositionLocationEdge>;
