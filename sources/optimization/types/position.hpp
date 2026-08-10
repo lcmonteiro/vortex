@@ -61,7 +61,7 @@ using position_node_base =                                                  //< 
     node<Derived,                                                           //< Derived
          2,                                                                 //< Dimension
          position<Number>,                                                  //< Type
-         Edges<position_location_edge<Number>, position_distance_edge<Number>>  //< Edges
+         edges<position_location_edge<Number>, position_distance_edge<Number>>  //< Edges
          >;
 
 /// @brief A 2D position vertex (state dimension 2, estimation `position`).
@@ -101,7 +101,7 @@ using position_distance_edge_base =                          //< Edge base alias
     edge<Derived,                                           //< Derived
          2,                                                 //< Dimension
          position<Number>,                                  //< Type
-         Nodes<position_node<Number>, position_node<Number>>  //< Nodes
+         nodes<position_node<Number>, position_node<Number>>  //< Nodes
          >;
 
 /// @brief Relative translation measurement between two `position_node` nodes.
@@ -136,7 +136,7 @@ using position_location_edge_base =      //< Edge base alias
     edge<Derived,                     //< Derived
          2,                           //< Dimension
          position<Number>,            //< Type
-         Nodes<position_node<Number>>  //< Nodes
+         nodes<position_node<Number>>  //< Nodes
          >;
 
 /// @brief Absolute position (prior) measurement of a single `position_node`.

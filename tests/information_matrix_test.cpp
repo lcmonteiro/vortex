@@ -24,7 +24,7 @@ constexpr std::uint8_t kDimension = 2;
 struct EdgeWithIdentity;
 struct EdgeWithDiagonal;
 struct EdgeWithSymmetric;
-using Edges = go::Edges<EdgeWithIdentity, EdgeWithDiagonal, EdgeWithSymmetric>;
+using Edges = go::edges<EdgeWithIdentity, EdgeWithDiagonal, EdgeWithSymmetric>;
 
 // Nodes Definition
 using EstimationType = std::uint8_t;
@@ -42,7 +42,7 @@ using MeasurementType = std::uint8_t;
 
 template <class Derived>
 using EdgeWithIdentityBase =
-    go::edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+    go::edge<Derived, kDimension, MeasurementType, go::nodes<Node1, Node1>>;
 
 struct EdgeWithIdentity : EdgeWithIdentityBase<EdgeWithIdentity> {
   using Base = EdgeWithIdentityBase<EdgeWithIdentity>;
@@ -54,7 +54,7 @@ struct EdgeWithIdentity : EdgeWithIdentityBase<EdgeWithIdentity> {
 
 template <class Derived>
 using EdgeWithDiagonalBase =
-    go::edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+    go::edge<Derived, kDimension, MeasurementType, go::nodes<Node1, Node1>>;
 
 struct EdgeWithDiagonal : EdgeWithDiagonalBase<EdgeWithDiagonal> {
   using Base = EdgeWithDiagonalBase<EdgeWithDiagonal>;
@@ -66,7 +66,7 @@ struct EdgeWithDiagonal : EdgeWithDiagonalBase<EdgeWithDiagonal> {
 
 template <class Derived>
 using EdgeWithSymmetricBase =
-    go::edge<Derived, kDimension, MeasurementType, go::Nodes<Node1, Node1>>;
+    go::edge<Derived, kDimension, MeasurementType, go::nodes<Node1, Node1>>;
 
 struct EdgeWithSymmetric : EdgeWithSymmetricBase<EdgeWithSymmetric> {
   using Base = EdgeWithSymmetricBase<EdgeWithSymmetric>;
@@ -77,8 +77,8 @@ struct EdgeWithSymmetric : EdgeWithSymmetricBase<EdgeWithSymmetric> {
 };
 
 // Graph Definition
-struct Graph : go::graph<go::Nodes<Node1>, Edges> {
-  using Base = go::graph<go::Nodes<Node1>, Edges>;
+struct Graph : go::graph<go::nodes<Node1>, Edges> {
+  using Base = go::graph<go::nodes<Node1>, Edges>;
   using Base::Base;
 };
 

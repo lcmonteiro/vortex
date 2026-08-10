@@ -27,7 +27,8 @@ using graph::optional;
 /// @tparam Config The configuration class that defines various types and
 /// parameters for the graph (default is `default_config`).
 /// ===============================================================================================
-template <class Nodes, class Edges, class Config = default_config>
+template <vortex::graph::node_list Nodes, vortex::graph::edge_list Edges,
+          class Config = default_config>
 class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   /// @brief Helper alias types.
   using linear_solver_type = typename Config::linear_solver_type;

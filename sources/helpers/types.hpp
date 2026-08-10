@@ -50,9 +50,5 @@ using types_wrap_build_t = typename Ts::template apply_wrapped_t<B, W>;
 template <std::size_t index, class Ts>
 using types_element_build_t = typename Ts::template element_t<index>;
 
-/// @brief Concept satisfied by any specialization of `types`.
-template <class T>
-concept type_list = requires { []<class... Ts>(const types<Ts...>&) {}(std::declval<T>()); };
-
 }  // namespace vortex::helpers
 #endif  // VORTEX_HELPERS_TYPES_HPP

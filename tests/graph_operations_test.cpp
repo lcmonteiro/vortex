@@ -251,11 +251,11 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByType_ExpectCorrectStatus)
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::disable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
+  go::disable<go::edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_TRUE((*l1_)->disable());
 
-  go::enable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
+  go::enable<go::edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
@@ -306,10 +306,10 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByKey_ExpectCorrectStatus) 
 
 /// @brief Verifies disable/enable of multiple edge types by node reference.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByKeyList_ExpectCorrectStatus) {
-  go::disable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
+  go::disable<go::edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_TRUE((*l1_)->disable());
-  go::enable<go::Edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
+  go::enable<go::edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
@@ -459,9 +459,9 @@ TEST_F(SlamGraphOperationsTest, GivenSharedObjects_ExpectCopyAssignment) {
 
 /// @brief Verifies unlink of PositionLocationEdge edges from nodes.
 TEST_F(SlamGraphOperationsTest, GivenGraph_ExpectPositionLocationUnlink) {
-  auto edges_before = g_.size<SlamGraph::Edges>();
+  auto edges_before = g_.size<SlamGraph::edge_list_type>();
   g_.unlink<PositionNode, PositionLocationEdge>();
-  EXPECT_LT(g_.size<SlamGraph::Edges>(), edges_before);
+  EXPECT_LT(g_.size<SlamGraph::edge_list_type>(), edges_before);
 }
 
 /// @brief Verifies 2-iteration optimization covers the last-iteration path.
@@ -476,11 +476,11 @@ TEST_F(SlamGraphOperationsTest, GivenTwoIterations_ExpectLastIterationSolvePath)
 
 /// @brief Verifies destroy of a single PositionNode node by key.
 TEST_F(SlamGraphOperationsTest, GivenPositionNodeKey_ExpectDestroyByKey) {
-  auto nodes_before = g_.size<go::Nodes<PositionNode>>();
-  auto edges_before = g_.size<SlamGraph::Edges>();
+  auto nodes_before = g_.size<go::nodes<PositionNode>>();
+  auto edges_before = g_.size<SlamGraph::edge_list_type>();
   g_.destroy<PositionNode>(Key{2});
-  EXPECT_LT(g_.size<go::Nodes<PositionNode>>(), nodes_before);
-  EXPECT_LT(g_.size<SlamGraph::Edges>(), edges_before);
+  EXPECT_LT(g_.size<go::nodes<PositionNode>>(), nodes_before);
+  EXPECT_LT(g_.size<SlamGraph::edge_list_type>(), edges_before);
 }
 
 }  // namespace

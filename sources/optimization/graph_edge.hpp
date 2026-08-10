@@ -26,9 +26,12 @@ namespace vortex::optimization {
 
 /// ===============================================================================================
 /// @brief Type Container: A utility template to define nodes types.
+/// @note `node_list` constrains the *shape* of the list below (it must be a
+/// `graph::nodes<...>`), not each element -- see the note on `nodes` in
+/// node.hpp for why an element-wise constraint isn't possible here.
 /// ===============================================================================================
-template <class... Ts>
-using Nodes = helpers::types<Ts...>;
+using graph::node_list;
+using graph::nodes;
 
 /// ===============================================================================================
 /// @brief Edge: Represents a graph edge used for measurements.
@@ -39,7 +42,7 @@ using Nodes = helpers::types<Ts...>;
 /// @tparam Nodes      The type of nodes connected by the edge.
 /// @tparam Config     Configuration settings for the edge.
 /// ===============================================================================================
-template <class Derived, auto Dimension, class Type, class Nodes, class Config = default_config>
+template <class Derived, auto Dimension, class Type, node_list Nodes, class Config = default_config>
 class edge : public helpers::types_build_t<graph::edge, Nodes> {
   using kernel_variant_type = variants::kernel_variant<Derived, Config>;
   /// @brief Information matrix alternatives.
@@ -47,7 +50,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
 
   /// @brief Helper alias types.
   template <std::size_t I>
-  using node_type = helpers::types_element_build_t<I, Nodes>;
+  using node_type_at = helpers::types_element_build_t<I, Nodes>;
   using base_type = helpers::types_build_t<graph::edge, Nodes>;
   using number_type = typename Config::number_type;
 
@@ -191,7 +194,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
 
   /// @brief Node dimensions in the combined tangent space.
   static constexpr auto node_dimensions = []<std::size_t... Is>(std::index_sequence<Is...>) {
-    return std::array<std::size_t, sizeof...(Is)>{node_type<Is>::dimension()...};
+    return std::array<std::size_t, sizeof...(Is)>{node_type_at<Is>::dimension()...};
   }(std::make_index_sequence<base_type::n_nodes>{});
 
   /// @brief Node offsets in the combined tangent space.

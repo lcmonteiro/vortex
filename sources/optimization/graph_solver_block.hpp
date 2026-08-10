@@ -23,8 +23,8 @@ template <class Graph, class LinearSolver>
 class block_graph_solver : public graph_solver<Graph, LinearSolver> {
  public:
   using base_type = graph_solver<Graph, LinearSolver>;
-  using nodes_list = typename Graph::Nodes;
-  using edges_list = typename Graph::Edges;
+  using nodes_list = typename Graph::node_list_type;
+  using edges_list = typename Graph::edge_list_type;
   using number_type = typename Graph::number_type;
   using enabled_type = typename Graph::enabled_type;
   using vector_type = math::dynamic_vector<number_type>;

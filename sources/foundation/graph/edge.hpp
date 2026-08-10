@@ -7,12 +7,12 @@
 #define VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP
 
 #include <cstddef>
-#include <memory>
-#include <memory_resource>
 #include <tuple>
 
 #include "helpers/apply.hpp"
 #include "helpers/handle.hpp"
+#include "helpers/types.hpp"
+
 namespace vortex::graph {
 
 /// ===============================================================================================
@@ -35,7 +35,7 @@ class edge {
   /// @brief Constructs an edge connecting the specified nodes.
   /// @note Move and copy constructors purposely omitted
   explicit edge(const helpers::handle<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}
-  
+
   /// @brief Gets a node by type.
   /// @tparam T Node type.
   /// @return The node handle.
@@ -98,6 +98,18 @@ class edge {
 /// ===============================================================================================
 template <class T>
 concept edge_type = requires { []<class... Ts>(const edge<Ts...>&) {}(std::declval<T>()); };
+
+/// @note Deliberately NOT constrained as `template <edge_type... T>` -- see the
+/// note on `nodes` in node.hpp: the mutual node<->edge recursion makes such a
+/// constraint depend on itself.
+template <class... T>
+struct edges : helpers::types<T...> {};
+
+/// ===============================================================================================
+/// @brief Concept satisfied by any specialization of `edges`.
+/// ===============================================================================================
+template <class T>
+concept edge_list = requires { []<class... Ts>(const edges<Ts...>&) {}(std::declval<T>()); };
 
 }  // namespace vortex::graph
 #endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP
