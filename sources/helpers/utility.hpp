@@ -35,6 +35,16 @@ constexpr auto lreference(T&& x) noexcept -> T& {
   return static_cast<T&>(x);
 }
 
+/// @brief Identity function that returns the input value unchanged.
+/// @tparam Type The type of the input value.
+/// @param v The input value.
+/// @return The input value unchanged.
+template <class Type>
+constexpr auto constant(Type v) -> Type {
+  return v;
+}
+
+
 }  // namespace vortex::helpers
 
 #endif  // VORTEX_HELPERS_TRAITS_HPP

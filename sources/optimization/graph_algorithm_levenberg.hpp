@@ -12,46 +12,45 @@
 #include "foundation/math.hpp"
 #include "helpers/expected.hpp"
 #include "helpers/numeric.hpp"
+#include "helpers/utility.hpp"
 #include "optimization/graph_algorithm.hpp"
 
 namespace vortex::optimization {
 
 /// ===============================================================================================
-/// @brief Constexpr-friendly identity cast
-/// ===============================================================================================
-template <class Type>
-inline constexpr auto constant(Type v) -> Type {
-  return v;
-}
-
-/// ===============================================================================================
 /// @brief Default configuration used by levenberg_algorithm.
 /// ===============================================================================================
-struct LevenbergConfig {
-  static constexpr auto LambdaInit{0.0};
-  static constexpr auto LowerScale{1. / 3.0};
-  static constexpr auto UpperScale{2. / 3.0};
-  static constexpr auto Tau{1e-5};
-  static constexpr auto Retries{5U};
-  static constexpr auto RhoEpsilon{1e-9};
+struct levenberg_config {
+  static constexpr auto lambda_init{0.0};
+  static constexpr auto lower_scale{1. / 3.0};
+  static constexpr auto upper_scale{2. / 3.0};
+  static constexpr auto tau{1e-5};
+  static constexpr auto retries{5U};
+  static constexpr auto rho_epsilon{1e-9};
 };
 
 /// ===============================================================================================
 /// @brief Levenberg-Marquardt optimization algorithm.
 /// ===============================================================================================
-template <class Graph, class GraphSolver, class Config = LevenbergConfig>
+template <class Graph, class GraphSolver, class Config = levenberg_config>
 class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
+  using config_type = Config;
   using base_type = algorithm<Graph, GraphSolver>;
   using number_type = typename Graph::number_type;
+  
 
  public:
+  /// @brief Constructor of the Levenberg-Marquardt optimization algorithm.
+  /// @param graph The graph to be optimized.
   explicit levenberg_algorithm(Graph& graph)
       : base_type(graph), lambda_{-1.}, lambda_factor_{2.}, current_chi_{0.} {}
 
+  /// @brief Deleted copy constructor and defaulted move constructor.
   levenberg_algorithm(const levenberg_algorithm&) = delete;
   levenberg_algorithm(levenberg_algorithm&&) = default;
   ~levenberg_algorithm() = default;
 
+  /// @brief Deleted copy assignment operator and defaulted move assignment operator.
   auto operator=(const levenberg_algorithm&) -> levenberg_algorithm& = delete;
   auto operator=(levenberg_algorithm&&) -> levenberg_algorithm& = default;
 
@@ -84,7 +83,7 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
       current_chi_ = graph_.chi2();
     }
 
-    for (std::size_t it = 0; it < constant(Config::Retries); ++it) {
+    for (std::size_t it = 0; it < helpers::constant(Config::retries); ++it) {
       solver_.updateDiagonal(lambda_);
 
       if (solver_.solve()) {
@@ -93,12 +92,12 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
         graph_.update_edges();
 
         const number_type chi = graph_.chi2();
-        const number_type scale = compute_scale() + constant<number_type>(1e-3);
+        const number_type scale = compute_scale() + helpers::constant<number_type>(1e-3);
         const number_type rho = (current_chi_ - chi) / scale;
 
         // If the improvement ratio (rho) is positive,
         // it continues adjusting lambda
-        if (rho > constant<number_type>(Config::RhoEpsilon)) {
+        if (rho > helpers::constant<number_type>(Config::rho_epsilon)) {
           if constexpr (not last_iteration) {
             adjust_lambda_adaptive(rho);
             solver_.buildSystem();
@@ -109,7 +108,7 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
 
         // If rho is not negative,
         // it indicates sufficient improvement, and it can stop
-        if (rho > constant<number_type>(-Config::RhoEpsilon)) {
+        if (rho > helpers::constant<number_type>(-Config::rho_epsilon)) {
           return true;  // Optimization converged
         }
 
@@ -141,10 +140,10 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
   /// @brief Computes the initial lambda or returns the one from config.
   /// @return The initial lambda value.
   auto compute_lambda_init() {
-    if constexpr (Config::LambdaInit > 0) {
-      return constant<number_type>(Config::LambdaInit);
+    if constexpr (Config::lambda_init > 0) {
+      return helpers::constant<number_type>(Config::lambda_init);
     } else {
-      return constant<number_type>(Config::Tau) * math::max(math::diagonal(solver_.h()));
+      return helpers::constant<number_type>(Config::tau) * math::max(math::diagonal(solver_.h()));
     }
   }
 
@@ -164,8 +163,8 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
   /// Scales lambda based on the `rho` value, ensuring smooth convergence.
   /// @param rho Gain ratio, indicating how much to scale lambda.
   auto adjust_lambda_adaptive(number_type rho) -> void {
-    constexpr number_type alpha_min = constant<number_type>(Config::LowerScale);
-    constexpr number_type alpha_max = constant<number_type>(Config::UpperScale);
+    constexpr number_type alpha_min = helpers::constant<number_type>(Config::lower_scale);
+    constexpr number_type alpha_max = helpers::constant<number_type>(Config::upper_scale);
     const number_type alpha = 1. - helpers::int_pow<3>((2 * rho) - 1);
     const number_type alpha_clamp = std::clamp(alpha, alpha_min, alpha_max);
     lambda_ *= alpha_clamp;
