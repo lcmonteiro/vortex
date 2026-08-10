@@ -45,7 +45,7 @@ adjustment and sensor calibration. It combines two ideas:
 | Path | Responsibility |
 | --- | --- |
 | [sources/foundation/dual/](sources/foundation/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
-| [sources/foundation/graph/](sources/foundation/graph/) | Core statically-typed graph engine — `Graph`, `Node`, `Edge`, revision tracking, and memory management (from `vortex`). |
+| [sources/foundation/graph/](sources/foundation/graph/) | Core statically-typed graph engine — `graph`, `node`, `edge`, revision tracking, and memory management (from `vortex`). |
 | [sources/foundation/math/](sources/foundation/math/) | Dense linear-algebra wrappers over [Blaze](https://bitbucket.org/blaze-lib/blaze) (matrix/vector types, inversion, and solvers). |
 | [sources/foundation/types/](sources/foundation/types/) | Small supporting containers (e.g. `vector_set`). |
 | [sources/optimization/](sources/optimization/) | Optimizer layer: `optimize()`, Levenberg–Marquardt algorithm, block graph solver, and the Cholesky/PCG/default linear solvers. Edges compute exact Jacobians via dual numbers. |
@@ -59,11 +59,11 @@ adjustment and sensor calibration. It combines two ideas:
 ## How automatic differentiation works
 
 Each derived edge implements **one** scalar-generic residual function, e.g.
-[PositionDistanceEdge](sources/optimization/types/position.hpp):
+[position_distance_edge](sources/optimization/types/position.hpp):
 
 ```cpp
-struct PositionDistanceEdge
-    : go::edge<PositionDistanceEdge, 2, Position, go::Nodes<PositionNode, PositionNode>> {
+struct position_distance_edge
+    : go::edge<position_distance_edge, 2, Position, go::Nodes<PositionNode, PositionNode>> {
   using Base::Base;
 
   template <class A, class B>
@@ -78,7 +78,7 @@ struct PositionDistanceEdge
 - Evaluated with `A = B = dual::number<double>` → the residual carries its
   **exact partial derivatives**. The optimizer seeds one node's tangent
   increment with independent dual variables and reads the Jacobian directly
-  from the dual residual (see `Edge::jacobian()` in [sources/optimization/graph_edge.hpp](sources/optimization/graph_edge.hpp)).
+  from the dual residual (see `edge::jacobian()` in [sources/optimization/graph_edge.hpp](sources/optimization/graph_edge.hpp)).
 
 No finite differences, no manually maintained Jacobian blocks.
 
@@ -124,7 +124,7 @@ target_link_libraries(my_app PRIVATE vortex::vortex)
 ```
 
 ```cpp
-#include "vortex.hpp"   // pulls in graph::optimization
+#include "vortex.hpp"   // pulls in vortex::optimization
 ```
 
 ---
@@ -145,9 +145,9 @@ using namespace vortex::test;
 SlamGraph g{std::pmr::new_delete_resource()};
 
 // Vertices (2D positions) and factors (edges)
-auto p1 = g.build<PositionNode>(SlamGraph::Key{1});
-auto p2 = g.build<PositionNode>(SlamGraph::Key{2});
-auto p3 = g.build<PositionNode>(SlamGraph::Key{3});
+auto p1 = g.build<PositionNode>(SlamGraph::key_type{1});
+auto p2 = g.build<PositionNode>(SlamGraph::key_type{2});
+auto p3 = g.build<PositionNode>(SlamGraph::key_type{3});
 auto d1 = g.build<PositionDistanceEdge>(*p1, *p2);
 auto d2 = g.build<PositionDistanceEdge>(*p2, *p3);
 auto l1 = g.build<PositionLocationEdge>(*p1);
@@ -160,7 +160,7 @@ l1->measurement(Position{1, 1});   // prior:      p1 = (1,1)
 d1->measurement(Position{1, 1});   // relative:   p2 - p1 = (1,1)
 d2->measurement(Position{0, 0});   // relative:   p3 - p2 = (0,0)
 
-// Optimize (Levenberg–Marquardt); returns std::expected<std::size_t, AlgorithmError>
+// Optimize (Levenberg–Marquardt); returns helpers::expected<std::size_t, algorithm_error>
 const auto result = g.optimize(/*iterations=*/10);
 if (result) {
   // Converges to p1=(1,1), p2=(2,2), p3=(2,2)
@@ -169,11 +169,11 @@ if (result) {
 
 ### Defining your own problem
 
-1. **Node** — subclass `go::Node<Derived, Dim, EstimationType, go::Edges<...>>`
+1. **Node** — subclass `go::node<Derived, Dim, EstimationType, go::Edges<...>>`
    and implement a scalar-generic `plus(delta)` manifold retraction.
 2. **Edge** — subclass `go::edge<Derived, Dim, MeasurementType, go::Nodes<...>>`
    and implement a scalar-generic `error(...)` returning `Base::error_vector_type<T>`.
-3. **Graph** — subclass `go::Graph<go::Nodes<...>, go::Edges<...>>`.
+3. **Graph** — subclass `go::graph<go::Nodes<...>, go::Edges<...>>`.
 4. Build nodes/edges, set estimations & measurements, call `optimize()`.
 
 ---
@@ -187,13 +187,13 @@ The defaults are:
 | Component | Default |
 | --- | --- |
 | Scalar `Number` | `double` |
-| Algorithm | `LevenbergAlgorithm` |
+| Algorithm | `levenberg_algorithm` |
 | Graph solver | `block_graph_solver` |
 | Linear solver | `default_linear_solver` (also available: `Cholesky`, `PCG`) |
 | `system_capacity` | `0x200` |
 
 Provide your own struct deriving from `vortex::optimization::default_config` and
-pass it as the third template parameter of `go::Graph` to swap any of these.
+pass it as the third template parameter of `go::graph` to swap any of these.
 
 ---
 
