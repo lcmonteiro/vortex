@@ -152,8 +152,8 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   template <class Fn>
   auto foreach_h_block(Fn&& callable) -> void {
     const auto h_block_wrapper = [this, &callable]<std::size_t I, std::size_t J> {
-      auto& node_i = GetNode<I>(*this);
-      auto& node_j = GetNode<J>(*this);
+      auto& node_i = get_node<I>(*this);
+      auto& node_j = get_node<J>(*this);
       if ((not node_i->disable()) and (not node_j->disable())) {
         const auto block = std::get<I>(this->jacobian_transpose_) * std::get<J>(this->jacobian_);
         callable(node_i, node_j, block);
@@ -167,7 +167,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   template <class Fn>
   auto foreach_b_block(Fn&& callable) -> void {
     const auto b_block_wrapper = [this, &callable]<std::size_t I> {
-      auto& node = GetNode<I>(*this);
+      auto& node = get_node<I>(*this);
       if (not node->disable()) {
         const auto block = std::get<I>(this->jacobian_transpose_) * this->error_;
         callable(node, block);
@@ -224,7 +224,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
     auto operator()() {
       constexpr auto D = std::get<I>(node_dimensions);
       constexpr auto O = std::get<I>(node_offsets);
-      return GetNode<I>(*self)->plus(dual::zeros<number_type, D, O>());
+      return get_node<I>(*self)->plus(dual::zeros<number_type, D, O>());
     }
   };
 

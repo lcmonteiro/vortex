@@ -18,86 +18,76 @@ namespace vortex::optimization {
 /// iteration, search, and manipulation of nodes and edges in a more generic
 /// context.
 ///
-/// - `ForEach`: Iterates through all specified types in a graph, applying a
+/// - `for_each`: Iterates through all specified types in a graph, applying a
 /// function.
-/// - `FindIf`: Searches for the first element of a specified type that matches
+/// - `find_if`: Searches for the first element of a specified type that matches
 /// a condition.
-/// - `RemoveIf`: Removes elements from the graph that match a given predicate.
-/// - `Enable`: Enables elements from the graph that match a specified type.
-/// - `EnableIf`: Enables elements from the graph that match a specified type
+/// - `remove_if`: Removes elements from the graph that match a given predicate.
+/// - `enable`: Enables elements from the graph that match a specified type.
+/// - `enable_if`: Enables elements from the graph that match a specified type
 /// and condition.
-/// - `Disable`: Disables elements from the graph that match a specified type.
-/// - `DisableIf`: Disables elements from the graph that match a specified type
+/// - `disable`: Disables elements from the graph that match a specified type.
+/// - `disable_if`: Disables elements from the graph that match a specified type
 /// and condition.
-/// - `GetNode`: Retrieves a node by its index from a specified type.
+/// - `get_node`: Retrieves a node by its index from a specified type.
 
 template <class Types, class Graph, class Fn>
-inline auto ForEach(Graph& graph, Fn&& func) -> void {
+inline auto for_each(Graph& graph, Fn&& func) -> void {
   graph.template apply<Types>(std::forward<Fn>(func));
 }
 
 template <class Types, class Graph, class Fn, class Option>
-inline auto ForEach(Graph& graph, Fn&& func, const Option value) -> void {
+inline auto for_each(Graph& graph, Fn&& func, const Option value) -> void {
   graph.template apply<Types>(std::forward<Fn>(func), value);
 }
 
 template <class Types, class Graph, class Fn>
-inline auto ForEach(const Graph& graph, Fn&& func) -> void {
-  graph.template apply<Types>(std::forward<Fn>(func));
-}
-
-template <class Types, class Graph, class Fn, class Option>
-inline auto ForEach(const Graph& graph, Fn&& func, const Option value) -> void {
-  graph.template apply<Types>(std::forward<Fn>(func), value);
-}
-
-template <class Types, class Graph, class Fn>
-inline auto FindIf(Graph& graph, Fn&& func) -> decltype(auto) {
+inline auto find_if(Graph& graph, Fn&& func) -> decltype(auto) {
   return graph.template find<Types>(std::forward<Fn>(func));
 }
 
 template <class Types, class Graph, class Fn>
-inline auto FindIf(const Graph& graph, Fn&& func) -> decltype(auto) {
+inline auto find_if(const Graph& graph, Fn&& func) -> decltype(auto) {
   return graph.template find<Types>(std::forward<Fn>(func));
 }
 
 template <class Types, class Graph, class Fn>
-inline auto RemoveIf(Graph& graph, Fn&& func) -> void {
+inline auto remove_if(Graph& graph, Fn&& func) -> void {
   graph.template destroy<Types>(std::forward<Fn>(func));
 }
 
 template <class Types, class Graph>
-inline auto Enable(Graph& graph) -> void {
+inline auto enable(Graph& graph) -> void {
   graph.template toggle<Types>(typename Graph::disabled_type{});
 }
 
 template <class Types, class Graph, class Key>
-inline auto Enable(Graph& graph, const Key& key) -> void {
+inline auto enable(Graph& graph, const Key& key) -> void {
   graph.template toggle<Types>(key, typename Graph::disabled_type{});
 }
 
 template <class Types, class Graph>
-inline auto Disable(Graph& graph) -> void {
+inline auto disable(Graph& graph) -> void {
   graph.template toggle<Types>(typename Graph::enabled_type{});
 }
 
 template <class Types, class Graph, class Key>
-inline auto Disable(Graph& graph, const Key& key) -> void {
+inline auto disable(Graph& graph, const Key& key) -> void {
   graph.template toggle<Types>(key, typename Graph::enabled_type{});
 }
 
 template <class Types, class Graph, class Fn>
-inline auto EnableIf(Graph& graph, Fn&& func) -> void {
+inline auto enable_if(Graph& graph, Fn&& func) -> void {
   graph.template toggle<Types>(std::forward<Fn>(func), typename Graph::disabled_type{});
 }
 
 template <class Types, class Graph, class Fn>
-inline auto DisableIf(Graph& graph, Fn&& func) -> void {
+inline auto disable_if(Graph& graph, Fn&& func) -> void {
   graph.template toggle<Types>(std::forward<Fn>(func), typename Graph::enabled_type{});
 }
 
 template <std::size_t I, class Type>
-inline auto GetNode(Type& obj) -> decltype(auto) {
+inline auto get_node(Type& obj) -> decltype(auto) {
   return obj.template node<I>();
 }
 

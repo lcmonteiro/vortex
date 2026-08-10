@@ -127,31 +127,31 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   ///
   /// This group includes functions to push, pull and revert estimations.
   auto push() -> void {
-    ForEach<Nodes>(*this, [](auto& node) { node->push(); }, enabled_type{});
+    for_each<Nodes>(*this, [](auto& node) { node->push(); }, enabled_type{});
   }
   auto pull() -> void {
-    ForEach<Nodes>(*this, [](auto& node) { node->pull(); }, enabled_type{});
+    for_each<Nodes>(*this, [](auto& node) { node->pull(); }, enabled_type{});
   }
   auto revert(std::size_t n = 1) -> void {
-    ForEach<Nodes>(*this, [&](auto& node) { node->revert(n); }, enabled_type{});
+    for_each<Nodes>(*this, [&](auto& node) { node->revert(n); }, enabled_type{});
   }
 
   /// @brief Computes cached chi2 of the active portion of the graph.
   auto chi2() const -> number_type {
     number_type chi = 0;
-    ForEach<Edges>(*this, [&](auto& edge) { chi += edge->chi2(); }, enabled_type{});
+    for_each<Edges>(*this, [&](auto& edge) { chi += edge->chi2(); }, enabled_type{});
     return chi;
   }
 
   /// @brief Updates cached edge quantities for all active edges.
   auto update_edges() -> void {
-    ForEach<Edges>(*this, [](auto& edge) { edge->update(); }, enabled_type{});
+    for_each<Edges>(*this, [](auto& edge) { edge->update(); }, enabled_type{});
   }
 
   /// @brief Updates the active nodes from the stacked state increment vector.
   auto update_nodes(const vector_type& delta) -> void {
     std::size_t idx = 0;
-    ForEach<Nodes>(
+    for_each<Nodes>(
         *this,
         [&](auto& node) {
           node->update(math::subvector(delta, idx, node->dimension()));
