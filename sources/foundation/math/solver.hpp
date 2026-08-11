@@ -14,16 +14,30 @@
 namespace vortex::math {
 
 /// ===============================================================================================
-/// @brief Type of the scratch factorization buffer used by the solvers below.
+/// @brief Types of the scratch buffers the solvers below hand to LAPACK.
 ///
-/// The solvers keep this buffer in `thread_local` storage to avoid reallocating a workspace on
-/// every solve, which makes it live until the thread ends. It therefore deliberately uses blaze's
-/// default allocator instead of `memory_scope_allocator`: solves run inside the caller's
-/// `helpers::memory_scope` (see `optimization::graph::optimize`), and a buffer drawn from that
-/// scope's arena would outlive the arena and be released through it long after it was destroyed.
+/// The solvers keep these in `thread_local` storage and grow them on demand, so a repeated solve
+/// of the same size allocates nothing. That also makes them live until the thread ends, which is
+/// why they deliberately use blaze's default allocator rather than `memory_scope_allocator`:
+/// solves run inside the caller's `helpers::memory_scope` (see `optimization::graph::optimize`),
+/// and a buffer drawn from that scope's arena would outlive the arena and be released through it
+/// long after it was destroyed.
+///
+/// Routing them into the arena instead would be worse than it looks. The graph's arena caps a
+/// single block at `default_config::cache_block_max_size` (32 KiB), which the LDL^T workspace
+/// exceeds as soon as the system is large -- it is sized `n * lda`, so 2 MiB at the default
+/// `system_capacity` of 512. That trips the bounded resource's precondition in debug builds, and
+/// in release the pool forwards anything over the cap straight to the monotonic buffer, which
+/// never reuses freed memory: every solve would then consume another 2 MiB for the life of the
+/// graph. Caching outside the arena avoids both.
 /// ===============================================================================================
 template <class Matrix>
 using factor_matrix = blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor>;
+
+template <class Matrix>
+using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Matrix>>;
+
+using pivot_vector = blaze::DynamicVector<blaze::blas_int_t>;
 
 /// ===============================================================================================
 /// @brief Solves a symmetric indefinite system of linear equations using the Bunch-Kaufman LDL^T
@@ -46,6 +60,9 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   using blaze::numeric_cast;
 
   static thread_local factor_matrix<Matrix> h_factor;
+  static thread_local pivot_vector ipiv;
+  static thread_local factor_vector<Matrix> work;
+
   h_factor = h;
 
   const auto n = numeric_cast<blas_int_t>(h_factor.rows());
@@ -58,8 +75,11 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   blaze::resize(x, numeric_cast<std::size_t>(n));
   blaze::smpAssign(x, b);
 
-  auto ipiv = blaze::DynamicVector<blas_int_t>(numeric_cast<std::size_t>(n));
-  auto work = blaze::DynamicVector<blaze::ElementType_t<Matrix>>(numeric_cast<std::size_t>(lwork));
+  // `resize` only reallocates when growing past the current capacity, so these settle at the
+  // largest system seen on this thread and cost nothing on subsequent solves. Neither buffer is
+  // read before LAPACK fills it, so there is nothing to preserve.
+  ipiv.resize(numeric_cast<std::size_t>(n), false);
+  work.resize(numeric_cast<std::size_t>(lwork), false);
 
   // Solve A * x = b via Bunch-Kaufman diagonal pivoting: P * L * D * L^T * P^T
   blaze::sysv('L', n, nrhs, h_factor.data(), lda, ipiv.data(), x.data(), ldb, work.data(), lwork,

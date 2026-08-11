@@ -87,11 +87,14 @@ TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
 ///    copies were either moved or given `memory()` explicitly. Zero is the invariant that keeps
 ///    it that way.
 ///
-/// Blaze's own expression temporaries use `AlignedAllocator`, which calls `posix_memalign` and is
-/// invisible to both counters. Measured separately by interposing that symbol it is 2 allocations
-/// per call -- the whole remaining heap traffic of a solve -- and both come from the `ipiv` and
-/// `work` buffers `math::solve_ldlt` hands to LAPACK, not from an expression. Catching those in a
-/// test would mean shipping a libc interposer, which is not worth the portability risk.
+/// A third channel exists that neither counter can see: blaze's `AlignedAllocator` calls
+/// `posix_memalign` directly, which is how both its expression temporaries and anything declared
+/// as a plain `blaze::DynamicVector` allocate. Measured separately by interposing that symbol it
+/// is also zero here, once `math::solve_ldlt` caches the `ipiv` and `work` buffers it hands to
+/// LAPACK -- so a warmed-up solve now performs no heap allocation whatsoever. Asserting that
+/// would mean shipping a libc interposer in the test binary, which is not worth the portability
+/// risk on the platforms this runs on; the two counters below cover everything reachable through
+/// `std::pmr`.
 ///
 /// Being exact rather than a budget, this is also independent of how many iterations the solver
 /// takes, so a different LAPACK cannot shift the expected numbers.
