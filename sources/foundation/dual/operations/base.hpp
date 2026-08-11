@@ -7,6 +7,7 @@
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 
 #include <tuple>
+#include <utility>
 
 #include "foundation/dual/number.hpp"
 
@@ -34,7 +35,10 @@ struct unary_operation {
 
   template <class T>
   auto operator()(const number<T>& n) const {
-    return number<T>{value(n), n.dindex(), dvalue(n)};
+    using dindex_t = typename number<T>::dindex_t;
+    // The index list is the operand's, so it must be copied -- but explicitly from `memory()`,
+    // and the freshly built derivative vector is moved rather than copied.
+    return number<T>{value(n), dindex_t{n.dindex(), memory()}, dvalue(n)};
   }
 
  protected:
@@ -74,22 +78,22 @@ struct binary_operation {
   template <class T>
   auto operator()(const number<T>& n1, const T& v2) const {
     const auto value = this->value(n1.value(), v2);
-    const auto [dindex, dvalue] = this->dvalues(n1, v2);
-    return number<T>{value, dindex, dvalue};
+    auto [dindex, dvalue] = this->dvalues(n1, v2);
+    return number<T>{value, std::move(dindex), std::move(dvalue)};
   }
 
   template <class T>
   auto operator()(const T& v1, const number<T>& n2) const {
     const auto value = this->value(v1, n2.value());
-    const auto [dindex, dvalue] = this->dvalues(v1, n2);
-    return number<T>{value, dindex, dvalue};
+    auto [dindex, dvalue] = this->dvalues(v1, n2);
+    return number<T>{value, std::move(dindex), std::move(dvalue)};
   }
 
   template <class T>
   auto operator()(const number<T>& n1, const number<T>& n2) const {
     const auto value = this->value(n1.value(), n2.value());
-    const auto [dindex, dvalue] = this->dvalues(n1, n2);
-    return number<T>{value, dindex, dvalue};
+    auto [dindex, dvalue] = this->dvalues(n1, n2);
+    return number<T>{value, std::move(dindex), std::move(dvalue)};
   }
 
  protected:
@@ -102,22 +106,28 @@ struct binary_operation {
 
   template <class T>
   auto dvalues(const number<T>& n, const T& v) const {
+    using dindex_t = typename number<T>::dindex_t;
     using dvalue_t = typename number<T>::dvalue_t;
     auto dv = dvalue_t(std::size(n), T{0}, memory());
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(duo(n, i), v);
     }
-    return std::tuple{n.dindex(), dv};
+    // The index list belongs to the operand, so this copy is real -- but it is taken
+    // from `memory()`, and the derivative vector is moved out rather than copied.
+    return std::tuple{dindex_t{n.dindex(), memory()}, std::move(dv)};
   }
 
   template <class T>
   auto dvalues(const T& v, const number<T>& n) const {
+    using dindex_t = typename number<T>::dindex_t;
     using dvalue_t = typename number<T>::dvalue_t;
     auto dv = dvalue_t(std::size(n), T{0}, memory());
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(v, duo(n, i));
     }
-    return std::tuple{n.dindex(), dv};
+    // The index list belongs to the operand, so this copy is real -- but it is taken
+    // from `memory()`, and the derivative vector is moved out rather than copied.
+    return std::tuple{dindex_t{n.dindex(), memory()}, std::move(dv)};
   }
 
   template <class T>
@@ -142,7 +152,7 @@ struct binary_operation {
           dv[i] = self()->dvalue(duo(n1, i), duo(n2, i));
           di.emplace_back(i);
         });
-    return std::tuple{di, dv};
+    return std::tuple{std::move(di), std::move(dv)};
   }
 
  private:

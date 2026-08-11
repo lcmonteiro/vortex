@@ -72,31 +72,30 @@ TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
 /// Allocation budget
 /// ===============================================================================================
 
-/// @brief Heap traffic of a steady-state `optimize()`, split by where it lands.
+/// @brief A steady-state `optimize()` must not touch the heap outside the graph's arena.
 ///
-/// `optimize()` runs under `memory_scope{graph.memory()}`, so work that honours the scope is
-/// served from the graph's arena and never reaches either counter here. Two things can still
-/// escape, and this test pins both:
+/// `optimize()` runs under `memory_scope{graph.memory()}`, so everything it allocates should come
+/// from the graph's arena. Two counters check that nothing slips past, and both are exact:
 ///
-///  - the graph's arena *upstream*, which is touched only when the arena has to grow. After
-///    warm-up a repeated solve on an unchanged graph should need nothing more, so the budget is
-///    zero and any growth means something is now allocating per iteration.
+///  - the arena's *upstream*, reached only when the arena has to grow. A repeated solve on an
+///    unchanged graph is already sized, so growth here means something now allocates per
+///    iteration.
 ///
 ///  - the `std::pmr` *default* resource, reached by allocations that ignore the active scope.
-///    `std::pmr::polymorphic_allocator` does not propagate on copy construction -- its
-///    `select_on_container_copy_construction` returns a default-constructed allocator -- so every
-///    copy of a `dual::number`'s derivative vectors lands here instead of in the arena. That is
-///    the bulk of the current budget, not a temporary of blaze's making.
+///    `std::pmr::polymorphic_allocator` does not propagate on copy construction, so copying a
+///    `dual::number`'s derivative vectors used to land here -- 160 times per call -- until those
+///    copies were either moved or given `memory()` explicitly. Zero is the invariant that keeps
+///    it that way.
 ///
-/// Blaze's own expression temporaries use `AlignedAllocator`, which calls `posix_memalign`
-/// directly and so is invisible to both counters; measured separately it is 2 allocations per
-/// call here, against the 80 below. Counting it would mean interposing a libc symbol, which is
-/// not worth the portability risk, so this test brackets the part that is portably observable.
+/// Blaze's own expression temporaries use `AlignedAllocator`, which calls `posix_memalign` and is
+/// invisible to both counters. Measured separately by interposing that symbol it is 2 allocations
+/// per call -- the whole remaining heap traffic of a solve -- and both come from the `ipiv` and
+/// `work` buffers `math::solve_ldlt` hands to LAPACK, not from an expression. Catching those in a
+/// test would mean shipping a libc interposer, which is not worth the portability risk.
 ///
-/// The budgets are upper bounds with headroom rather than exact counts, so a different LAPACK
-/// taking a slightly different number of steps does not fail the build, while a newly introduced
-/// per-edge or per-iteration allocation -- which would add tens -- does.
-TEST(SlamOptimizationBudget, GivenSteadyStateOptimize_ExpectBoundedHeapTraffic) {
+/// Being exact rather than a budget, this is also independent of how many iterations the solver
+/// takes, so a different LAPACK cannot shift the expected numbers.
+TEST(SlamOptimizationBudget, GivenSteadyStateOptimize_ExpectNoHeapTrafficOutsideArena) {
   using Key = SlamGraph::key_type;
 
   vortex::test::tracking_resource fallback{std::pmr::new_delete_resource()};
@@ -140,15 +139,10 @@ TEST(SlamOptimizationBudget, GivenSteadyStateOptimize_ExpectBoundedHeapTraffic) 
   EXPECT_EQ(arena_upstream.allocations, 0U)
       << "optimize() grew the graph arena in steady state";
 
-  // Allocations that bypass the active memory_scope entirely -- today exactly 160, all of them
-  // dual::number derivative-vector copies (see the note above). The margin is deliberately small
-  // so a regression is caught: adding one allocation per edge to the per-iteration path costs 9
-  // here and trips this. If a platform legitimately lands elsewhere the message below reports the
-  // number to update this constant to.
-  constexpr auto kFallbackBudget = std::size_t{166};
-  EXPECT_LE(fallback.allocations, kFallbackBudget)
+  // Nothing may bypass the active memory_scope.
+  EXPECT_EQ(fallback.allocations, 0U)
       << "optimize() allocated " << fallback.allocations
-      << " times outside the memory_scope, over the budget of " << kFallbackBudget;
+      << " times outside the memory_scope, which must be zero";
 
   // Nothing may be released through a resource that did not allocate it.
   EXPECT_EQ(fallback.foreign_frees, 0U);
