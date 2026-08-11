@@ -6,7 +6,11 @@
 #ifndef VORTEX_FOUNDATION_MATH_MATH_TYPES_HPP
 #define VORTEX_FOUNDATION_MATH_MATH_TYPES_HPP
 
+#include <cstddef>
+
 #include <blaze/Math.h>
+
+#include "foundation/math/memory.hpp"
 
 namespace vortex::math {
 /// ===============================================================================================
@@ -24,13 +28,13 @@ template <class Type, std::size_t R, std::size_t C, bool SO = column_major>
 using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 
 template <class Type, bool SO = column_major>
-using dynamic_matrix = blaze::DynamicMatrix<Type, SO>;
+using dynamic_matrix = blaze::DynamicMatrix<Type, SO, memory_scope_allocator<Type>>;
 
 template <class Type, bool SO = column_major>
 using identity_matrix = blaze::IdentityMatrix<Type, SO>;
 
 template <class Type, bool TF = column_vector>
-using dynamic_vector = blaze::DynamicVector<Type, TF>;
+using dynamic_vector = blaze::DynamicVector<Type, TF, memory_scope_allocator<Type>>;
 
 template <class Type, std::size_t Size, bool TF = column_vector>
 using static_vector = blaze::StaticVector<Type, Size, TF>;

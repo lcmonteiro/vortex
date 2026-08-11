@@ -131,10 +131,10 @@ class storage {
         memory_pool_{{0, Config::cache_block_max_size}, &memory_monotonic_},
         memory_bounded_{&memory_pool_},
         memory_{&memory_bounded_},
-        nodes_enable_{helpers::build<handle_map_tuple>(memory_resource)},
-        nodes_disable_{helpers::build<handle_map_tuple>(memory_resource)},
-        edges_enable_{helpers::build<handle_set_tuple>(memory_resource)},
-        edges_disable_{helpers::build<handle_set_tuple>(memory_resource)},
+        nodes_enable_{helpers::build<handle_map_tuple>(memory_)},
+        nodes_disable_{helpers::build<handle_map_tuple>(memory_)},
+        edges_enable_{helpers::build<handle_set_tuple>(memory_)},
+        edges_disable_{helpers::build<handle_set_tuple>(memory_)},
         revision_{revision} {}
 
   explicit storage(std::pmr::memory_resource* const memory_resource)
