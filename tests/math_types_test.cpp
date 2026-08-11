@@ -6,8 +6,10 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <memory_resource>
 #include <set>
+#include <type_traits>
 #include <utility>
 
 #include "foundation/math/solver.hpp"
@@ -242,6 +244,94 @@ TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
 
   EXPECT_EQ(arena.foreign_frees, 0U);
   EXPECT_EQ(arena.live(), 0U);
+}
+
+/// ===============================================================================================
+/// Allocator wiring: what the project's aliases guarantee, and where blaze's own limits start.
+/// ===============================================================================================
+
+/// @brief The aliases default onto memory_scope_allocator...
+static_assert(std::is_same_v<dynamic_matrix<double>,
+                             blaze::DynamicMatrix<double, vortex::math::column_major,
+                                                  vortex::math::memory_scope_allocator<double>,
+                                                  blaze::Group0>>);
+static_assert(std::is_same_v<dynamic_vector<double>,
+                             blaze::DynamicVector<double, vortex::math::column_vector,
+                                                  vortex::math::memory_scope_allocator<double>,
+                                                  blaze::Group0>>);
+
+/// @brief ...while an explicitly supplied allocator is still honoured.
+static_assert(std::is_same_v<
+              dynamic_matrix<double, vortex::math::column_major, blaze::AlignedAllocator<double>>,
+              blaze::DynamicMatrix<double, vortex::math::column_major,
+                                   blaze::AlignedAllocator<double>, blaze::Group0>>);
+
+/// @brief Blaze's own spelling is unaffected -- its default template argument cannot be
+/// retargeted from outside the library ([temp.param]/12 forbids a second default argument).
+static_assert(std::is_same_v<blaze::GetAllocator_t<blaze::DynamicMatrix<double>>,
+                             blaze::AlignedAllocator<double>>);
+
+/// @brief Blaze drops a custom allocator when deducing an expression's result type: both
+/// DynamicMatrix and DynamicVector hardwire `AllocatorType` to `AlignedAllocator` rather than
+/// reporting their own `Alloc`, and every arithmetic trait routes through `GetAllocator`. These
+/// assertions document that ceiling; if a blaze upgrade ever fixes it they will start failing,
+/// which is the signal to revisit the note in foundation/math/memory.hpp.
+static_assert(std::is_same_v<blaze::GetAllocator_t<dynamic_matrix<double>>,
+                             blaze::AlignedAllocator<double>>,
+              "blaze still reports AlignedAllocator for a custom-allocator matrix");
+static_assert(std::is_same_v<blaze::MultTrait_t<dynamic_matrix<double>, dynamic_matrix<double>>,
+                             blaze::DynamicMatrix<double, vortex::math::column_major,
+                                                  blaze::AlignedAllocator<double>, blaze::Group0>>,
+              "blaze still drops the custom allocator from A * B");
+static_assert(std::is_same_v<blaze::AddTrait_t<dynamic_matrix<double>, dynamic_matrix<double>>,
+                             blaze::DynamicMatrix<double, vortex::math::column_major,
+                                                  blaze::AlignedAllocator<double>, blaze::Group0>>,
+              "blaze still drops the custom allocator from A + B");
+
+/// @brief Buffers must satisfy blaze's SIMD alignment, which it checks via `checkAlignment` on
+/// every allocation and reports as a bad_alloc when violated.
+TEST(MathTypes, GivenAllocatedContainers_ExpectBlazeSimdAlignment) {
+  tracking_resource resource{std::pmr::new_delete_resource()};
+  const memory_scope scope{&resource};
+
+  const dynamic_vector<double> v(37, 1.0);
+  const dynamic_matrix<double> m(37, 37, 1.0);
+
+  constexpr auto required = blaze::AlignmentOf_v<double>;
+  EXPECT_EQ(reinterpret_cast<std::uintptr_t>(v.data()) % required, 0U);
+  EXPECT_EQ(reinterpret_cast<std::uintptr_t>(m.data()) % required, 0U);
+}
+
+/// @brief Named containers are scope-allocated, including through the expressions below. What is
+/// asserted here is the split: operands and assignment targets go through the scope, and the
+/// suite as a whole still completes -- blaze falling back to AlignedAllocator for an intermediate
+/// is a heap allocation, not a failure.
+TEST(MathTypes, GivenMatrixExpressions_ExpectNamedOperandsUseScope) {
+  tracking_resource resource{std::pmr::new_delete_resource()};
+
+  {
+    const memory_scope scope{&resource};
+
+    dynamic_matrix<double> a(16, 16, 1.0);
+    dynamic_matrix<double> b(16, 16, 2.0);
+    const auto after_operands = resource.allocations;
+    EXPECT_GT(after_operands, 0U);
+
+    dynamic_matrix<double> c = a + b;
+    EXPECT_DOUBLE_EQ(c(0, 0), 3.0);
+
+    c = a * b;
+    EXPECT_DOUBLE_EQ(c(0, 0), 32.0);
+
+    c = blaze::trans(a) * b;
+    EXPECT_DOUBLE_EQ(c(0, 0), 32.0);
+
+    // The named result `c` is itself scope-allocated, so the count kept climbing.
+    EXPECT_GT(resource.allocations, after_operands);
+  }
+
+  EXPECT_EQ(resource.foreign_frees, 0U);
+  EXPECT_EQ(resource.live(), 0U);
 }
 
 }  // namespace

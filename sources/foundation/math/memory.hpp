@@ -38,6 +38,14 @@ namespace vortex::math {
 ///
 /// @warning A buffer taken from a scoped arena must be released before that arena is destroyed,
 /// exactly as for any other arena-allocated object.
+///
+/// @warning This covers containers the project declares, not temporaries blaze materialises for
+/// expressions. `DynamicMatrix`/`DynamicVector` hardwire `AllocatorType` to `AlignedAllocator`
+/// instead of reporting their own `Alloc` parameter (still true on blaze master, 3.9.0), and
+/// `GetAllocator` -- which every `AddTrait`/`MultTrait`/... consults -- is an alias template and
+/// so cannot be specialised. Expression result types are consequently always allocated by
+/// `blaze::AlignedAllocator`, which calls `posix_memalign` directly. See math_types_test.cpp,
+/// which pins this behaviour so a future blaze upgrade that fixes it shows up as a test failure.
 /// ================================================================================================
 template <class Type>
 class memory_scope_allocator {
@@ -100,11 +108,17 @@ class memory_scope_allocator {
  private:
   using owner_type = std::pmr::memory_resource*;
 
-  /// @brief Blaze verifies the returned address against `AlignmentOf_v`, and the header must be
-  /// stored at a suitably aligned address, so honour whichever requirement is stricter.
+  /// @brief Blaze rejects a buffer whose address is not a multiple of `AlignmentOf_v` -- the
+  /// SIMD alignment for the active instruction set (16 under SSE2, 32 under AVX/AVX2, 64 under
+  /// AVX-512) -- and the header must itself land on a suitably aligned address, so honour
+  /// whichever requirement is stricter. Both are powers of two, so the larger is a multiple of
+  /// the smaller and satisfies each.
   static constexpr std::size_t kAlignment = blaze::AlignmentOf_v<Type> > alignof(owner_type)
                                                 ? blaze::AlignmentOf_v<Type>
                                                 : alignof(owner_type);
+
+  static_assert(kAlignment % blaze::AlignmentOf_v<Type> == 0,
+                "blocks must satisfy blaze's SIMD alignment requirement");
 
   /// @brief Distance from the base of the allocation to the block handed out. Being a multiple of
   /// kAlignment it keeps the returned pointer aligned, while leaving room for the header.

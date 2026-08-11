@@ -27,14 +27,28 @@ using static_matrix = blaze::StaticMatrix<Type, R, C, SO>;
 template <class Type, std::size_t R, std::size_t C, bool SO = column_major>
 using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 
-template <class Type, bool SO = column_major>
-using dynamic_matrix = blaze::DynamicMatrix<Type, SO, memory_scope_allocator<Type>>;
+/// ===============================================================================================
+/// @brief Dynamically-sized blaze containers defaulted onto `memory_scope_allocator`.
+///
+/// These are the project's spelling of `blaze::DynamicMatrix`/`blaze::DynamicVector`. The
+/// allocator is the *default* rather than a fixed argument, so an explicit one is still honoured:
+/// `dynamic_matrix<double, column_major, blaze::AlignedAllocator<double>>` opts back out.
+///
+/// @note The default argument of `blaze::DynamicMatrix` itself cannot be retargeted from here:
+/// [temp.param]/12 forbids giving a template parameter default arguments in two declarations, and
+/// blaze exposes no configuration hook for it. Writing `blaze::DynamicMatrix<double>` therefore
+/// still selects `blaze::AlignedAllocator`, so prefer these aliases throughout the project.
+/// ===============================================================================================
+template <class Type, bool SO = column_major, class Alloc = memory_scope_allocator<Type>,
+          class Tag = blaze::Group0>
+using dynamic_matrix = blaze::DynamicMatrix<Type, SO, Alloc, Tag>;
 
 template <class Type, bool SO = column_major>
 using identity_matrix = blaze::IdentityMatrix<Type, SO>;
 
-template <class Type, bool TF = column_vector>
-using dynamic_vector = blaze::DynamicVector<Type, TF, memory_scope_allocator<Type>>;
+template <class Type, bool TF = column_vector, class Alloc = memory_scope_allocator<Type>,
+          class Tag = blaze::Group0>
+using dynamic_vector = blaze::DynamicVector<Type, TF, Alloc, Tag>;
 
 template <class Type, std::size_t Size, bool TF = column_vector>
 using static_vector = blaze::StaticVector<Type, Size, TF>;
