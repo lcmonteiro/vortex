@@ -22,9 +22,10 @@ namespace vortex::optimization {
 template <class Graph, class LinearSolver>
 class block_graph_solver : public graph_solver<Graph, LinearSolver> {
  public:
+  /// @brief Helper alias types.
   using base_type = graph_solver<Graph, LinearSolver>;
-  using nodes_list = typename Graph::node_list_type;
-  using edges_list = typename Graph::edge_list_type;
+  using node_list = typename Graph::node_list;
+  using edge_list = typename Graph::edge_list;
   using number_type = typename Graph::number_type;
   using enabled_type = typename Graph::enabled_type;
   using vector_type = math::dynamic_vector<number_type>;
@@ -56,7 +57,7 @@ class block_graph_solver : public graph_solver<Graph, LinearSolver> {
   auto build_structure() -> bool {
     auto total_dimension = std::size_t{0};
 
-    for_each<nodes_list>(
+    for_each<node_list>(
         this->graph_,
         [&total_dimension](auto& node) {
           node->position(total_dimension);
@@ -77,7 +78,7 @@ class block_graph_solver : public graph_solver<Graph, LinearSolver> {
     this->h_.reset();
     this->b_.reset();
 
-    for_each<edges_list>(
+    for_each<edge_list>(
         this->graph_,
         [this](const auto& edge) {
           edge->foreach_h_block(update_h_block{this});

@@ -31,8 +31,8 @@ struct SimpleGraphFixture : public ::testing::Test {
     using Base = graph::edge<Node1>;
     using Base::Base;
   };
-  struct Graph : graph::storage<graph::types<Node1, Node2>, graph::types<Edge1, Edge2>> {
-    using Base = graph::storage<graph::types<Node1, Node2>, graph::types<Edge1, Edge2>>;
+  struct Graph : graph::storage<graph::nodes<Node1, Node2>, graph::edges<Edge1, Edge2>> {
+    using Base = graph::storage<graph::nodes<Node1, Node2>, graph::edges<Edge1, Edge2>>;
     using Base::Base;
     using Base::operator=;
   };
@@ -48,11 +48,11 @@ struct SimpleGraphFixture : public ::testing::Test {
   }
 
   Graph g_{std::pmr::new_delete_resource()};
-  graph::optional<Node1> n1_;
-  graph::optional<Node2> n2_;
-  graph::optional<Node1> n3_;
-  graph::optional<Edge1> e1_;
-  graph::optional<Edge2> e2_;
+  graph::option<Node1> n1_;
+  graph::option<Node2> n2_;
+  graph::option<Node1> n3_;
+  graph::option<Edge1> e1_;
+  graph::option<Edge2> e2_;
 };
 
 }  // namespace vortex::test

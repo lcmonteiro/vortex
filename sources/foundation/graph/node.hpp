@@ -107,20 +107,5 @@ class node {
 template <class T>
 concept node_type = requires { []<class... Ts>(const node<Ts...>&) {}(std::declval<T>()); };
 
-/// @note Deliberately NOT constrained as `template <node_type... T>`: node and
-/// edge types are mutually recursive (a node lists its edges, those edges list
-/// the node), so requiring `node_type` here makes constraint satisfaction
-/// depend on itself ("satisfaction of atomic constraint depends on itself").
-/// `node_list` below checks the list's shape instead, which needs no complete
-/// element types.
-template <class... T>
-struct nodes : helpers::types<T...> {};
-
-/// ===============================================================================================
-/// @brief Concept satisfied by any specialization of `nodes`.
-/// ===============================================================================================
-template <class T>
-concept node_list = requires { []<class... Ts>(const nodes<Ts...>&) {}(std::declval<T>()); };
-
 }  // namespace vortex::graph
 #endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_NODE_HPP

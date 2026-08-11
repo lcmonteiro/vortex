@@ -99,17 +99,5 @@ class edge {
 template <class T>
 concept edge_type = requires { []<class... Ts>(const edge<Ts...>&) {}(std::declval<T>()); };
 
-/// @note Deliberately NOT constrained as `template <edge_type... T>` -- see the
-/// note on `nodes` in node.hpp: the mutual node<->edge recursion makes such a
-/// constraint depend on itself.
-template <class... T>
-struct edges : helpers::types<T...> {};
-
-/// ===============================================================================================
-/// @brief Concept satisfied by any specialization of `edges`.
-/// ===============================================================================================
-template <class T>
-concept edge_list = requires { []<class... Ts>(const edges<Ts...>&) {}(std::declval<T>()); };
-
 }  // namespace vortex::graph
 #endif  // VORTEX_FOUNDATION_GRAPH_GRAPH_EDGE_HPP

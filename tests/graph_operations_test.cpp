@@ -37,12 +37,12 @@ class SlamGraphOperationsTest : public ::testing::Test {
   auto TearDown() -> void override { g_.destroy(); }
 
   SlamGraph g_{std::pmr::new_delete_resource()};
-  go::optional<PositionNode> p1_;
-  go::optional<PositionNode> p2_;
-  go::optional<PositionNode> p3_;
-  go::optional<PositionDistanceEdge> d1_;
-  go::optional<PositionDistanceEdge> d2_;
-  go::optional<PositionLocationEdge> l1_;
+  go::option<PositionNode> p1_;
+  go::option<PositionNode> p2_;
+  go::option<PositionNode> p3_;
+  go::option<PositionDistanceEdge> d1_;
+  go::option<PositionDistanceEdge> d2_;
+  go::option<PositionLocationEdge> l1_;
 };
 
 /// @brief Verifies that edge measurements can be set and retrieved.
@@ -459,9 +459,9 @@ TEST_F(SlamGraphOperationsTest, GivenSharedObjects_ExpectCopyAssignment) {
 
 /// @brief Verifies unlink of PositionLocationEdge edges from nodes.
 TEST_F(SlamGraphOperationsTest, GivenGraph_ExpectPositionLocationUnlink) {
-  auto edges_before = g_.size<SlamGraph::edge_list_type>();
+  auto edges_before = g_.size<SlamGraph::edge_list>();
   g_.unlink<PositionNode, PositionLocationEdge>();
-  EXPECT_LT(g_.size<SlamGraph::edge_list_type>(), edges_before);
+  EXPECT_LT(g_.size<SlamGraph::edge_list>(), edges_before);
 }
 
 /// @brief Verifies 2-iteration optimization covers the last-iteration path.
@@ -477,10 +477,10 @@ TEST_F(SlamGraphOperationsTest, GivenTwoIterations_ExpectLastIterationSolvePath)
 /// @brief Verifies destroy of a single PositionNode node by key.
 TEST_F(SlamGraphOperationsTest, GivenPositionNodeKey_ExpectDestroyByKey) {
   auto nodes_before = g_.size<go::nodes<PositionNode>>();
-  auto edges_before = g_.size<SlamGraph::edge_list_type>();
+  auto edges_before = g_.size<SlamGraph::edge_list>();
   g_.destroy<PositionNode>(Key{2});
   EXPECT_LT(g_.size<go::nodes<PositionNode>>(), nodes_before);
-  EXPECT_LT(g_.size<SlamGraph::edge_list_type>(), edges_before);
+  EXPECT_LT(g_.size<SlamGraph::edge_list>(), edges_before);
 }
 
 }  // namespace
