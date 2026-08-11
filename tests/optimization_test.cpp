@@ -8,7 +8,7 @@
 #include <memory_resource>
 
 #include "tests/fixtures/simple_slam_graph.hpp"
-#include "tests/fixtures/tracking_resource.hpp"
+#include "tests/fixtures/memory_guard.hpp"
 
 namespace {
 
@@ -72,40 +72,48 @@ TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
 /// Allocation budget
 /// ===============================================================================================
 
-/// @brief A steady-state `optimize()` must not touch the heap outside the graph's arena.
+/// @brief The zero assertion below only means anything if the guard actually observes
+/// allocations, which depends on this binary's replacements for the global allocation functions
+/// being the ones that get linked. Check that directly, so a linking change cannot quietly turn
+/// the budget test into a no-op that passes for the wrong reason.
+TEST(MemoryGuard, GivenAllocations_ExpectTheyAreObserved) {
+  // Counted inside the guarded block and asserted outside it: the gtest macros allocate too, so
+  // reading the counters straight into EXPECT_EQ would fold their traffic into the result.
+  // `::operator new` is called directly rather than via a new-expression because the compiler is
+  // allowed to elide an unused new/delete pair outright, which would make this prove nothing.
+  auto allocations = std::size_t{0};
+  auto deallocations = std::size_t{0};
+  {
+    const memory_guard guard;
+    auto* const p = ::operator new(64);
+    allocations = guard.allocations();
+    ::operator delete(p);
+    deallocations = guard.deallocations();
+  }
+  EXPECT_EQ(allocations, 1U);
+  EXPECT_EQ(deallocations, 1U);
+}
+
+/// @brief A warmed-up `optimize()` must not touch the heap at all.
 ///
-/// `optimize()` runs under `memory_scope{graph.memory()}`, so everything it allocates should come
-/// from the graph's arena. Two counters check that nothing slips past, and both are exact:
+/// `optimize()` runs under `memory_scope{graph.memory()}`, so everything it needs should come from
+/// the graph's arena, which is already sized after the first call. `memory_guard` counts the
+/// global `operator new`, so this covers every source that goes through it: the arena's upstream
+/// when it grows, `std::pmr`'s default resource when an allocation ignores the active scope --
+/// `polymorphic_allocator` does not propagate on copy construction, which used to send 160
+/// `dual::number` derivative-vector copies per call there -- and any plain container or raw `new`
+/// added to the path later.
 ///
-///  - the arena's *upstream*, reached only when the arena has to grow. A repeated solve on an
-///    unchanged graph is already sized, so growth here means something now allocates per
-///    iteration.
+/// It does not cover `blaze::AlignedAllocator`, which reaches `posix_memalign` without passing
+/// through `operator new`; see the note on `memory_guard`. That channel is zero too, measured out
+/// of band, since `math::solve_ldlt` began caching the buffers it hands to LAPACK.
 ///
-///  - the `std::pmr` *default* resource, reached by allocations that ignore the active scope.
-///    `std::pmr::polymorphic_allocator` does not propagate on copy construction, so copying a
-///    `dual::number`'s derivative vectors used to land here -- 160 times per call -- until those
-///    copies were either moved or given `memory()` explicitly. Zero is the invariant that keeps
-///    it that way.
-///
-/// A third channel exists that neither counter can see: blaze's `AlignedAllocator` calls
-/// `posix_memalign` directly, which is how both its expression temporaries and anything declared
-/// as a plain `blaze::DynamicVector` allocate. Measured separately by interposing that symbol it
-/// is also zero here, once `math::solve_ldlt` caches the `ipiv` and `work` buffers it hands to
-/// LAPACK -- so a warmed-up solve now performs no heap allocation whatsoever. Asserting that
-/// would mean shipping a libc interposer in the test binary, which is not worth the portability
-/// risk on the platforms this runs on; the two counters below cover everything reachable through
-/// `std::pmr`.
-///
-/// Being exact rather than a budget, this is also independent of how many iterations the solver
-/// takes, so a different LAPACK cannot shift the expected numbers.
-TEST(SlamOptimizationBudget, GivenSteadyStateOptimize_ExpectNoHeapTrafficOutsideArena) {
+/// Being an exact zero rather than a budget, this does not depend on how many iterations the
+/// solver takes, so a different LAPACK cannot shift it.
+TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   using Key = SlamGraph::key_type;
 
-  vortex::test::tracking_resource fallback{std::pmr::new_delete_resource()};
-  vortex::test::tracking_resource arena_upstream{std::pmr::new_delete_resource()};
-  const vortex::test::default_resource_guard guard{&fallback};
-
-  SlamGraph g{&arena_upstream};
+  SlamGraph g{std::pmr::new_delete_resource()};
   go::option<PositionNode> p1 = g.build<PositionNode>(Key{1});
   go::option<PositionNode> p2 = g.build<PositionNode>(Key{2});
   go::option<PositionNode> p3 = g.build<PositionNode>(Key{3});
@@ -118,8 +126,8 @@ TEST(SlamOptimizationBudget, GivenSteadyStateOptimize_ExpectNoHeapTrafficOutside
   (*d2)->measurement(Position{0, 0});
 
   // Re-applied before each run so the measured pass starts from the same displaced state as the
-  // warm-up and therefore performs the same work -- otherwise it would begin already converged,
-  // exit after one iteration, and barely exercise the per-iteration path this budget guards.
+  // warm-up and therefore does the same work -- otherwise it would begin already converged, exit
+  // after one iteration, and barely exercise the per-iteration path this guards.
   const auto seed_estimations = [&] {
     (*p1)->estimation(Position{0, 0});
     (*p2)->estimation(Position{2, 2});
@@ -128,28 +136,17 @@ TEST(SlamOptimizationBudget, GivenSteadyStateOptimize_ExpectNoHeapTrafficOutside
 
   const auto iterations = std::size_t{3};
 
-  // Warm-up: sizes the solver system and the solvers' factorization workspace.
+  // Warm-up: sizes the solver system and the solvers' LAPACK workspaces.
   seed_estimations();
   ASSERT_TRUE(g.optimize(iterations).has_value());
 
   seed_estimations();
-  fallback.reset_counters();
-  arena_upstream.reset_counters();
-
-  ASSERT_TRUE(g.optimize(iterations).has_value());
-
-  // The arena is already big enough; a repeated solve must not make it grow.
-  EXPECT_EQ(arena_upstream.allocations, 0U)
-      << "optimize() grew the graph arena in steady state";
-
-  // Nothing may bypass the active memory_scope.
-  EXPECT_EQ(fallback.allocations, 0U)
-      << "optimize() allocated " << fallback.allocations
-      << " times outside the memory_scope, which must be zero";
-
-  // Nothing may be released through a resource that did not allocate it.
-  EXPECT_EQ(fallback.foreign_frees, 0U);
-  EXPECT_EQ(arena_upstream.foreign_frees, 0U);
+  {
+    const memory_guard guard;
+    ASSERT_TRUE(g.optimize(iterations).has_value());
+    EXPECT_EQ(guard.allocations(), 0U)
+        << "optimize() performed " << guard.allocations() << " heap allocations, which must be 0";
+  }
 }
 
 }  // namespace

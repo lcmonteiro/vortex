@@ -9,7 +9,8 @@ add_executable(vortex_tests
   linear_solver_test.cpp
   information_matrix_test.cpp
   graph_operations_test.cpp
-  math_types_test.cpp)
+  math_types_test.cpp
+  fixtures/memory_guard.cpp)
 
 target_link_libraries(vortex_tests PRIVATE vortex::vortex gtest_main)
 target_include_directories(vortex_tests PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/sources)

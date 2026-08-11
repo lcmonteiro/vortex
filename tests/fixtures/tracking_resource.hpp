@@ -27,13 +27,6 @@ class tracking_resource : public std::pmr::memory_resource {
   /// @brief Blocks handed out by this resource and not yet returned to it.
   [[nodiscard]] auto live() const -> std::size_t { return live_.size(); }
 
-  /// @brief Forgets the counters, keeping the set of outstanding blocks intact. Used to measure a
-  /// steady-state operation after warm-up allocations have already happened.
-  auto reset_counters() -> void {
-    allocations = 0;
-    foreign_frees = 0;
-  }
-
   std::size_t allocations{0};
   std::size_t foreign_frees{0};
 
@@ -61,26 +54,6 @@ class tracking_resource : public std::pmr::memory_resource {
  private:
   std::pmr::memory_resource* upstream_;
   std::set<void*> live_;
-};
-
-/// ===============================================================================================
-/// @brief RAII guard installing a `std::pmr` default resource for the duration of a test and
-/// restoring the previous one afterwards, so one test cannot leak its resource into the next.
-/// ===============================================================================================
-class default_resource_guard {
- public:
-  explicit default_resource_guard(std::pmr::memory_resource* const resource)
-      : previous_{std::pmr::set_default_resource(resource)} {}
-
-  ~default_resource_guard() { std::pmr::set_default_resource(previous_); }
-
-  default_resource_guard(const default_resource_guard&) = delete;
-  default_resource_guard(default_resource_guard&&) = delete;
-  auto operator=(const default_resource_guard&) -> default_resource_guard& = delete;
-  auto operator=(default_resource_guard&&) -> default_resource_guard& = delete;
-
- private:
-  std::pmr::memory_resource* previous_;
 };
 
 }  // namespace vortex::test
