@@ -14,6 +14,18 @@
 namespace vortex::math {
 
 /// ===============================================================================================
+/// @brief Type of the scratch factorization buffer used by the solvers below.
+///
+/// The solvers keep this buffer in `thread_local` storage to avoid reallocating a workspace on
+/// every solve, which makes it live until the thread ends. It therefore deliberately uses blaze's
+/// default allocator instead of `memory_scope_allocator`: solves run inside the caller's
+/// `helpers::memory_scope` (see `optimization::graph::optimize`), and a buffer drawn from that
+/// scope's arena would outlive the arena and be released through it long after it was destroyed.
+/// ===============================================================================================
+template <class Matrix>
+using factor_matrix = blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor>;
+
+/// ===============================================================================================
 /// @brief Solves a symmetric indefinite system of linear equations using the Bunch-Kaufman LDL^T
 /// factorization with lower triangular storage.
 /// @tparam Matrix The type of the matrix (must support Blaze library operations and be symmetric).
@@ -33,7 +45,7 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   using blaze::blas_int_t;
   using blaze::numeric_cast;
 
-  static thread_local Matrix h_factor;
+  static thread_local factor_matrix<Matrix> h_factor;
   h_factor = h;
 
   const auto n = numeric_cast<blas_int_t>(h_factor.rows());
@@ -76,7 +88,7 @@ inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool 
   VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
   VORTEX_PRECONDITION(h.rows() == std::size(b), "incompatible matrix and vector");
 
-  static thread_local Matrix h_factor;
+  static thread_local factor_matrix<Matrix> h_factor;
   h_factor = h;
 
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(h_factor.rows());
