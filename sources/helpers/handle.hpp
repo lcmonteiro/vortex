@@ -14,9 +14,6 @@
 
 namespace vortex::helpers {
 
-template <class T>
-class optional;
-
 /// @brief A lightweight, non-null, shared-ownership handle to an object, with
 /// custom memory resource support.
 /// @tparam T The type of object to manage.
@@ -26,7 +23,6 @@ class handle {
   using allocator_type = std::pmr::polymorphic_allocator<T>;
 
  public:
-
   /// @brief Constructs a handle managing a new instance of T.
   /// @param memory The memory resource to use for allocation.
   template <class... Args>
@@ -41,10 +37,16 @@ class handle {
   auto operator=(handle&&) noexcept -> handle& = default;
 
   /// @brief Dereference operator for the managed object.
-  [[nodiscard]] auto operator*() const noexcept -> T& { return *ptr_; }
+  [[nodiscard]]
+  auto operator*() const noexcept -> T& {
+    return *ptr_;
+  }
 
   /// @brief Member-access operator for the managed object.
-  [[nodiscard]] auto operator->() const noexcept -> T* { return ptr_.get(); }
+  [[nodiscard]]
+  auto operator->() const noexcept -> T* {
+    return ptr_.get();
+  }
 
   /// @brief Comparison operators, based on the identity of the managed object.
   friend auto operator<(const handle& lhs, const handle& rhs) -> bool {
@@ -77,7 +79,7 @@ inline auto equal(const handle<T1>& a, const handle<T2>& b) -> bool {
 /// handle. Internally backed by `std::optional<handle<T>>`.
 /// @tparam T The type of object managed by the wrapped handle.
 template <class T>
-class optional : public std::optional<handle<T>> {
+class option : public std::optional<handle<T>> {
   using base = std::optional<handle<T>>;
 
  public:
@@ -85,10 +87,13 @@ class optional : public std::optional<handle<T>> {
   using base::operator=;
 
   /// @brief Exposes `T*` directly, instead of `handle<T>*`.
-  [[nodiscard]] auto operator->() const noexcept -> T* { return (**this).operator->(); }
+  [[nodiscard]]
+  auto operator->() const noexcept -> T* {
+    return (**this).operator->();
+  }
 
   /// @brief Equality, based on the identity of the managed object (if any).
-  friend auto operator==(const optional& lhs, const optional& rhs) -> bool {
+  friend auto operator==(const option& lhs, const option& rhs) -> bool {
     return static_cast<const base&>(lhs) == static_cast<const base&>(rhs);
   }
 };
@@ -100,7 +105,8 @@ namespace std {
 
 template <class T>
 struct hash<vortex::helpers::handle<T>> {
-  [[nodiscard]] auto operator()(const vortex::helpers::handle<T>& value) const noexcept -> size_t {
+  [[nodiscard]]
+  auto operator()(const vortex::helpers::handle<T>& value) const noexcept -> size_t {
     return std::hash<const T*>{}(value.operator->());
   }
 };

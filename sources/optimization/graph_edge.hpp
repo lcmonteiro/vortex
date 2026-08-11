@@ -13,6 +13,7 @@
 
 #include "foundation/dual.hpp"
 #include "foundation/graph.hpp"
+#include "foundation/graph/storage.hpp"
 #include "foundation/math.hpp"
 #include "helpers/contracts.hpp"
 #include "helpers/invoke.hpp"
@@ -23,14 +24,6 @@
 #include "optimization/variants/robust_kernel.hpp"
 
 namespace vortex::optimization {
-
-/// ===============================================================================================
-/// @brief Type Container: A utility template to define nodes types.
-/// @note `node_list` constrains the *shape* of the list below (it must be a
-/// `graph::nodes<...>`), not each element -- see the note on `nodes` in
-/// node.hpp for why an element-wise constraint isn't possible here.
-/// ===============================================================================================
-using graph::node_list;
 using graph::nodes;
 
 /// ===============================================================================================
@@ -42,7 +35,7 @@ using graph::nodes;
 /// @tparam Nodes      The type of nodes connected by the edge.
 /// @tparam Config     Configuration settings for the edge.
 /// ===============================================================================================
-template <class Derived, auto Dimension, class Type, node_list Nodes, class Config = default_config>
+template <class Derived, auto Dimension, class Type, class Nodes, class Config = default_config>
 class edge : public helpers::types_build_t<graph::edge, Nodes> {
   using kernel_variant_type = variants::kernel_variant<Derived, Config>;
   /// @brief Information matrix alternatives.

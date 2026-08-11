@@ -29,33 +29,51 @@ namespace vortex::graph {
 /// Helper Types
 /// ===============================================================================================
 using helpers::handle;
-using helpers::optional;
+using helpers::option;
 using helpers::types;
 using revision_handler = handle<helpers::revision>;
 
 /// ===============================================================================================
-/// @brief Concept satisfied by anything that is either a `node_type` or an
-/// `edge_type`.
+/// @brief Node/Edge List Wrappers
+/// These wrappers are used to define collections of node and edge types in a graph. They provide a
+/// way to group related types together and enforce type constraints.
 /// ===============================================================================================
-template <class T>
-concept item_type = edge_type<T> or node_type<T>;
-
-/// @note Unconstrained pack for the same reason as `nodes`/`edges`.
 template <class... T>
-struct items : helpers::types<T...> {};
+struct items : types<T...> {
+  constexpr static auto check() -> bool { return ((node_type<T> or edge_type<T>) or ...); }
+};
+template <class... T>
+struct nodes : items<T...> {
+  constexpr static auto check() -> bool { return (node_type<T> and ...); }
+};
+template <class... T>
+struct edges : items<T...> {
+  constexpr static auto check() -> bool { return (edge_type<T> and ...); }
+};
 
 /// ===============================================================================================
-/// @brief Concept satisfied by any `types<Ts...>`-derived list -- including
-/// `nodes<...>`, `edges<...>` and `items<...>`.
-/// @note Checks the list's shape only, not that each element satisfies
-/// `item_type`: node and edge types are mutually recursive, so an element-wise
-/// check here makes constraint satisfaction depend on itself.
+/// @brief Node/Edge List Concepts
+/// This concept forces every packed T to be a complete type (via `check()`), so it must be
+/// used with care in headers that are included by other headers.
 /// ===============================================================================================
 template <class T>
-concept items_list = requires { []<class... Ts>(const types<Ts...>&) {}(std::declval<T>()); };
+concept nodes_type = requires {
+  []<class... Ts>(const nodes<Ts...>&) {}(std::declval<T>());
+  requires T::check();
+};
+template <class T>
+concept edges_type = requires {
+  []<class... Ts>(const edges<Ts...>&) {}(std::declval<T>());
+  requires T::check();
+};
+template <class T>
+concept items_type = requires {
+  []<class... Ts>(const items<Ts...>&) {}(std::declval<T>());
+  requires T::check();
+};
 
 /// ===============================================================================================
-/// @brief Represents a graph with customizable node and edge types, and
+/// @brief Storage represents a graph with customizable node and edge types, and
 /// flexible configuration options.
 ///
 /// This class provides functionalities to build, manipulate, and query nodes
@@ -70,6 +88,9 @@ concept items_list = requires { []<class... Ts>(const types<Ts...>&) {}(std::dec
 /// ===============================================================================================
 template <class Nodes, class Edges, class Config = default_config>
 class storage {
+  static_assert(nodes_type<Nodes>, "Nodes must be a nodes_type");
+  static_assert(edges_type<Edges>, "Edges must be an edges_type");
+
  protected:
   // types
   using key_type = typename Config::key_type;
@@ -96,8 +117,8 @@ class storage {
   using disabled_type = selection_constant<selection::kRight>;
 
  public:
-  using node_list_type = Nodes;
-  using edge_list_type = Edges;
+  using node_list = Nodes;
+  using edge_list = Edges;
 
   static constexpr auto all = all_type{};
   static constexpr auto enabled = enabled_type{};
@@ -183,14 +204,14 @@ class storage {
     return result;
   }
 
-  template <items_list I, selection value = selection::kAll>
+  template <items_type I, selection value = selection::kAll>
   auto size(const selection_constant<value> side = all) const {
     return size(I{}, side);
   }
 
   template <selection value = selection::kAll>
   auto size(const selection_constant<value> side = all) const {
-    return size<node_list_type>(side) + size<edge_list_type>(side);
+    return size(node_list{}, side) + size(edge_list{}, side);
   }
 
   /// @defgroup ApplyFunctions Apply Functions
@@ -224,7 +245,7 @@ class storage {
     }
   }
 
-  template <items_list I, class Fn, selection value = selection::kAll>
+  template <items_type I, class Fn, selection value = selection::kAll>
   auto apply(Fn&& func, const selection_constant<value> side = all) const -> void {
     apply(std::forward<Fn>(func), I{}, side);
   }
@@ -232,8 +253,8 @@ class storage {
   template <class Fn, selection value = selection::kAll>
   auto apply(Fn&& func, const selection_constant<value> side = all) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
-    apply<node_list_type>(ref_func, side);
-    apply<edge_list_type>(ref_func, side);
+    apply(ref_func, node_list{}, side);
+    apply(ref_func, edge_list{}, side);
   }
 
   /// @defgroup FindFunctions Find Functions
@@ -248,7 +269,7 @@ class storage {
   /// the search.
   /// @param side The constant indicating the selection criteria for nodes.
   template <node_type N, selection value = selection::kAll>
-  auto find(const key_type& key, const selection_constant<value> side = all) const -> optional<N> {
+  auto find(const key_type& key, const selection_constant<value> side = all) const -> option<N> {
     const auto& nodes{select<N>(nodes_enable_, nodes_disable_, side)};
     for (const handle_map<N>& map : nodes) {
       if (auto found = map.find(key); found != std::end(map)) {
@@ -260,7 +281,7 @@ class storage {
 
   template <node_type N, class Fn, selection value = selection::kAll>
   requires std::is_invocable_v<Fn, handle<N>&>
-  auto find(Fn&& evaluate, const selection_constant<value> side = all) const -> optional<N> {
+  auto find(Fn&& evaluate, const selection_constant<value> side = all) const -> option<N> {
     auto& ref_evaluate = helpers::lreference<Fn>(std::forward<Fn>(evaluate));
     const auto& nodes{select<N>(nodes_enable_, nodes_disable_, side)};
     for (const handle_map<N>& map : nodes) {
@@ -305,11 +326,11 @@ class storage {
     }
   }
 
-  template <node_type N, items_list T, selection value = selection::kAll>
+  template <node_type N, edges_type E, selection value = selection::kAll>
   auto unlink(key_type key, const selection_constant<value> side = all) -> void {
     for (handle_map<N>& map : select<N>(nodes_enable_, nodes_disable_, side)) {
       if (auto iter = map.find(key); iter != map.end()) {
-        unlink_node(std::get<handle<N>>(*iter), T{});
+        unlink_node(std::get<handle<N>>(*iter), E{});
         revision_->update();
         return;
       }
@@ -336,11 +357,11 @@ class storage {
     revision_->update();
   }
 
-  template <node_type N, items_list T, selection value = selection::kAll>
+  template <node_type N, edges_type E, selection value = selection::kAll>
   auto unlink(const selection_constant<value> side = all) -> void {
     for (handle_map<N>& map : select<N>(nodes_enable_, nodes_disable_, side)) {
       for (const auto& node : map) {
-        unlink_node(std::get<handle<N>>(node), T{});
+        unlink_node(std::get<handle<N>>(node), E{});
       }
     }
     revision_->update();
@@ -401,7 +422,7 @@ class storage {
 
   template <selection value = selection::kAll>
   auto destroy(const selection_constant<value> side = all) -> void {
-    destroy(node_list_type{}, side);
+    destroy(node_list{}, side);
   }
 
   /// @defgroup ToggleFunctions Toggle Functions
@@ -515,12 +536,12 @@ class storage {
                      [](const auto& edge) { edge->disable(false); });
   }
 
-  template <items_list I, selection value>
+  template <items_type I, selection value>
   auto toggle(const selection_constant<value> side) -> void {
     toggle(I{}, side);
   }
 
-  template <items_list I, class T, selection value>
+  template <items_type I, class T, selection value>
   auto toggle(T&& variant, const selection_constant<value> side) -> void {
     toggle(I{}, side, std::forward<T>(variant));
   }
@@ -610,35 +631,35 @@ class storage {
   }
 
   template <class N, class... T>
-  auto unlink_node(const handle<N>& node, types<T...>) -> void {
+  auto unlink_node(const handle<N>& node, nodes<T...>) -> void {
     (unlink_node<T>(node), ...);
   }
 
   template <class... T, selection value>
-  auto size(const types<T...>, const selection_constant<value> side) const {
+  auto size(const types<T...>&, const selection_constant<value> side) const {
     return (size<T>(side) + ...);
   }
 
   template <class Fn, class... T, selection value>
-  auto apply(Fn&& func, types<T...>, const selection_constant<value> side) -> void {
+  auto apply(Fn&& func, const types<T...>&, const selection_constant<value> side) -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     (apply<T>(ref_func, side), ...);
   }
 
   template <class Fn, class... T, selection value>
-  auto apply(Fn&& func, types<T...>, const selection_constant<value> side) const -> void {
+  auto apply(Fn&& func, const types<T...>&, const selection_constant<value> side) const -> void {
     auto& ref_func = helpers::lreference<Fn>(std::forward<Fn>(func));
     (apply<T>(ref_func, side), ...);
   }
 
   template <class... T, selection value>
-  auto destroy(types<T...>, const selection_constant<value> side) -> void {
+  auto destroy(const types<T...>&, const selection_constant<value> side) -> void {
     (destroy<T>(side), ...);
   }
 
-  template <class... E, selection value, class... Ts>
-  auto toggle(types<E...>, const selection_constant<value> side, Ts&&... args) -> void {
-    (toggle<E>(helpers::lreference<Ts>(args)..., side), ...);
+  template <class... T, selection value, class... Ts>
+  auto toggle(const types<T...>&, const selection_constant<value> side, Ts&&... args) -> void {
+    (toggle<T>(helpers::lreference<Ts>(args)..., side), ...);
   }
 
   const auto& revision() const { return revision_; }

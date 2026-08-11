@@ -45,6 +45,7 @@ template <class Number>
 struct position_location_edge;
 template <class Number>
 struct position_distance_edge;
+
 // Forward declaration of the node type referenced by the edge base aliases.
 template <class Number>
 struct position_node;
