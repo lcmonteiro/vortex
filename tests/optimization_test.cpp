@@ -8,6 +8,7 @@
 #include <memory_resource>
 
 #include "tests/fixtures/simple_slam_graph.hpp"
+#include "tests/fixtures/arena_memory_resource.hpp"
 #include "tests/fixtures/memory_guard.hpp"
 
 namespace {
@@ -72,48 +73,61 @@ TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
 /// Allocation budget
 /// ===============================================================================================
 
-/// @brief The zero assertion below only means anything if the guard actually observes
-/// allocations, which depends on this binary's replacements for the global allocation functions
-/// being the ones that get linked. Check that directly, so a linking change cannot quietly turn
-/// the budget test into a no-op that passes for the wrong reason.
-TEST(MemoryGuard, GivenAllocations_ExpectTheyAreObserved) {
-  // Counted inside the guarded block and asserted outside it: the gtest macros allocate too, so
-  // reading the counters straight into EXPECT_EQ would fold their traffic into the result.
-  // `::operator new` is called directly rather than via a new-expression because the compiler is
-  // allowed to elide an unused new/delete pair outright, which would make this prove nothing.
-  auto allocations = std::size_t{0};
-  auto deallocations = std::size_t{0};
-  {
+/// @brief `memory_guard` is only meaningful if it really does intercept allocation, which depends
+/// on this binary's replacements for the global allocation functions being the ones that get
+/// linked. Check that directly, so a linking change cannot quietly turn the test below into one
+/// that passes for the wrong reason.
+TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
+  // `::operator new` is called directly rather than through a new-expression because the compiler
+  // may elide an unused new/delete pair outright, which would prove nothing.
+  EXPECT_THROW(
+      {
+        const memory_guard guard;
+        void* const p = ::operator new(64);
+        ::operator delete(p);
+      },
+      vortex::test::unexpected_allocation);
+
+  // Outside a guard the same allocation is unremarkable, and the guard leaves nothing armed.
+  void* const p = ::operator new(64);
+  ::operator delete(p);
+}
+
+/// @brief A resource that owns its storage satisfies allocations without reaching the heap, so
+/// work drawing from one runs happily under a guard.
+TEST(MemoryGuard, GivenArenaBackedAllocation_ExpectNoThrow) {
+  arena_memory_resource arena{4096};
+  EXPECT_NO_THROW({
     const memory_guard guard;
-    auto* const p = ::operator new(64);
-    allocations = guard.allocations();
-    ::operator delete(p);
-    deallocations = guard.deallocations();
-  }
-  EXPECT_EQ(allocations, 1U);
-  EXPECT_EQ(deallocations, 1U);
+    auto* const p = arena.allocate(64, alignof(std::max_align_t));
+    arena.deallocate(p, 64, alignof(std::max_align_t));
+  });
+  EXPECT_EQ(arena.foreign_frees(), 0U);
+  EXPECT_EQ(arena.outstanding(), 0U);
 }
 
 /// @brief A warmed-up `optimize()` must not touch the heap at all.
 ///
-/// `optimize()` runs under `memory_scope{graph.memory()}`, so everything it needs should come from
-/// the graph's arena, which is already sized after the first call. `memory_guard` counts the
-/// global `operator new`, so this covers every source that goes through it: the arena's upstream
-/// when it grows, `std::pmr`'s default resource when an allocation ignores the active scope --
-/// `polymorphic_allocator` does not propagate on copy construction, which used to send 160
-/// `dual::number` derivative-vector copies per call there -- and any plain container or raw `new`
-/// added to the path later.
+/// The graph draws from an arena that owns its buffer, so everything `optimize()` needs is already
+/// in hand before the guard is armed. Any allocation it then makes has to come from the heap, and
+/// the guard throws at the point it happens.
 ///
-/// It does not cover `blaze::AlignedAllocator`, which reaches `posix_memalign` without passing
-/// through `operator new`; see the note on `memory_guard`. That channel is zero too, measured out
-/// of band, since `math::solve_ldlt` began caching the buffers it hands to LAPACK.
+/// This covers every source that goes through `operator new`: the arena's own growth, `std::pmr`'s
+/// default resource when an allocation ignores the active scope -- `polymorphic_allocator` does
+/// not propagate on copy construction, which used to send 160 `dual::number` derivative-vector
+/// copies per call there -- and any plain container or raw `new` added to the path later. It does
+/// not cover `blaze::AlignedAllocator`; see the note on `memory_guard`. That channel is zero too,
+/// measured out of band, since `math::solve_ldlt` began caching its LAPACK buffers.
 ///
-/// Being an exact zero rather than a budget, this does not depend on how many iterations the
-/// solver takes, so a different LAPACK cannot shift it.
+/// Being pass/fail rather than a budget, this does not depend on how many iterations the solver
+/// takes, so a different LAPACK cannot shift it.
 TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   using Key = SlamGraph::key_type;
 
-  SlamGraph g{std::pmr::new_delete_resource()};
+  // Sized past the graph's own cache_init_size so the arena serves it without growing.
+  arena_memory_resource arena{std::size_t{8} << 20U};
+
+  SlamGraph g{&arena};
   go::option<PositionNode> p1 = g.build<PositionNode>(Key{1});
   go::option<PositionNode> p2 = g.build<PositionNode>(Key{2});
   go::option<PositionNode> p3 = g.build<PositionNode>(Key{3});
@@ -141,12 +155,15 @@ TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   ASSERT_TRUE(g.optimize(iterations).has_value());
 
   seed_estimations();
+
+  // Nothing but the call itself inside the guard: gtest's macros allocate, and would be reported
+  // as the failure instead of whatever optimize() did.
+  auto succeeded = false;
   {
     const memory_guard guard;
-    ASSERT_TRUE(g.optimize(iterations).has_value());
-    EXPECT_EQ(guard.allocations(), 0U)
-        << "optimize() performed " << guard.allocations() << " heap allocations, which must be 0";
+    succeeded = g.optimize(iterations).has_value();
   }
+  EXPECT_TRUE(succeeded);
 }
 
 }  // namespace

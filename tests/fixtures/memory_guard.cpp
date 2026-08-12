@@ -1,74 +1,71 @@
 /// ===============================================================================================
 /// @file
-/// @brief Replacements for the global allocation functions, counting for `memory_guard`.
+/// @brief Replacements for the global allocation functions, enforcing `memory_guard`.
 ///
 /// These are the standard replaceable operators, so defining them here redirects every `new` and
 /// `delete` in the test binary -- including the ones inside libstdc++, which is what lets a guard
-/// observe `std::pmr::new_delete_resource` and the standard containers.
+/// see through `std::pmr::new_delete_resource` and the standard containers.
 /// ===============================================================================================
 #include "tests/fixtures/memory_guard.hpp"
 
-#include <atomic>
 #include <cstddef>
 #include <cstdlib>
 #include <new>
 
 namespace {
 
-// Constant-initialised, so these are already usable by allocations made during static
-// initialisation, before any dynamic initialiser has run.
-std::atomic<std::size_t> g_allocations{0};
-std::atomic<std::size_t> g_deallocations{0};
+/// @brief Nesting depth of the active guards on this thread; non-zero means allocation is
+/// forbidden. Per-thread so a guard constrains only the thread that installed it.
+thread_local std::size_t g_forbidden_depth = 0;
 
-auto count_allocation() noexcept -> void {
-  g_allocations.fetch_add(1, std::memory_order_relaxed);
-}
-
-auto count_deallocation() noexcept -> void {
-  g_deallocations.fetch_add(1, std::memory_order_relaxed);
+/// @brief Rejects the allocation if a guard is active.
+///
+/// Arming is cleared before throwing. Unwinding runs destructors, and one of those attempting an
+/// allocation would otherwise throw a second exception while the first is in flight, which ends in
+/// `std::terminate` rather than a test failure. Each `memory_guard` restores the depth it saved
+/// rather than decrementing, so clearing it here cannot corrupt an enclosing guard.
+auto check() -> void {
+  if (0 != g_forbidden_depth) {
+    g_forbidden_depth = 0;
+    throw vortex::test::unexpected_allocation{};
+  }
 }
 
 /// @brief Zero-sized requests must still return distinct pointers, hence the bump to 1.
 auto allocate(std::size_t bytes) -> void* {
+  check();
   auto* const p = std::malloc(0 == bytes ? 1 : bytes);
   if (nullptr == p) {
     throw std::bad_alloc{};
   }
-  count_allocation();
   return p;
 }
 
 auto allocate(std::size_t bytes, std::size_t alignment) -> void* {
-  // posix_memalign requires an alignment that is both a power of two and a multiple of
-  // sizeof(void*); the over-aligned new path can ask for less than the latter.
+  check();
+  // posix_memalign wants an alignment that is a power of two *and* a multiple of sizeof(void*);
+  // the over-aligned new path can ask for less than the latter.
   const auto width = alignment < sizeof(void*) ? sizeof(void*) : alignment;
   void* p = nullptr;
   if (0 != ::posix_memalign(&p, width, 0 == bytes ? 1 : bytes)) {
     throw std::bad_alloc{};
   }
-  count_allocation();
   return p;
 }
 
-auto release(void* p) noexcept -> void {
-  // Deleting a null pointer is well-defined and allocates nothing, so it is not counted.
-  if (nullptr != p) {
-    count_deallocation();
-    std::free(p);
-  }
-}
+/// @brief Deallocation is always permitted: releasing memory is not what a guard forbids, and
+/// blocking it would break the unwinding that a rejected allocation sets off.
+auto release(void* const p) noexcept -> void { std::free(p); }
 
 }  // namespace
 
 namespace vortex::test {
 
-auto heap_allocation_count() noexcept -> std::size_t {
-  return g_allocations.load(std::memory_order_relaxed);
+memory_guard::memory_guard() noexcept : previous_{g_forbidden_depth} {
+  g_forbidden_depth = previous_ + 1;
 }
 
-auto heap_deallocation_count() noexcept -> std::size_t {
-  return g_deallocations.load(std::memory_order_relaxed);
-}
+memory_guard::~memory_guard() noexcept { g_forbidden_depth = previous_; }
 
 }  // namespace vortex::test
 

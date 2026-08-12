@@ -14,17 +14,17 @@
 #include "foundation/math/solver.hpp"
 #include "foundation/math/types.hpp"
 #include "helpers/memory.hpp"
-#include "tests/fixtures/tracking_resource.hpp"
+#include "tests/fixtures/arena_memory_resource.hpp"
 
 namespace {
 
 using vortex::math::dynamic_matrix;
 using vortex::math::dynamic_vector;
 using vortex::helpers::memory_scope;
-using vortex::test::tracking_resource;
+using vortex::test::arena_memory_resource;
 
 TEST(MathTypes, DynamicVectorUsesActiveMemoryScope) {
-  tracking_resource resource{std::pmr::new_delete_resource()};
+  arena_memory_resource resource;
   {
     const memory_scope scope{&resource};
 
@@ -34,14 +34,14 @@ TEST(MathTypes, DynamicVectorUsesActiveMemoryScope) {
 
     EXPECT_DOUBLE_EQ(v[0], 1.0);
     EXPECT_DOUBLE_EQ(v[3], 4.0);
-    EXPECT_GT(resource.allocations, 0U);
+    EXPECT_GT(resource.allocations(), 0U);
   }
-  EXPECT_EQ(resource.foreign_frees, 0U);
-  EXPECT_EQ(resource.live(), 0U);
+  EXPECT_EQ(resource.foreign_frees(), 0U);
+  EXPECT_EQ(resource.outstanding(), 0U);
 }
 
 TEST(MathTypes, DynamicMatrixUsesActiveMemoryScope) {
-  tracking_resource resource{std::pmr::new_delete_resource()};
+  arena_memory_resource resource;
   {
     const memory_scope scope{&resource};
 
@@ -51,30 +51,30 @@ TEST(MathTypes, DynamicMatrixUsesActiveMemoryScope) {
 
     EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
     EXPECT_DOUBLE_EQ(m(1, 1), 2.0);
-    EXPECT_GT(resource.allocations, 0U);
+    EXPECT_GT(resource.allocations(), 0U);
   }
-  EXPECT_EQ(resource.foreign_frees, 0U);
-  EXPECT_EQ(resource.live(), 0U);
+  EXPECT_EQ(resource.foreign_frees(), 0U);
+  EXPECT_EQ(resource.outstanding(), 0U);
 }
 
 TEST(MathTypes, ScopedAllocatorTracksNestedScopes) {
-  tracking_resource outer{std::pmr::new_delete_resource()};
-  tracking_resource inner{std::pmr::new_delete_resource()};
+  arena_memory_resource outer;
+  arena_memory_resource inner;
 
   const memory_scope outer_scope{&outer};
   { const dynamic_vector<double> v(4, 0.0); }
-  EXPECT_GT(outer.allocations, 0U);
-  EXPECT_EQ(inner.allocations, 0U);
+  EXPECT_GT(outer.allocations(), 0U);
+  EXPECT_EQ(inner.allocations(), 0U);
 
   {
     const memory_scope inner_scope{&inner};
     const dynamic_vector<double> v(4, 0.0);
   }
-  EXPECT_GT(inner.allocations, 0U);
+  EXPECT_GT(inner.allocations(), 0U);
 
-  EXPECT_EQ(outer.foreign_frees, 0U);
-  EXPECT_EQ(inner.foreign_frees, 0U);
-  EXPECT_EQ(inner.live(), 0U);
+  EXPECT_EQ(outer.foreign_frees(), 0U);
+  EXPECT_EQ(inner.foreign_frees(), 0U);
+  EXPECT_EQ(inner.outstanding(), 0U);
 }
 
 /// @brief `resize()` past the current capacity allocates the replacement buffer with a freshly
@@ -82,8 +82,8 @@ TEST(MathTypes, ScopedAllocatorTracksNestedScopes) {
 /// original allocator. This is the path `block_graph_solver::build_structure()` takes from inside
 /// `graph::optimize()`'s scope, on vectors constructed outside it.
 TEST(MathTypes, GivenResizeInsideScope_ExpectBuffersReleasedByOwningResource) {
-  tracking_resource outer{std::pmr::new_delete_resource()};
-  tracking_resource arena{std::pmr::new_delete_resource()};
+  arena_memory_resource outer;
+  arena_memory_resource arena;
 
   {
     const memory_scope outer_scope{&outer};
@@ -92,22 +92,22 @@ TEST(MathTypes, GivenResizeInsideScope_ExpectBuffersReleasedByOwningResource) {
     {
       const memory_scope arena_scope{&arena};
       v.resize(64, false);
-      EXPECT_GT(arena.allocations, 0U);
+      EXPECT_GT(arena.allocations(), 0U);
     }
     v[0] = 1.0;
     EXPECT_DOUBLE_EQ(v[0], 1.0);
   }
 
-  EXPECT_EQ(outer.foreign_frees, 0U);
-  EXPECT_EQ(arena.foreign_frees, 0U);
-  EXPECT_EQ(outer.live(), 0U);
-  EXPECT_EQ(arena.live(), 0U);
+  EXPECT_EQ(outer.foreign_frees(), 0U);
+  EXPECT_EQ(arena.foreign_frees(), 0U);
+  EXPECT_EQ(outer.outstanding(), 0U);
+  EXPECT_EQ(arena.outstanding(), 0U);
 }
 
 /// @brief Same reasoning for a matrix, which `build_structure()` also resizes.
 TEST(MathTypes, GivenMatrixResizeInsideScope_ExpectBuffersReleasedByOwningResource) {
-  tracking_resource outer{std::pmr::new_delete_resource()};
-  tracking_resource arena{std::pmr::new_delete_resource()};
+  arena_memory_resource outer;
+  arena_memory_resource arena;
 
   {
     const memory_scope outer_scope{&outer};
@@ -116,23 +116,23 @@ TEST(MathTypes, GivenMatrixResizeInsideScope_ExpectBuffersReleasedByOwningResour
     {
       const memory_scope arena_scope{&arena};
       m.resize(32, 32, false);
-      EXPECT_GT(arena.allocations, 0U);
+      EXPECT_GT(arena.allocations(), 0U);
     }
     m(0, 0) = 1.0;
     EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
   }
 
-  EXPECT_EQ(outer.foreign_frees, 0U);
-  EXPECT_EQ(arena.foreign_frees, 0U);
-  EXPECT_EQ(outer.live(), 0U);
-  EXPECT_EQ(arena.live(), 0U);
+  EXPECT_EQ(outer.foreign_frees(), 0U);
+  EXPECT_EQ(arena.foreign_frees(), 0U);
+  EXPECT_EQ(outer.outstanding(), 0U);
+  EXPECT_EQ(arena.outstanding(), 0U);
 }
 
 /// @brief Blaze's move assignment keeps the destination's allocator while stealing the source's
 /// buffer, so a value moved out of a scope must still be released through the scope's resource.
 TEST(MathTypes, GivenMoveAcrossScopes_ExpectBufferReleasedByOwningResource) {
-  tracking_resource outer{std::pmr::new_delete_resource()};
-  tracking_resource arena{std::pmr::new_delete_resource()};
+  arena_memory_resource outer;
+  arena_memory_resource arena;
 
   {
     const memory_scope outer_scope{&outer};
@@ -146,16 +146,16 @@ TEST(MathTypes, GivenMoveAcrossScopes_ExpectBufferReleasedByOwningResource) {
     EXPECT_DOUBLE_EQ(v[0], 1.0);
   }
 
-  EXPECT_EQ(outer.foreign_frees, 0U);
-  EXPECT_EQ(arena.foreign_frees, 0U);
-  EXPECT_EQ(outer.live(), 0U);
-  EXPECT_EQ(arena.live(), 0U);
+  EXPECT_EQ(outer.foreign_frees(), 0U);
+  EXPECT_EQ(arena.foreign_frees(), 0U);
+  EXPECT_EQ(outer.outstanding(), 0U);
+  EXPECT_EQ(arena.outstanding(), 0U);
 }
 
 /// @brief `swap()` exchanges the element buffers but not the allocators.
 TEST(MathTypes, GivenSwapAcrossScopes_ExpectBuffersReleasedByOwningResource) {
-  tracking_resource outer{std::pmr::new_delete_resource()};
-  tracking_resource arena{std::pmr::new_delete_resource()};
+  arena_memory_resource outer;
+  arena_memory_resource arena;
 
   {
     const memory_scope outer_scope{&outer};
@@ -170,10 +170,10 @@ TEST(MathTypes, GivenSwapAcrossScopes_ExpectBuffersReleasedByOwningResource) {
     EXPECT_DOUBLE_EQ(a[0], 2.0);
   }
 
-  EXPECT_EQ(outer.foreign_frees, 0U);
-  EXPECT_EQ(arena.foreign_frees, 0U);
-  EXPECT_EQ(outer.live(), 0U);
-  EXPECT_EQ(arena.live(), 0U);
+  EXPECT_EQ(outer.foreign_frees(), 0U);
+  EXPECT_EQ(arena.foreign_frees(), 0U);
+  EXPECT_EQ(outer.outstanding(), 0U);
+  EXPECT_EQ(arena.outstanding(), 0U);
 }
 
 /// @brief The solvers cache their factorization workspace in `thread_local` storage, so it lives
@@ -182,7 +182,7 @@ TEST(MathTypes, GivenSwapAcrossScopes_ExpectBuffersReleasedByOwningResource) {
 /// would be released through the arena long after it was destroyed -- a use-after-free at thread
 /// exit. Assert the arena gets everything back before it dies.
 TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
-  tracking_resource arena{std::pmr::new_delete_resource()};
+  arena_memory_resource arena;
 
   {
     const memory_scope scope{&arena};
@@ -197,11 +197,11 @@ TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
 
     EXPECT_TRUE(vortex::math::solve_ldlt(h, b, x));
     EXPECT_TRUE(vortex::math::solve_cholesky(h, b, x));
-    EXPECT_GT(arena.allocations, 0U);
+    EXPECT_GT(arena.allocations(), 0U);
   }
 
-  EXPECT_EQ(arena.foreign_frees, 0U);
-  EXPECT_EQ(arena.live(), 0U);
+  EXPECT_EQ(arena.foreign_frees(), 0U);
+  EXPECT_EQ(arena.outstanding(), 0U);
 }
 
 /// ===============================================================================================
@@ -249,7 +249,7 @@ static_assert(std::is_same_v<blaze::AddTrait_t<dynamic_matrix<double>, dynamic_m
 /// @brief Buffers must satisfy blaze's SIMD alignment, which it checks via `checkAlignment` on
 /// every allocation and reports as a bad_alloc when violated.
 TEST(MathTypes, GivenAllocatedContainers_ExpectBlazeSimdAlignment) {
-  tracking_resource resource{std::pmr::new_delete_resource()};
+  arena_memory_resource resource;
   const memory_scope scope{&resource};
 
   const dynamic_vector<double> v(37, 1.0);
@@ -265,14 +265,14 @@ TEST(MathTypes, GivenAllocatedContainers_ExpectBlazeSimdAlignment) {
 /// suite as a whole still completes -- blaze falling back to AlignedAllocator for an intermediate
 /// is a heap allocation, not a failure.
 TEST(MathTypes, GivenMatrixExpressions_ExpectNamedOperandsUseScope) {
-  tracking_resource resource{std::pmr::new_delete_resource()};
+  arena_memory_resource resource;
 
   {
     const memory_scope scope{&resource};
 
     dynamic_matrix<double> a(16, 16, 1.0);
     dynamic_matrix<double> b(16, 16, 2.0);
-    const auto after_operands = resource.allocations;
+    const auto after_operands = resource.allocations();
     EXPECT_GT(after_operands, 0U);
 
     dynamic_matrix<double> c = a + b;
@@ -285,11 +285,11 @@ TEST(MathTypes, GivenMatrixExpressions_ExpectNamedOperandsUseScope) {
     EXPECT_DOUBLE_EQ(c(0, 0), 32.0);
 
     // The named result `c` is itself scope-allocated, so the count kept climbing.
-    EXPECT_GT(resource.allocations, after_operands);
+    EXPECT_GT(resource.allocations(), after_operands);
   }
 
-  EXPECT_EQ(resource.foreign_frees, 0U);
-  EXPECT_EQ(resource.live(), 0U);
+  EXPECT_EQ(resource.foreign_frees(), 0U);
+  EXPECT_EQ(resource.outstanding(), 0U);
 }
 
 }  // namespace
