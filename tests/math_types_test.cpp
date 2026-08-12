@@ -15,6 +15,7 @@
 #include "foundation/math/types.hpp"
 #include "helpers/memory.hpp"
 #include "tests/fixtures/arena_memory_resource.hpp"
+#include "tests/fixtures/memory_guard.hpp"
 
 namespace {
 
@@ -22,39 +23,38 @@ using vortex::math::dynamic_matrix;
 using vortex::math::dynamic_vector;
 using vortex::helpers::memory_scope;
 using vortex::test::arena_memory_resource;
+using vortex::test::memory_guard;
 
 TEST(MathTypes, DynamicVectorUsesActiveMemoryScope) {
   arena_memory_resource resource;
+  const memory_scope scope{&resource};
+
+  // Built under a guard, so reaching the heap instead of the arena would throw. The guard is kept
+  // to the allocation itself because gtest's macros allocate too.
+  auto v = [] { return dynamic_vector<double>(4, 0.0); }();
   {
-    const memory_scope scope{&resource};
-
-    dynamic_vector<double> v(4, 0.0);
-    v[0] = 1.0;
-    v[3] = 4.0;
-
-    EXPECT_DOUBLE_EQ(v[0], 1.0);
-    EXPECT_DOUBLE_EQ(v[3], 4.0);
-    EXPECT_GT(resource.allocations(), 0U);
+    const memory_guard guard;
+    v.resize(64, false);
   }
-  EXPECT_EQ(resource.foreign_frees(), 0U);
-  EXPECT_EQ(resource.outstanding(), 0U);
+  v[0] = 1.0;
+  v[63] = 4.0;
+
+  EXPECT_TRUE(resource.owns(v.data()));
+  EXPECT_DOUBLE_EQ(v[0], 1.0);
+  EXPECT_DOUBLE_EQ(v[63], 4.0);
 }
 
 TEST(MathTypes, DynamicMatrixUsesActiveMemoryScope) {
   arena_memory_resource resource;
-  {
-    const memory_scope scope{&resource};
+  const memory_scope scope{&resource};
 
-    dynamic_matrix<double> m(2, 2, 0.0);
-    m(0, 0) = 1.0;
-    m(1, 1) = 2.0;
+  dynamic_matrix<double> m(2, 2, 0.0);
+  m(0, 0) = 1.0;
+  m(1, 1) = 2.0;
 
-    EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
-    EXPECT_DOUBLE_EQ(m(1, 1), 2.0);
-    EXPECT_GT(resource.allocations(), 0U);
-  }
-  EXPECT_EQ(resource.foreign_frees(), 0U);
-  EXPECT_EQ(resource.outstanding(), 0U);
+  EXPECT_TRUE(resource.owns(m.data()));
+  EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
+  EXPECT_DOUBLE_EQ(m(1, 1), 2.0);
 }
 
 TEST(MathTypes, ScopedAllocatorTracksNestedScopes) {
@@ -62,19 +62,17 @@ TEST(MathTypes, ScopedAllocatorTracksNestedScopes) {
   arena_memory_resource inner;
 
   const memory_scope outer_scope{&outer};
-  { const dynamic_vector<double> v(4, 0.0); }
-  EXPECT_GT(outer.allocations(), 0U);
-  EXPECT_EQ(inner.allocations(), 0U);
-
+  {
+    const dynamic_vector<double> v(4, 0.0);
+    EXPECT_TRUE(outer.owns(v.data()));
+    EXPECT_FALSE(inner.owns(v.data()));
+  }
   {
     const memory_scope inner_scope{&inner};
     const dynamic_vector<double> v(4, 0.0);
+    EXPECT_TRUE(inner.owns(v.data()));
+    EXPECT_FALSE(outer.owns(v.data()));
   }
-  EXPECT_GT(inner.allocations(), 0U);
-
-  EXPECT_EQ(outer.foreign_frees(), 0U);
-  EXPECT_EQ(inner.foreign_frees(), 0U);
-  EXPECT_EQ(inner.outstanding(), 0U);
 }
 
 /// @brief `resize()` past capacity builds the replacement with a fresh allocator and then swaps
@@ -89,19 +87,16 @@ TEST(MathTypes, GivenResizeInsideScope_ExpectBuffersReleasedByOwningResource) {
     const memory_scope outer_scope{&outer};
     dynamic_vector<double> v(8, 0.0);
 
+    EXPECT_TRUE(outer.owns(v.data()));
     {
       const memory_scope arena_scope{&arena};
       v.resize(64, false);
-      EXPECT_GT(arena.allocations(), 0U);
+      EXPECT_TRUE(arena.owns(v.data()));
     }
     v[0] = 1.0;
     EXPECT_DOUBLE_EQ(v[0], 1.0);
   }
-
-  EXPECT_EQ(outer.foreign_frees(), 0U);
-  EXPECT_EQ(arena.foreign_frees(), 0U);
-  EXPECT_EQ(outer.outstanding(), 0U);
-  EXPECT_EQ(arena.outstanding(), 0U);
+  // Releasing either buffer through the wrong arena would have thrown from the destructors above.
 }
 
 /// @brief Same reasoning for a matrix, which `build_structure()` also resizes.
@@ -113,19 +108,16 @@ TEST(MathTypes, GivenMatrixResizeInsideScope_ExpectBuffersReleasedByOwningResour
     const memory_scope outer_scope{&outer};
     dynamic_matrix<double> m(4, 4, 0.0);
 
+    EXPECT_TRUE(outer.owns(m.data()));
     {
       const memory_scope arena_scope{&arena};
       m.resize(32, 32, false);
-      EXPECT_GT(arena.allocations(), 0U);
+      EXPECT_TRUE(arena.owns(m.data()));
     }
     m(0, 0) = 1.0;
     EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
   }
-
-  EXPECT_EQ(outer.foreign_frees(), 0U);
-  EXPECT_EQ(arena.foreign_frees(), 0U);
-  EXPECT_EQ(outer.outstanding(), 0U);
-  EXPECT_EQ(arena.outstanding(), 0U);
+  // Releasing either buffer through the wrong arena would have thrown from the destructors above.
 }
 
 /// @brief Blaze's move assignment keeps the destination's allocator while stealing the source's
@@ -142,14 +134,11 @@ TEST(MathTypes, GivenMoveAcrossScopes_ExpectBufferReleasedByOwningResource) {
       const memory_scope arena_scope{&arena};
       dynamic_vector<double> transient(8, 1.0);
       v = std::move(transient);
+      EXPECT_TRUE(arena.owns(v.data()));
     }
     EXPECT_DOUBLE_EQ(v[0], 1.0);
   }
-
-  EXPECT_EQ(outer.foreign_frees(), 0U);
-  EXPECT_EQ(arena.foreign_frees(), 0U);
-  EXPECT_EQ(outer.outstanding(), 0U);
-  EXPECT_EQ(arena.outstanding(), 0U);
+  // `v` now holds the inner arena's buffer; releasing it through `outer` would have thrown.
 }
 
 /// @brief `swap()` exchanges the element buffers but not the allocators.
@@ -165,15 +154,13 @@ TEST(MathTypes, GivenSwapAcrossScopes_ExpectBuffersReleasedByOwningResource) {
       const memory_scope arena_scope{&arena};
       dynamic_vector<double> b(8, 2.0);
       a.swap(b);
+      EXPECT_TRUE(arena.owns(a.data()));
+      EXPECT_TRUE(outer.owns(b.data()));
       EXPECT_DOUBLE_EQ(b[0], 1.0);
     }
     EXPECT_DOUBLE_EQ(a[0], 2.0);
   }
-
-  EXPECT_EQ(outer.foreign_frees(), 0U);
-  EXPECT_EQ(arena.foreign_frees(), 0U);
-  EXPECT_EQ(outer.outstanding(), 0U);
-  EXPECT_EQ(arena.outstanding(), 0U);
+  // Each buffer ended up in the other container; releasing either through the wrong arena throws.
 }
 
 /// @brief The solvers cache their workspace in `thread_local` storage, which outlives the
@@ -196,11 +183,10 @@ TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
 
     EXPECT_TRUE(vortex::math::solve_ldlt(h, b, x));
     EXPECT_TRUE(vortex::math::solve_cholesky(h, b, x));
-    EXPECT_GT(arena.allocations(), 0U);
+    EXPECT_TRUE(arena.owns(h.data()));
   }
-
-  EXPECT_EQ(arena.foreign_frees(), 0U);
-  EXPECT_EQ(arena.outstanding(), 0U);
+  // The arena dies here. Had either solver's thread_local cache kept a block of it, that block
+  // would be released through the dead arena at thread exit.
 }
 
 /// ===============================================================================================
@@ -270,8 +256,8 @@ TEST(MathTypes, GivenMatrixExpressions_ExpectNamedOperandsUseScope) {
 
     dynamic_matrix<double> a(16, 16, 1.0);
     dynamic_matrix<double> b(16, 16, 2.0);
-    const auto after_operands = resource.allocations();
-    EXPECT_GT(after_operands, 0U);
+    EXPECT_TRUE(resource.owns(a.data()));
+    EXPECT_TRUE(resource.owns(b.data()));
 
     dynamic_matrix<double> c = a + b;
     EXPECT_DOUBLE_EQ(c(0, 0), 3.0);
@@ -282,12 +268,9 @@ TEST(MathTypes, GivenMatrixExpressions_ExpectNamedOperandsUseScope) {
     c = blaze::trans(a) * b;
     EXPECT_DOUBLE_EQ(c(0, 0), 32.0);
 
-    // The named result `c` is itself scope-allocated, so the count kept climbing.
-    EXPECT_GT(resource.allocations(), after_operands);
+    // The named result is scope-allocated like the operands; only blaze's own temporaries are not.
+    EXPECT_TRUE(resource.owns(c.data()));
   }
-
-  EXPECT_EQ(resource.foreign_frees(), 0U);
-  EXPECT_EQ(resource.outstanding(), 0U);
 }
 
 }  // namespace

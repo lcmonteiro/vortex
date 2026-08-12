@@ -6,11 +6,23 @@
 #define VORTEX_TESTS_FIXTURES_ARENA_MEMORY_RESOURCE_HPP
 
 #include <cstddef>
+#include <exception>
 #include <iterator>
 #include <memory_resource>
 #include <vector>
 
 namespace vortex::test {
+
+/// ===============================================================================================
+/// @brief Thrown when a block is released through an arena that never produced it.
+/// Carries a literal and nothing else, so reporting it cannot allocate.
+/// ===============================================================================================
+class foreign_deallocation : public std::exception {
+ public:
+  [[nodiscard]] auto what() const noexcept -> const char* override {
+    return "block released through an arena_memory_resource that did not allocate it";
+  }
+};
 
 /// ===============================================================================================
 /// @brief A monotonic memory resource that owns its storage.
@@ -22,8 +34,13 @@ namespace vortex::test {
 /// `memory_guard`.
 ///
 /// The buffer being a contiguous range the arena owns, its blocks are distinguishable by address
-/// alone: `foreign_frees()` counts pointers passed to `deallocate()` that it never produced, which
-/// is how a container releasing through the wrong resource shows up -- no side table needed.
+/// alone, so a container releasing through the wrong resource is caught outright rather than
+/// counted for someone to assert on afterwards.
+///
+/// @note That check throws from `deallocate`, which is reached from destructors -- blaze's
+/// container destructors, and `memory_scope_allocator::deallocate`, are `noexcept`. So a genuine
+/// mismatch terminates the process with the message above rather than unwinding. That is the loud
+/// failure it is meant to be, but it aborts the test binary instead of failing one assertion.
 /// ===============================================================================================
 class arena_memory_resource : public std::pmr::memory_resource {
  public:
@@ -31,16 +48,8 @@ class arena_memory_resource : public std::pmr::memory_resource {
 
   /// @param capacity Bytes to reserve from the heap. Exhausting it throws `std::bad_alloc`.
   explicit arena_memory_resource(std::size_t capacity = default_capacity)
-      : buffer_(capacity), arena_{buffer_.data(), buffer_.size(), std::pmr::null_memory_resource()} {}
-
-  /// @brief Blocks served.
-  [[nodiscard]] auto allocations() const noexcept -> std::size_t { return allocations_; }
-
-  /// @brief Blocks served and not yet handed back.
-  [[nodiscard]] auto outstanding() const noexcept -> std::size_t { return allocations_ - releases_; }
-
-  /// @brief Pointers released through this arena that it never produced.
-  [[nodiscard]] auto foreign_frees() const noexcept -> std::size_t { return foreign_frees_; }
+      : buffer_(capacity),
+        arena_{buffer_.data(), buffer_.size(), std::pmr::null_memory_resource()} {}
 
   /// @brief Whether @p p points into this arena's buffer.
   [[nodiscard]] auto owns(const void* const p) const noexcept -> bool {
@@ -50,19 +59,15 @@ class arena_memory_resource : public std::pmr::memory_resource {
 
  protected:
   auto do_allocate(std::size_t bytes, std::size_t alignment) -> void* override {
-    ++allocations_;
     return arena_.allocate(bytes, alignment);
   }
 
-  /// @brief Monotonic: nothing is reclaimed until the arena dies, so this only records. The pointer
-  /// is still checked, which is how a block released through the wrong resource shows up.
+  /// @brief Monotonic, so this reclaims nothing; it is here to reject a foreign block.
   auto do_deallocate(void* const p, std::size_t bytes, std::size_t alignment) -> void override {
-    if (owns(p)) {
-      ++releases_;
-      arena_.deallocate(p, bytes, alignment);
-    } else {
-      ++foreign_frees_;
+    if (not owns(p)) {
+      throw foreign_deallocation{};
     }
+    arena_.deallocate(p, bytes, alignment);
   }
 
   auto do_is_equal(const std::pmr::memory_resource& other) const noexcept -> bool override {
@@ -73,9 +78,6 @@ class arena_memory_resource : public std::pmr::memory_resource {
   std::vector<std::byte> buffer_;
   /// @brief Declared after the buffer, since it is constructed pointing into it.
   std::pmr::monotonic_buffer_resource arena_;
-  std::size_t allocations_{0};
-  std::size_t releases_{0};
-  std::size_t foreign_frees_{0};
 };
 
 }  // namespace vortex::test

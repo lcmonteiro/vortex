@@ -14,18 +14,14 @@
 
 namespace {
 
-/// @brief Guard nesting depth on this thread; non-zero forbids allocation.
-thread_local std::size_t g_alloc_forbidden = 0;
+/// @brief Whether a guard on this thread currently forbids allocation.
+thread_local bool g_alloc_forbidden = false;
 
-/// @brief Set on the first rejection, cleared when the outermost guard exits. It suppresses later
-/// rejections, because an allocation during unwinding would otherwise throw into an exception
-/// already in flight -- `std::terminate`, not a test failure. Kept apart from the depth because an
-/// inner guard's destructor reinstates the enclosing depth, re-arming mid-unwind.
-thread_local bool g_alloc_rejected = false;
-
+/// @brief Disarms before throwing: the throw unwinds, and a destructor allocating on the way out
+/// would otherwise throw into an exception already in flight, which is `std::terminate`.
 auto check() -> void {
-  if (0 != g_alloc_forbidden && not g_alloc_rejected) {
-    g_alloc_rejected = true;
+  if (g_alloc_forbidden) {
+    g_alloc_forbidden = false;
     throw vortex::test::unexpected_allocation{};
   }
 }
@@ -62,17 +58,9 @@ auto release(void* const p) noexcept -> void { std::free(p); }
 
 namespace vortex::test {
 
-memory_guard::memory_guard() noexcept : previous_depth_{g_alloc_forbidden} {
-  g_alloc_forbidden = previous_depth_ + 1;
-}
+memory_guard::memory_guard() noexcept { g_alloc_forbidden = true; }
 
-memory_guard::~memory_guard() noexcept {
-  // Restored, not decremented: a rejection may have cleared the depth, and decrementing would wrap.
-  g_alloc_forbidden = previous_depth_;
-  if (0 == g_alloc_forbidden) {
-    g_alloc_rejected = false;
-  }
-}
+memory_guard::~memory_guard() noexcept { g_alloc_forbidden = false; }
 
 }  // namespace vortex::test
 

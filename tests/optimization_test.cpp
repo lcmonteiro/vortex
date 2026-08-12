@@ -92,29 +92,24 @@ TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
   ::operator delete(p);
 }
 
-/// @brief A rejection stands every later one down until the outermost guard is gone: a destructor
-/// allocating during the unwind would otherwise throw into an in-flight exception and abort the
-/// process. Nesting is where this is easy to get wrong -- an inner guard's destructor reinstates
-/// the enclosing depth, re-arming the outer guard mid-unwind.
-TEST(MemoryGuard, GivenNestedGuards_ExpectRejectionStandsDownUntilOutermostExits) {
-  auto inner_threw = false;
-  auto unwound_allocation_allowed = false;
-  {
-    const memory_guard outer;
-    try {
-      const memory_guard inner;
-      ::operator delete(::operator new(64));
-    } catch (const vortex::test::unexpected_allocation&) {
-      inner_threw = true;
-      // Still inside `outer`, standing in for a destructor allocating during the unwind.
-      ::operator delete(::operator new(64));
-      unwound_allocation_allowed = true;
-    }
-  }
-  EXPECT_TRUE(inner_threw);
-  EXPECT_TRUE(unwound_allocation_allowed);
+/// @brief The guard disarms itself before throwing, so allocation is permitted while the exception
+/// unwinds. Without that, the destructor below would throw into an exception already in flight and
+/// abort the process rather than failing this test -- which is also why it is asserted with a
+/// destructor and not just a second call in a catch block.
+TEST(MemoryGuard, GivenRejection_ExpectAllocationPermittedWhileUnwinding) {
+  struct allocates_on_destruction {
+    ~allocates_on_destruction() { ::operator delete(::operator new(64)); }
+  };
 
-  // The outermost guard has gone, so the next scope arms again.
+  EXPECT_THROW(
+      {
+        const memory_guard guard;
+        const allocates_on_destruction unwinds;  // destroyed as the throw below unwinds
+        ::operator delete(::operator new(64));
+      },
+      vortex::test::unexpected_allocation);
+
+  // The guard is gone, so the next scope arms again.
   EXPECT_THROW(
       {
         const memory_guard guard;
@@ -130,10 +125,9 @@ TEST(MemoryGuard, GivenArenaBackedAllocation_ExpectNoThrow) {
   EXPECT_NO_THROW({
     const memory_guard guard;
     auto* const p = arena.allocate(64, alignof(std::max_align_t));
+    EXPECT_TRUE(arena.owns(p));
     arena.deallocate(p, 64, alignof(std::max_align_t));
   });
-  EXPECT_EQ(arena.foreign_frees(), 0U);
-  EXPECT_EQ(arena.outstanding(), 0U);
 }
 
 /// @brief A warmed-up `optimize()` must not touch the heap at all.

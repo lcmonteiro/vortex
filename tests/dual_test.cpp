@@ -7,15 +7,35 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <cstddef>
+#include <memory_resource>
 #include <type_traits>
 
 #include "helpers/memory.hpp"
-#include "tests/fixtures/arena_memory_resource.hpp"
 
 namespace {
 
 using vortex::dual::number;
 using Dual = number<double>;
+
+/// @brief Counts the blocks it serves, so a test can pin what one operation costs. Local to this
+/// file -- the shared arena fixture deliberately keeps no counters.
+class counting_resource : public std::pmr::memory_resource {
+ public:
+  std::size_t allocations{0};
+
+ protected:
+  auto do_allocate(std::size_t bytes, std::size_t alignment) -> void* override {
+    ++allocations;
+    return std::pmr::new_delete_resource()->allocate(bytes, alignment);
+  }
+  auto do_deallocate(void* p, std::size_t bytes, std::size_t alignment) -> void override {
+    std::pmr::new_delete_resource()->deallocate(p, bytes, alignment);
+  }
+  auto do_is_equal(const std::pmr::memory_resource& other) const noexcept -> bool override {
+    return this == &other;
+  }
+};
 
 TEST(DualNumber, ProductRule) {
   const auto x = Dual{3.0, 0};
@@ -99,14 +119,14 @@ TEST(DualNumber, JacobianMatchesNumeric) {
 /// just built should be adopted, not copied. Two allocations is that minimum; three means the
 /// mixed constructor overload stopped being selected and the vector is being copied as well.
 TEST(DualNumber, GivenUnaryOperation_ExpectDerivativeStorageAdoptedNotCopied) {
-  vortex::test::arena_memory_resource arena;
-  const vortex::helpers::memory_scope scope{&arena};
+  counting_resource resource;
+  const vortex::helpers::memory_scope scope{&resource};
 
   const auto x = Dual{2.0, 0};
 
-  const auto before = arena.allocations();
+  const auto before = resource.allocations;
   const auto y = std::sqrt(x);
-  const auto cost = arena.allocations() - before;
+  const auto cost = resource.allocations - before;
 
   // Guards against `sqrt` resolving to the scalar overload via number's implicit conversion,
   // which would make the count trivially zero.
