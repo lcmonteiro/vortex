@@ -46,18 +46,15 @@ struct number {
   /// @brief Default constructor creates a constant dual number with zero value and no derivatives.
   number() = default;
 
-  /// @brief Copies a dual number, drawing the copy's storage from the memory scope active now.
-  ///
-  /// A defaulted copy would not do that: `std::pmr::polymorphic_allocator` does not propagate on
-  /// copy construction -- `select_on_container_copy_construction` hands back a default-constructed
-  /// allocator -- so the copy would come from `std::pmr::get_default_resource()` and silently
-  /// bypass the arena the caller installed, however carefully the source was placed.
+  /// @brief Copies into storage from the scope active now. A defaulted copy would not:
+  /// `std::pmr::polymorphic_allocator` does not propagate on copy construction, so it would draw
+  /// from `std::pmr::get_default_resource()` and bypass the arena the caller installed.
   number(const number& other)
       : value_{other.value_},
         dindex_{other.dindex_, memory()},
         dvalue_{other.dvalue_, memory()} {}
 
-  /// @brief Moving steals the storage, so the result keeps the source's resource as-is.
+  /// @brief Unlike the copy above, a move keeps the source's resource along with its buffer.
   number(number&&) = default;
 
   /// @brief Constructs a constant dual number with a zero derivative.
@@ -109,11 +106,21 @@ struct number {
   auto size() const -> std::size_t { return std::size(dvalue_); }
 
  protected:
+  /// @brief Builds from existing derivative storage, for the operation bases.
+  ///
+  /// One overload per ownership combination, so each half is adopted when the caller is done with
+  /// it and copied only when it is not -- with a single set of copy/move arguments the mixed cases
+  /// would fall on the all-copy overload and copy a buffer that was about to be discarded. A copy
+  /// goes through `memory()`, since a plain one would draw from the default resource.
   number(const value_t& value, const dindex_t& dindex, const dvalue_t& dvalue)
       : value_{value}, dindex_{dindex, memory()}, dvalue_{dvalue, memory()} {}
 
-  /// @brief Adopts already-built derivative storage instead of copying it. The operation bases
-  /// construct these from `memory()`, so moving preserves both their contents and their resource.
+  number(const value_t& value, const dindex_t& dindex, dvalue_t&& dvalue)
+      : value_{value}, dindex_{dindex, memory()}, dvalue_{std::move(dvalue)} {}
+
+  number(const value_t& value, dindex_t&& dindex, const dvalue_t& dvalue)
+      : value_{value}, dindex_{std::move(dindex)}, dvalue_{dvalue, memory()} {}
+
   number(const value_t& value, dindex_t&& dindex, dvalue_t&& dvalue)
       : value_{value}, dindex_{std::move(dindex)}, dvalue_{std::move(dvalue)} {}
 

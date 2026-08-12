@@ -7,6 +7,10 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <type_traits>
+
+#include "helpers/memory.hpp"
+#include "tests/fixtures/arena_memory_resource.hpp"
 
 namespace {
 
@@ -89,6 +93,28 @@ TEST(DualNumber, JacobianMatchesNumeric) {
       EXPECT_NEAR(dual_out[row].dvalue(col), numeric, 1e-6) << "row=" << row << " col=" << col;
     }
   }
+}
+
+/// @brief A unary operation has to copy the operand's index list, but the derivative vector it
+/// just built should be adopted, not copied. Two allocations is that minimum; three means the
+/// mixed constructor overload stopped being selected and the vector is being copied as well.
+TEST(DualNumber, GivenUnaryOperation_ExpectDerivativeStorageAdoptedNotCopied) {
+  vortex::test::arena_memory_resource arena;
+  const vortex::helpers::memory_scope scope{&arena};
+
+  const auto x = Dual{2.0, 0};
+
+  const auto before = arena.allocations();
+  const auto y = std::sqrt(x);
+  const auto cost = arena.allocations() - before;
+
+  // Guards against `sqrt` resolving to the scalar overload via number's implicit conversion,
+  // which would make the count trivially zero.
+  static_assert(std::is_same_v<decltype(y), const Dual>);
+
+  EXPECT_EQ(cost, 2U);
+  EXPECT_DOUBLE_EQ(y.value(), std::sqrt(2.0));
+  EXPECT_DOUBLE_EQ(y.dvalue(0), 1.0 / (2.0 * std::sqrt(2.0)));
 }
 
 }  // namespace
