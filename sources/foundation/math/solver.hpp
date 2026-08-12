@@ -24,7 +24,8 @@ namespace vortex::math {
 /// Blaze's default allocator has no such dependency.
 ///
 /// Holding them across calls is the point: they grow on demand, so a repeated solve of the same
-/// size allocates nothing.
+/// size allocates nothing. `heap_allocator` states that independence explicitly, so it survives
+/// blaze's own default allocator being redirected (see VORTEX_BLAZE_SCOPED_ALLOCATOR).
 ///
 /// Routing them into the arena is worse than it looks anyway. The graph caps a block at
 /// `cache_block_max_size` (32 KiB) and the LDL^T workspace is sized `n * lda` -- 2 MiB at the
@@ -33,12 +34,16 @@ namespace vortex::math {
 /// every solve would consume another 2 MiB for the life of the graph.
 /// ===============================================================================================
 template <class Matrix>
-using factor_matrix = blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor>;
+using factor_matrix =
+    blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor,
+                         heap_allocator<blaze::ElementType_t<Matrix>>>;
 
 template <class Matrix>
-using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Matrix>>;
+using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Matrix>, blaze::columnVector,
+                                           heap_allocator<blaze::ElementType_t<Matrix>>>;
 
-using pivot_vector = blaze::DynamicVector<blaze::blas_int_t>;
+using pivot_vector = blaze::DynamicVector<blaze::blas_int_t, blaze::columnVector,
+                                          heap_allocator<blaze::blas_int_t>>;
 
 /// ===============================================================================================
 /// @brief Solves a symmetric indefinite system of linear equations using the Bunch-Kaufman LDL^T

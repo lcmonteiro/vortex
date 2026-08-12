@@ -8,11 +8,10 @@
 #include <blaze/util/typetraits/AlignmentOf.h>
 
 #include <cstddef>
-#include <cstring>
-#include <memory_resource>
+#include <new>
 #include <type_traits>
 
-#include "helpers/memory.hpp"
+#include "foundation/math/scoped_memory.hpp"
 
 namespace vortex::math {
 /// ===============================================================================================
@@ -33,11 +32,15 @@ namespace vortex::math {
 /// @warning A buffer from a scoped arena must be released before that arena dies, as for any
 /// arena-allocated object.
 ///
-/// @warning This covers containers the project declares, not blaze's expression temporaries.
-/// `DynamicMatrix`/`DynamicVector` hardwire `AllocatorType` to `AlignedAllocator` rather than
-/// reporting their own `Alloc` (still so on blaze 3.9.0), and `GetAllocator` -- which every
-/// arithmetic trait consults -- is an alias template and cannot be specialised, so result types
-/// always come back allocated by `AlignedAllocator`. math_types_test.cpp pins this.
+/// @warning By itself this covers containers the project declares, not blaze's expression
+/// temporaries. `DynamicMatrix`/`DynamicVector` hardwire `AllocatorType` to `AlignedAllocator`
+/// rather than reporting their own `Alloc` (still so on blaze 3.9.0), and `GetAllocator` -- which
+/// every arithmetic trait consults -- is an alias template and cannot be specialised, so result
+/// types always come back allocated by `AlignedAllocator`. math_types_test.cpp pins this.
+///
+/// Building with VORTEX_BLAZE_SCOPED_ALLOCATOR closes that gap from the other side, patching
+/// `AlignedAllocator` itself to draw from the scope. The result types are unchanged -- what
+/// changes is where `AlignedAllocator` gets its memory.
 /// ================================================================================================
 template <class Type>
 class memory_scope_allocator {
@@ -55,32 +58,15 @@ class memory_scope_allocator {
   memory_scope_allocator(const memory_scope_allocator<Other>& /*other*/) noexcept {}  // NOLINT
 
   /// @brief Allocates storage for n objects of Type from the scope active right now.
-  /// @param n Number of objects to allocate storage for.
-  /// @return Pointer to the allocated (uninitialized) storage, aligned as blaze requires.
   [[nodiscard]]
   auto allocate(std::size_t n) -> Type* {
-    auto* const resource = helpers::memory_scope::get_resource();
-    auto* const base = static_cast<std::byte*>(resource->allocate(bytes(n), kAlignment));
-    auto* const block = base + kOffset;
-    // Record the owner, so `deallocate` releases through it whichever allocator instance -- and
-    // whichever scope -- happens to be current by then.
-    std::memcpy(block - sizeof(owner_type), &resource, sizeof(owner_type));
-    return reinterpret_cast<Type*>(block);
+    return static_cast<Type*>(scoped_allocate(n * sizeof(Type), kAlignment));
   }
 
-  /// @brief Deallocates storage previously obtained from `allocate`, through the resource recorded
-  /// with the block.
-  /// @param p Pointer previously returned by `allocate` (may be null).
-  /// @param n Number of objects originally requested (must match the `allocate` call).
+  /// @brief Releases storage through the resource recorded with the block. Blaze destroys
+  /// default-constructed containers by deallocating a null buffer, which is a no-op here.
   auto deallocate(Type* p, std::size_t n) noexcept -> void {
-    // Blaze destroys default-constructed containers by deallocating a null buffer.
-    if (nullptr == p) {
-      return;
-    }
-    auto* const block = reinterpret_cast<std::byte*>(p);
-    auto owner = owner_type{};
-    std::memcpy(&owner, block - sizeof(owner_type), sizeof(owner_type));
-    owner->deallocate(block - kOffset, bytes(n), kAlignment);
+    scoped_deallocate(p, n * sizeof(Type), kAlignment);
   }
 
   friend auto operator==(const memory_scope_allocator&, const memory_scope_allocator&) noexcept
@@ -89,30 +75,45 @@ class memory_scope_allocator {
   }
 
  private:
-  using owner_type = std::pmr::memory_resource*;
+  /// @brief Blaze rejects a buffer whose address is not a multiple of `AlignmentOf_v`, the SIMD
+  /// alignment for the active instruction set.
+  static constexpr std::size_t kAlignment = blaze::AlignmentOf_v<Type>;
+};
 
-  /// @brief Blaze rejects a buffer whose address is not a multiple of `AlignmentOf_v` -- the SIMD
-  /// alignment for the active instruction set -- and the header must itself land on a suitably
-  /// aligned address, so honour whichever is stricter. Both are powers of two, so the larger is a
-  /// multiple of the smaller and satisfies each.
-  static constexpr std::size_t kAlignment = blaze::AlignmentOf_v<Type> > alignof(owner_type)
-                                                ? blaze::AlignmentOf_v<Type>
-                                                : alignof(owner_type);
+/// ===============================================================================================
+/// @brief Allocator that always takes from the process heap, whatever scope is active.
+///
+/// For storage that outlives the scope it was created in -- the solvers' `thread_local` LAPACK
+/// workspaces -- where drawing from an arena would mean releasing through it long after it died.
+/// Blaze's own default allocator does this too, but only while it is unpatched; naming it here
+/// says the choice is deliberate rather than inherited.
+/// ================================================================================================
+template <class Type>
+class heap_allocator {
+ public:
+  using value_type = Type;
+  using is_always_equal = std::true_type;
 
-  static_assert(kAlignment % blaze::AlignmentOf_v<Type> == 0,
-                "blocks must satisfy blaze's SIMD alignment requirement");
+  heap_allocator() noexcept = default;
 
-  /// @brief Distance from the base of the allocation to the block handed out. Being a multiple of
-  /// kAlignment it keeps the returned pointer aligned, while leaving room for the header.
-  static constexpr std::size_t kOffset = kAlignment;
+  template <class Other>
+  heap_allocator(const heap_allocator<Other>& /*other*/) noexcept {}  // NOLINT
 
-  static_assert(kOffset >= sizeof(owner_type), "header must fit between the base and the block");
-
-  /// @brief Total bytes backing n objects, header included. Recomputed identically on release so
-  /// the resource always sees the size/alignment pair it was given.
-  static constexpr auto bytes(std::size_t n) noexcept -> std::size_t {
-    return kOffset + (n * sizeof(Type));
+  [[nodiscard]]
+  auto allocate(std::size_t n) -> Type* {
+    return static_cast<Type*>(::operator new(n * sizeof(Type), kAlignment));
   }
+
+  auto deallocate(Type* p, std::size_t n) noexcept -> void {
+    ::operator delete(p, n * sizeof(Type), kAlignment);
+  }
+
+  friend auto operator==(const heap_allocator&, const heap_allocator&) noexcept -> bool {
+    return true;
+  }
+
+ private:
+  static constexpr auto kAlignment = std::align_val_t{blaze::AlignmentOf_v<Type>};
 };
 
 }  // namespace vortex::math

@@ -15,16 +15,33 @@ endif()
 
 option(VORTEX_BUILD_TESTS "Build vortex tests" ON)
 
+# Routes blaze's AlignedAllocator -- and with it every expression temporary blaze materialises --
+# through vortex's active helpers::memory_scope, by patching one blaze header at fetch time.
+# Off by default: it is the only thing here that modifies a dependency, and blaze cannot be
+# retargeted from the project side (see sources/foundation/math/types.hpp).
+option(VORTEX_BLAZE_SCOPED_ALLOCATOR
+       "Patch blaze so its AlignedAllocator draws from the active memory_scope" OFF)
+
 include(FetchContent)
 
 # ---------------------------------------------------------------------------
 # Blaze (linear algebra backend, header-only)
 # ---------------------------------------------------------------------------
+if(VORTEX_BLAZE_SCOPED_ALLOCATOR)
+  set(VORTEX_BLAZE_PATCH ${CMAKE_CURRENT_SOURCE_DIR}/patches/blaze-scoped-allocator.patch)
+  # Re-applying a patch fails, and FetchContent re-runs this on some reconfigures, so skip when
+  # the reverse patch applies cleanly -- that only holds once it is already in place.
+  set(VORTEX_BLAZE_PATCH_COMMAND
+      PATCH_COMMAND sh -c
+      "git apply --reverse --check '${VORTEX_BLAZE_PATCH}' 2>/dev/null || git apply '${VORTEX_BLAZE_PATCH}'")
+endif()
+
 FetchContent_Declare(
   blaze
   GIT_REPOSITORY https://bitbucket.org/blaze-lib/blaze.git
   GIT_TAG v3.8.2
   GIT_SHALLOW TRUE
+  ${VORTEX_BLAZE_PATCH_COMMAND}
   # Blaze's own CMake pulls in extra tooling and we only need the headers.
   # Pointing SOURCE_SUBDIR at a non-existent directory makes
   # FetchContent_MakeAvailable download/populate Blaze without configuring it.
@@ -54,11 +71,14 @@ endif()
 # ---------------------------------------------------------------------------
 # vortex library
 # ---------------------------------------------------------------------------
-add_library(vortex STATIC sources/vortex.cpp)
+add_library(vortex STATIC sources/vortex.cpp sources/foundation/math/scoped_memory.cpp)
 target_compile_features(vortex PUBLIC cxx_std_20)
 target_include_directories(vortex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/sources)
 target_include_directories(vortex SYSTEM PUBLIC ${blaze_SOURCE_DIR})
 target_link_libraries(vortex PUBLIC ${LAPACK_LIB} ${BLAS_LIB})
+if(VORTEX_BLAZE_SCOPED_ALLOCATOR)
+  target_compile_definitions(vortex PUBLIC VORTEX_BLAZE_SCOPED_ALLOCATOR)
+endif()
 add_library(vortex::vortex ALIAS vortex)
 
 # ---------------------------------------------------------------------------

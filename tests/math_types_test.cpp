@@ -230,6 +230,22 @@ static_assert(std::is_same_v<blaze::AddTrait_t<dynamic_matrix<double>, dynamic_m
                                                   blaze::AlignedAllocator<double>>>,
               "blaze still drops the custom allocator from A + B");
 
+#ifdef VORTEX_BLAZE_SCOPED_ALLOCATOR
+/// @brief With the patch applied, a plain blaze type -- no vortex alias, no explicit allocator --
+/// draws from the active scope. That is the whole point of patching, and the one thing no
+/// project-side alias can achieve.
+TEST(MathTypes, GivenPatchedBlaze_ExpectPlainContainersUseActiveScope) {
+  arena_memory_resource resource;
+  const memory_scope scope{&resource};
+
+  const blaze::DynamicMatrix<double> m(8, 8, 1.0);
+  const blaze::DynamicVector<double> v(8, 1.0);
+
+  EXPECT_TRUE(resource.owns(m.data()));
+  EXPECT_TRUE(resource.owns(v.data()));
+}
+#endif
+
 /// @brief Buffers must satisfy blaze's SIMD alignment, which it checks via `checkAlignment` on
 /// every allocation and reports as a bad_alloc when violated.
 TEST(MathTypes, GivenAllocatedContainers_ExpectBlazeSimdAlignment) {
