@@ -30,17 +30,13 @@ using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 /// ===============================================================================================
 /// @brief Dynamically-sized blaze containers defaulted onto `memory_scope_allocator`.
 ///
-/// These are the project's spelling of `blaze::DynamicMatrix`/`blaze::DynamicVector`. `Alloc` is a
-/// default rather than a fixed argument so an explicit one is still honoured --
-/// `dynamic_matrix<double, column_major, blaze::AlignedAllocator<double>>` opts back out -- and
-/// `SO`/`TF` mirror the fixed-size aliases above. Blaze's fourth parameter, the group tag, is left
-/// alone: it exists to make quantities from different groups fail to combine, which the project
-/// does not use, and omitting it selects the same `Group0` that spelling it would.
+/// The project's spelling of `blaze::DynamicMatrix`/`blaze::DynamicVector`. `Alloc` is a default
+/// rather than a fixed argument so an explicit one is still honoured; blaze's group tag is left
+/// alone, since omitting it selects the same `Group0` that spelling it would.
 ///
-/// @note The default argument of `blaze::DynamicMatrix` itself cannot be retargeted from here:
-/// [temp.param]/12 forbids giving a template parameter default arguments in two declarations, and
-/// blaze exposes no configuration hook for it. Writing `blaze::DynamicMatrix<double>` therefore
-/// still selects `blaze::AlignedAllocator`, so prefer these aliases throughout the project.
+/// @note `blaze::DynamicMatrix`'s own default cannot be retargeted from here -- [temp.param]/12
+/// forbids a second default argument, and blaze has no configuration hook -- so
+/// `blaze::DynamicMatrix<double>` still selects `AlignedAllocator`. Prefer these aliases.
 /// ===============================================================================================
 template <class Type, bool SO = column_major, class Alloc = memory_scope_allocator<Type>>
 using dynamic_matrix = blaze::DynamicMatrix<Type, SO, Alloc>;

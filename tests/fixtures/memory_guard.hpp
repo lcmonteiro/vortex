@@ -21,27 +21,23 @@ class unexpected_allocation : public std::bad_alloc {
 };
 
 /// ===============================================================================================
-/// @brief Forbids heap allocation while in scope, throwing at the offending allocation itself so a
-/// stack trace points at it.
+/// @brief Forbids heap allocation while in scope, throwing at the offending allocation so a stack
+/// trace points at it.
 ///
 /// The test binary replaces every form of the global `operator new`, so this covers raw `new`,
-/// standard containers, and any `std::pmr` resource over `std::pmr::new_delete_resource`. A
-/// resource owning its storage (`arena_memory_resource`) never reaches `operator new` and stays
-/// allowed: the work under test can still get memory, just not from the heap.
+/// standard containers, and any `std::pmr` resource over `new_delete_resource`. A resource owning
+/// its storage (`arena_memory_resource`) never reaches `operator new` and stays allowed.
 ///
-/// Only the first allocation is reported. The guard disarms itself before throwing, because the
-/// throw unwinds and a destructor allocating on the way out would otherwise throw into an
-/// exception already in flight -- `std::terminate`, not a test failure.
+/// Only the first allocation is reported: the guard disarms before throwing, since a destructor
+/// allocating during the unwind would throw into an exception in flight -- `std::terminate`.
 ///
-/// @note Not nestable, and arming is per-thread: the flag is plain on/off, so an inner guard's
-/// destructor disarms an enclosing one. One guard per scope under test.
+/// @note Not nestable. The flag is plain on/off, so an inner guard's destructor disarms an
+/// enclosing one. Arming is per-thread. The `nothrow` forms return `nullptr` instead of throwing.
 ///
-/// @note `blaze::AlignedAllocator` splits on `AlignmentOf_v<T>`: 8 or above reaches
-/// `posix_memalign` and is invisible here, below it calls `operator new[]` and is caught. Under
-/// SSE2 every vectorizable type reports 16 and slips past; an unvectorized build reports plain
-/// `alignof`, leaving only `double` outside -- and blaze 3.8.2 has no NEON, so that is aarch64.
-///
-/// The `nothrow` forms cannot throw and return `nullptr` instead.
+/// @note `blaze::AlignedAllocator` is only partly covered: it reaches `posix_memalign` when
+/// `AlignmentOf_v<T>` is 8 or more and `operator new[]` below that. Under SSE2 every vectorizable
+/// type reports 16 and slips past; unvectorized builds (aarch64, blaze 3.8.2 having no NEON)
+/// report plain `alignof`, leaving only `double` outside.
 /// ===============================================================================================
 class memory_guard {
  public:

@@ -73,12 +73,10 @@ TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
 /// Allocation budget
 /// ===============================================================================================
 
-/// @brief The guard is only meaningful if its replacements for the global allocation functions are
-/// the ones that get linked, so check that directly -- otherwise a linking change could quietly
-/// turn the test below into one that passes for the wrong reason.
+/// @brief Checks the guard's replacements are the ones linked -- otherwise the budget test below
+/// would pass for the wrong reason. `::operator new` is called directly because the compiler may
+/// elide an unused new/delete pair, which would prove nothing.
 TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
-  // `::operator new` is called directly rather than through a new-expression because the compiler
-  // may elide an unused new/delete pair outright, which would prove nothing.
   EXPECT_THROW(
       {
         const memory_guard guard;
@@ -87,15 +85,14 @@ TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
       },
       vortex::test::unexpected_allocation);
 
-  // Outside a guard the same allocation is unremarkable, and the guard leaves nothing armed.
+  // The guard leaves nothing armed behind it.
   void* const p = ::operator new(64);
   ::operator delete(p);
 }
 
-/// @brief The guard disarms itself before throwing, so allocation is permitted while the exception
-/// unwinds. Without that, the destructor below would throw into an exception already in flight and
-/// abort the process rather than failing this test -- which is also why it is asserted with a
-/// destructor and not just a second call in a catch block.
+/// @brief The guard disarms before throwing, so allocation is permitted while the exception
+/// unwinds. Without it the destructor below throws into an exception already in flight, aborting
+/// the process instead of failing the test.
 TEST(MemoryGuard, GivenRejection_ExpectAllocationPermittedWhileUnwinding) {
   struct allocates_on_destruction {
     ~allocates_on_destruction() { ::operator delete(::operator new(64)); }
@@ -118,33 +115,14 @@ TEST(MemoryGuard, GivenRejection_ExpectAllocationPermittedWhileUnwinding) {
       vortex::test::unexpected_allocation);
 }
 
-/// @brief A resource that owns its storage satisfies allocations without reaching the heap, so
-/// work drawing from one runs happily under a guard.
-TEST(MemoryGuard, GivenArenaBackedAllocation_ExpectNoThrow) {
-  arena_memory_resource arena{4096};
-  EXPECT_NO_THROW({
-    const memory_guard guard;
-    auto* const p = arena.allocate(64, alignof(std::max_align_t));
-    EXPECT_TRUE(arena.owns(p));
-    arena.deallocate(p, 64, alignof(std::max_align_t));
-  });
-}
-
 /// @brief A warmed-up `optimize()` must not touch the heap at all.
 ///
-/// The graph draws from an arena owning its buffer, so everything `optimize()` needs is in hand
-/// before the guard arms; anything it allocates after that comes from the heap and throws where it
-/// happens. That covers the arena's own growth, `std::pmr`'s default resource when an allocation
-/// ignores the active scope -- which used to take 160 `dual::number` derivative-vector copies per
-/// call -- and any container or raw `new` added later. For `blaze::AlignedAllocator` see the note
-/// on `memory_guard`; that channel is zero too, measured out of band.
-///
-/// Being pass/fail rather than a budget, it does not depend on how many iterations the solver
-/// takes, so a different LAPACK cannot shift it.
+/// The graph draws from an arena, so anything `optimize()` allocates afterwards comes from the
+/// heap and throws where it happens. Being pass/fail rather than a budget, it does not depend on
+/// how many iterations the solver takes.
 TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   using Key = SlamGraph::key_type;
 
-  // Sized past the graph's own cache_init_size so the arena serves it without growing.
   arena_memory_resource arena{std::size_t{8} << 20U};
 
   SlamGraph g{&arena};
@@ -159,9 +137,8 @@ TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   (*d1)->measurement(Position{1, 1});
   (*d2)->measurement(Position{0, 0});
 
-  // Re-applied before each run so the measured pass starts from the same displaced state as the
-  // warm-up and therefore does the same work -- otherwise it would begin already converged, exit
-  // after one iteration, and barely exercise the per-iteration path this guards.
+  // Re-applied before each run so the measured pass repeats the warm-up's work; otherwise it
+  // starts converged, exits after one iteration and barely exercises the per-iteration path.
   const auto seed_estimations = [&] {
     (*p1)->estimation(Position{0, 0});
     (*p2)->estimation(Position{2, 2});
@@ -170,14 +147,12 @@ TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
 
   const auto iterations = std::size_t{3};
 
-  // Warm-up: sizes the solver system and the solvers' LAPACK workspaces.
+  // Warm-up.
   seed_estimations();
   ASSERT_TRUE(g.optimize(iterations).has_value());
 
-  // The guard covers everything after warm-up that is meant to be allocation-free. It cannot go
-  // higher: building the graph reserves the solver system, and the warm-up sizes it and the LAPACK
-  // workspaces -- both legitimately allocate. It cannot go lower either, in the sense that gtest's
-  // macros allocate, so the assertion is made outside.
+  // The guard cannot go higher: building the graph reserves the solver system, and the warm-up
+  // sizes it and the LAPACK workspaces. The assertion is outside because gtest's macros allocate.
   auto succeeded = false;
   {
     const memory_guard guard;

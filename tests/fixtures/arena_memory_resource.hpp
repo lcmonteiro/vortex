@@ -14,8 +14,8 @@
 namespace vortex::test {
 
 /// ===============================================================================================
-/// @brief Thrown when a block is released through an arena that never produced it.
-/// Carries a literal and nothing else, so reporting it cannot allocate.
+/// @brief Thrown when a block is released through an arena that never produced it. Carries a
+/// literal, so reporting it cannot allocate.
 /// ===============================================================================================
 class foreign_deallocation : public std::exception {
  public:
@@ -27,20 +27,17 @@ class foreign_deallocation : public std::exception {
 /// ===============================================================================================
 /// @brief A monotonic memory resource that owns its storage.
 ///
-/// One `std::vector` buffer taken from the heap up front, handed to a
-/// `std::pmr::monotonic_buffer_resource` that bumps a pointer through it. Upstream is
-/// `null_memory_resource`, so the arena never reaches the heap again -- it serves from the buffer
-/// and throws `std::bad_alloc` once that is spent. Which is what makes it usable under
-/// `memory_guard`.
+/// One `std::vector` buffer from the heap up front, handed to a
+/// `std::pmr::monotonic_buffer_resource` over `null_memory_resource`, so the arena never reaches
+/// the heap again -- it serves from the buffer and throws once that is spent. Which is what makes
+/// it usable under `memory_guard`.
 ///
-/// The buffer being a contiguous range the arena owns, its blocks are distinguishable by address
-/// alone, so a container releasing through the wrong resource is caught outright rather than
-/// counted for someone to assert on afterwards.
+/// Its blocks are a contiguous range it owns, so a container releasing through the wrong resource
+/// is caught by address rather than counted for someone to assert on afterwards.
 ///
-/// @note That check throws from `deallocate`, which is reached from destructors -- blaze's
-/// container destructors, and `memory_scope_allocator::deallocate`, are `noexcept`. So a genuine
-/// mismatch terminates the process with the message above rather than unwinding. That is the loud
-/// failure it is meant to be, but it aborts the test binary instead of failing one assertion.
+/// @note That check throws from `deallocate`, reached from `noexcept` destructors, so a genuine
+/// mismatch terminates the process with the message above instead of unwinding. Loud, as intended,
+/// but it aborts the test binary rather than failing one assertion.
 /// ===============================================================================================
 class arena_memory_resource : public std::pmr::memory_resource {
  public:
@@ -76,8 +73,7 @@ class arena_memory_resource : public std::pmr::memory_resource {
 
  private:
   std::vector<std::byte> buffer_;
-  /// @brief Declared after the buffer, since it is constructed pointing into it.
-  std::pmr::monotonic_buffer_resource arena_;
+  std::pmr::monotonic_buffer_resource arena_;  // after buffer_: constructed pointing into it
 };
 
 }  // namespace vortex::test

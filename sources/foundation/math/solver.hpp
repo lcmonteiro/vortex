@@ -14,24 +14,17 @@
 namespace vortex::math {
 
 /// ===============================================================================================
-/// @brief Types of the scratch buffers the solvers below hand to LAPACK.
+/// @brief Types of the scratch buffers the solvers hand to LAPACK.
 ///
-/// `Matrix` already carries the element type and storage order, and these take both from it. What
-/// they deliberately drop is its allocator: `Matrix` is the caller's type, so it is
-/// `memory_scope_allocator`, and these buffers live in `thread_local` storage. Declaring them as
-/// `Matrix` would let a `thread_local` hold a block of whatever arena happened to be active during
-/// some earlier solve, and release it through that arena at thread exit -- long after it died.
-/// Blaze's default allocator has no such dependency.
+/// Element type and storage order come from `Matrix`; its allocator deliberately does not. These
+/// live in `thread_local` storage, so declaring them `Matrix` -- which is the caller's type, hence
+/// `memory_scope_allocator` -- would let them hold a block of an arena from some earlier solve and
+/// release it through that arena at thread exit, long after it died. `heap_allocator` says that
+/// independence explicitly, so it survives VORTEX_BLAZE_SCOPED_ALLOCATOR redirecting blaze's own.
 ///
 /// Holding them across calls is the point: they grow on demand, so a repeated solve of the same
-/// size allocates nothing. `heap_allocator` states that independence explicitly, so it survives
-/// blaze's own default allocator being redirected (see VORTEX_BLAZE_SCOPED_ALLOCATOR).
-///
-/// Routing them into the arena is worse than it looks anyway. The graph caps a block at
-/// `cache_block_max_size` (32 KiB) and the LDL^T workspace is sized `n * lda` -- 2 MiB at the
-/// default `system_capacity` of 512. That trips the bounded resource's precondition in debug, and
-/// in release the pool forwards oversized blocks to the monotonic buffer, which never reuses them:
-/// every solve would consume another 2 MiB for the life of the graph.
+/// size allocates nothing. Routing them into the arena would be worse anyway -- the graph caps a
+/// block at 32 KiB and the LDL^T workspace is `n * lda`, 2 MiB at the default `system_capacity`.
 /// ===============================================================================================
 template <class Matrix>
 using factor_matrix =
@@ -81,8 +74,7 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   blaze::resize(x, numeric_cast<std::size_t>(n));
   blaze::smpAssign(x, b);
 
-  // `resize` only reallocates when growing, so these settle at the largest system seen on this
-  // thread. Neither is read before LAPACK fills it, so there is nothing to preserve.
+  // `resize` only reallocates when growing, and LAPACK fills both, so nothing to preserve.
   ipiv.resize(numeric_cast<std::size_t>(n), false);
   work.resize(numeric_cast<std::size_t>(lwork), false);
 

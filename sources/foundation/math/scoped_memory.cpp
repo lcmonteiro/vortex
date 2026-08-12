@@ -16,14 +16,13 @@ namespace {
 
 using owner_type = std::pmr::memory_resource*;
 
-/// @brief Alignment actually requested. The header sits immediately before the block, so the block
-/// must be at least pointer-aligned even when the caller asks for less.
+/// @brief The header sits immediately before the block, so the block must be at least
+/// pointer-aligned even when the caller asks for less.
 constexpr auto width_of(std::size_t alignment) noexcept -> std::size_t {
   return alignment < alignof(owner_type) ? alignof(owner_type) : alignment;
 }
 
-/// @brief Distance from the base of the allocation to the block. The smallest multiple of the
-/// width that still leaves room for the header, so the block stays aligned.
+/// @brief Smallest multiple of the width leaving room for the header, so the block stays aligned.
 constexpr auto offset_of(std::size_t width) noexcept -> std::size_t {
   return ((sizeof(owner_type) + width - 1U) / width) * width;
 }
