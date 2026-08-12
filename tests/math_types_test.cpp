@@ -207,21 +207,21 @@ TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
 /// Allocator wiring: what the project's aliases guarantee, and where blaze's own limits start.
 /// ===============================================================================================
 
-/// @brief The aliases default onto memory_scope_allocator...
+/// @brief The aliases default onto memory_scope_allocator, so `dynamic_matrix<double>` names
+/// exactly the type the arguments spell out -- the parameters are there to be overridden, not to
+/// change what the default resolves to.
 static_assert(std::is_same_v<dynamic_matrix<double>,
                              blaze::DynamicMatrix<double, vortex::math::column_major,
-                                                  vortex::math::memory_scope_allocator<double>,
-                                                  blaze::Group0>>);
+                                                  vortex::math::memory_scope_allocator<double>>>);
 static_assert(std::is_same_v<dynamic_vector<double>,
                              blaze::DynamicVector<double, vortex::math::column_vector,
-                                                  vortex::math::memory_scope_allocator<double>,
-                                                  blaze::Group0>>);
+                                                  vortex::math::memory_scope_allocator<double>>>);
 
 /// @brief ...while an explicitly supplied allocator is still honoured.
 static_assert(std::is_same_v<
               dynamic_matrix<double, vortex::math::column_major, blaze::AlignedAllocator<double>>,
               blaze::DynamicMatrix<double, vortex::math::column_major,
-                                   blaze::AlignedAllocator<double>, blaze::Group0>>);
+                                   blaze::AlignedAllocator<double>>>);
 
 /// @brief Blaze's own spelling is unaffected -- its default template argument cannot be
 /// retargeted from outside the library ([temp.param]/12 forbids a second default argument).
@@ -237,11 +237,11 @@ static_assert(std::is_same_v<blaze::GetAllocator_t<dynamic_matrix<double>>,
               "blaze still reports AlignedAllocator for a custom-allocator matrix");
 static_assert(std::is_same_v<blaze::MultTrait_t<dynamic_matrix<double>, dynamic_matrix<double>>,
                              blaze::DynamicMatrix<double, vortex::math::column_major,
-                                                  blaze::AlignedAllocator<double>, blaze::Group0>>,
+                                                  blaze::AlignedAllocator<double>>>,
               "blaze still drops the custom allocator from A * B");
 static_assert(std::is_same_v<blaze::AddTrait_t<dynamic_matrix<double>, dynamic_matrix<double>>,
                              blaze::DynamicMatrix<double, vortex::math::column_major,
-                                                  blaze::AlignedAllocator<double>, blaze::Group0>>,
+                                                  blaze::AlignedAllocator<double>>>,
               "blaze still drops the custom allocator from A + B");
 
 /// @brief Buffers must satisfy blaze's SIMD alignment, which it checks via `checkAlignment` on

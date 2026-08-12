@@ -30,25 +30,26 @@ using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 /// ===============================================================================================
 /// @brief Dynamically-sized blaze containers defaulted onto `memory_scope_allocator`.
 ///
-/// These are the project's spelling of `blaze::DynamicMatrix`/`blaze::DynamicVector`. The
-/// allocator is the *default* rather than a fixed argument, so an explicit one is still honoured:
-/// `dynamic_matrix<double, column_major, blaze::AlignedAllocator<double>>` opts back out.
+/// These are the project's spelling of `blaze::DynamicMatrix`/`blaze::DynamicVector`. `Alloc` is a
+/// default rather than a fixed argument so an explicit one is still honoured --
+/// `dynamic_matrix<double, column_major, blaze::AlignedAllocator<double>>` opts back out -- and
+/// `SO`/`TF` mirror the fixed-size aliases above. Blaze's fourth parameter, the group tag, is left
+/// alone: it exists to make quantities from different groups fail to combine, which the project
+/// does not use, and omitting it selects the same `Group0` that spelling it would.
 ///
 /// @note The default argument of `blaze::DynamicMatrix` itself cannot be retargeted from here:
 /// [temp.param]/12 forbids giving a template parameter default arguments in two declarations, and
 /// blaze exposes no configuration hook for it. Writing `blaze::DynamicMatrix<double>` therefore
 /// still selects `blaze::AlignedAllocator`, so prefer these aliases throughout the project.
 /// ===============================================================================================
-template <class Type, bool SO = column_major, class Alloc = memory_scope_allocator<Type>,
-          class Tag = blaze::Group0>
-using dynamic_matrix = blaze::DynamicMatrix<Type, SO, Alloc, Tag>;
+template <class Type, bool SO = column_major, class Alloc = memory_scope_allocator<Type>>
+using dynamic_matrix = blaze::DynamicMatrix<Type, SO, Alloc>;
 
 template <class Type, bool SO = column_major>
 using identity_matrix = blaze::IdentityMatrix<Type, SO>;
 
-template <class Type, bool TF = column_vector, class Alloc = memory_scope_allocator<Type>,
-          class Tag = blaze::Group0>
-using dynamic_vector = blaze::DynamicVector<Type, TF, Alloc, Tag>;
+template <class Type, bool TF = column_vector, class Alloc = memory_scope_allocator<Type>>
+using dynamic_vector = blaze::DynamicVector<Type, TF, Alloc>;
 
 template <class Type, std::size_t Size, bool TF = column_vector>
 using static_vector = blaze::StaticVector<Type, Size, TF>;
