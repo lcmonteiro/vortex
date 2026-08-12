@@ -16,10 +16,15 @@ namespace vortex::math {
 /// ===============================================================================================
 /// @brief Types of the scratch buffers the solvers below hand to LAPACK.
 ///
-/// They live in `thread_local` storage and grow on demand, so a repeated solve of the same size
-/// allocates nothing. That makes them outlive any `memory_scope`, which is why they use blaze's
-/// default allocator: a buffer drawn from the caller's arena would be released through it long
-/// after the arena was destroyed.
+/// `Matrix` already carries the element type and storage order, and these take both from it. What
+/// they deliberately drop is its allocator: `Matrix` is the caller's type, so it is
+/// `memory_scope_allocator`, and these buffers live in `thread_local` storage. Declaring them as
+/// `Matrix` would let a `thread_local` hold a block of whatever arena happened to be active during
+/// some earlier solve, and release it through that arena at thread exit -- long after it died.
+/// Blaze's default allocator has no such dependency.
+///
+/// Holding them across calls is the point: they grow on demand, so a repeated solve of the same
+/// size allocates nothing.
 ///
 /// Routing them into the arena is worse than it looks anyway. The graph caps a block at
 /// `cache_block_max_size` (32 KiB) and the LDL^T workspace is sized `n * lda` -- 2 MiB at the

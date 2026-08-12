@@ -20,16 +20,15 @@ namespace vortex::math {
 /// dynamically-sized blaze matrices/vectors are allocated from the same scoped resource as the
 /// rest of vortex (e.g. `vortex::dual::number`), instead of blaze's default global allocator.
 ///
-/// @note Blaze does not treat the allocator as part of a container's value: move construction
-/// leaves `alloc_` default-constructed, move assignment keeps the destination's, and
-/// `resize()`/`reserve()`/`swap()` exchange the buffer via `std::swap` while each object keeps its
-/// own. A naive stateful allocator therefore releases buffers through the wrong resource whenever
-/// one of those straddles a `memory_scope` boundary.
+/// Two rules, and no state: a block is taken from the scope active at the moment it is allocated,
+/// and released through the resource recorded with it.
 ///
-/// So ownership travels with the buffer, not the allocator: `allocate` records the owning resource
-/// in a header just before the block and `deallocate` releases through it. That makes deallocation
-/// independent of which instance performs it -- hence `is_always_equal`. The captured resource
-/// still decides where *new* allocations come from.
+/// @note The recording is what makes this correct. Blaze does not treat the allocator as part of a
+/// container's value -- move construction leaves `alloc_` default-constructed, move assignment
+/// keeps the destination's, and `resize()`/`reserve()`/`swap()` exchange the buffer via
+/// `std::swap` while each object keeps its own -- so a buffer routinely ends up owned by a
+/// container whose allocator never produced it. Storing the resource in a header just before the
+/// block sidesteps all of that: any instance can release any block, hence `is_always_equal`.
 ///
 /// @warning A buffer from a scoped arena must be released before that arena dies, as for any
 /// arena-allocated object.
@@ -45,33 +44,32 @@ class memory_scope_allocator {
  public:
   using value_type = Type;
 
-  /// @brief Ownership travels with the buffer, so any instance can release any block.
+  /// @brief Stateless, and ownership travels with the buffer, so any instance can release any
+  /// block.
   using is_always_equal = std::true_type;
 
-  /// @brief Constructs the allocator, capturing the resource active on this thread right now.
-  memory_scope_allocator() noexcept : resource_{helpers::memory_scope::get_resource()} {}
+  memory_scope_allocator() noexcept = default;
 
   /// @brief Rebind-style converting constructor, required by std::allocator_traits.
-  /// @param other The allocator to copy the captured resource from.
   template <class Other>
-  memory_scope_allocator(const memory_scope_allocator<Other>& other) noexcept  // NOLINT
-      : resource_{other.resource()} {}
+  memory_scope_allocator(const memory_scope_allocator<Other>& /*other*/) noexcept {}  // NOLINT
 
-  /// @brief Allocates storage for n objects of Type from the captured resource.
+  /// @brief Allocates storage for n objects of Type from the scope active right now.
   /// @param n Number of objects to allocate storage for.
   /// @return Pointer to the allocated (uninitialized) storage, aligned as blaze requires.
   [[nodiscard]]
   auto allocate(std::size_t n) -> Type* {
-    auto* const base = static_cast<std::byte*>(resource_->allocate(bytes(n), kAlignment));
+    auto* const resource = helpers::memory_scope::get_resource();
+    auto* const base = static_cast<std::byte*>(resource->allocate(bytes(n), kAlignment));
     auto* const block = base + kOffset;
-    // Record the owning resource so `deallocate` can release the block through it, whichever
-    // allocator instance happens to own the container by then.
-    std::memcpy(block - sizeof(owner_type), &resource_, sizeof(owner_type));
+    // Record the owner, so `deallocate` releases through it whichever allocator instance -- and
+    // whichever scope -- happens to be current by then.
+    std::memcpy(block - sizeof(owner_type), &resource, sizeof(owner_type));
     return reinterpret_cast<Type*>(block);
   }
 
-  /// @brief Deallocates storage previously obtained from `allocate`, using the resource recorded
-  /// with the block rather than the one captured by this allocator.
+  /// @brief Deallocates storage previously obtained from `allocate`, through the resource recorded
+  /// with the block.
   /// @param p Pointer previously returned by `allocate` (may be null).
   /// @param n Number of objects originally requested (must match the `allocate` call).
   auto deallocate(Type* p, std::size_t n) noexcept -> void {
@@ -85,14 +83,6 @@ class memory_scope_allocator {
     owner->deallocate(block - kOffset, bytes(n), kAlignment);
   }
 
-  /// @brief Returns the memory resource captured by this allocator, i.e. the one new allocations
-  /// are taken from. It is not necessarily the resource that owns an already allocated block.
-  [[nodiscard]]
-  auto resource() const noexcept -> std::pmr::memory_resource* {
-    return resource_;
-  }
-
-  /// @brief Every allocator can release every block, so all instances are interchangeable.
   friend auto operator==(const memory_scope_allocator&, const memory_scope_allocator&) noexcept
       -> bool {
     return true;
@@ -101,11 +91,10 @@ class memory_scope_allocator {
  private:
   using owner_type = std::pmr::memory_resource*;
 
-  /// @brief Blaze rejects a buffer whose address is not a multiple of `AlignmentOf_v` -- the
-  /// SIMD alignment for the active instruction set (16 under SSE2, 32 under AVX/AVX2, 64 under
-  /// AVX-512) -- and the header must itself land on a suitably aligned address, so honour
-  /// whichever requirement is stricter. Both are powers of two, so the larger is a multiple of
-  /// the smaller and satisfies each.
+  /// @brief Blaze rejects a buffer whose address is not a multiple of `AlignmentOf_v` -- the SIMD
+  /// alignment for the active instruction set -- and the header must itself land on a suitably
+  /// aligned address, so honour whichever is stricter. Both are powers of two, so the larger is a
+  /// multiple of the smaller and satisfies each.
   static constexpr std::size_t kAlignment = blaze::AlignmentOf_v<Type> > alignof(owner_type)
                                                 ? blaze::AlignmentOf_v<Type>
                                                 : alignof(owner_type);
@@ -124,8 +113,6 @@ class memory_scope_allocator {
   static constexpr auto bytes(std::size_t n) noexcept -> std::size_t {
     return kOffset + (n * sizeof(Type));
   }
-
-  std::pmr::memory_resource* resource_;
 };
 
 }  // namespace vortex::math

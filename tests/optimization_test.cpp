@@ -174,13 +174,14 @@ TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   seed_estimations();
   ASSERT_TRUE(g.optimize(iterations).has_value());
 
-  seed_estimations();
-
-  // Nothing but the call itself inside the guard: gtest's macros allocate, and would be reported
-  // as the failure instead of whatever optimize() did.
+  // The guard covers everything after warm-up that is meant to be allocation-free. It cannot go
+  // higher: building the graph reserves the solver system, and the warm-up sizes it and the LAPACK
+  // workspaces -- both legitimately allocate. It cannot go lower either, in the sense that gtest's
+  // macros allocate, so the assertion is made outside.
   auto succeeded = false;
   {
     const memory_guard guard;
+    seed_estimations();
     succeeded = g.optimize(iterations).has_value();
   }
   EXPECT_TRUE(succeeded);
