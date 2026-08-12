@@ -18,15 +18,12 @@ namespace vortex::test {
 /// @brief A monotonic memory resource that owns its storage.
 ///
 /// It takes one buffer from the heap up front -- like a `std::vector`, and by way of one -- then
-/// serves every request by bumping a pointer through it. Nothing is reclaimed until the arena
-/// itself is destroyed, so once constructed it hands out memory without touching the heap again.
-/// That is what makes it usable under `memory_guard`: the heap allocation happens when the arena
-/// is built, outside the guarded scope, and the work under test then draws from the buffer.
+/// bumps a pointer through it, reclaiming nothing until the arena dies. So it serves memory
+/// without touching the heap again, which is what makes it usable under `memory_guard`.
 ///
-/// Because the buffer is a contiguous range the arena owns, it can tell its own blocks from
-/// anything else by address alone. `foreign_frees()` counts pointers handed to `deallocate()` that
-/// this arena never produced, which is how a container releasing a buffer through the wrong
-/// resource shows up -- no bookkeeping side table needed.
+/// The buffer being a contiguous range the arena owns, its blocks are distinguishable by address
+/// alone: `foreign_frees()` counts pointers passed to `deallocate()` that it never produced, which
+/// is how a container releasing through the wrong resource shows up -- no side table needed.
 /// ===============================================================================================
 class arena_memory_resource : public std::pmr::memory_resource {
  public:
@@ -57,9 +54,9 @@ class arena_memory_resource : public std::pmr::memory_resource {
   }
 
  protected:
+  /// @brief The buffer is only as aligned as `operator new` made it, so each block is aligned
+  /// within it -- callers do ask for more (blaze wants SIMD alignment).
   auto do_allocate(std::size_t bytes, std::size_t alignment) -> void* override {
-    // The buffer itself is only as aligned as `operator new` made it, so each block is aligned
-    // within it. Callers can and do ask for more than that (blaze wants SIMD alignment).
     const auto base = reinterpret_cast<std::uintptr_t>(buffer_.data()) + offset_;
     const auto aligned = (base + alignment - 1U) & ~(alignment - 1U);
     const auto padding = static_cast<std::size_t>(aligned - base);
@@ -72,7 +69,7 @@ class arena_memory_resource : public std::pmr::memory_resource {
   }
 
   /// @brief Monotonic: storage returns to the heap when the arena dies, not here. The pointer is
-  /// still checked, so releasing a block through the wrong resource is visible.
+  /// still checked, so a block released through the wrong resource is visible.
   auto do_deallocate(void* const p, std::size_t /*bytes*/, std::size_t /*alignment*/)
       -> void override {
     if (owns(p)) {

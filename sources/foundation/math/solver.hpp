@@ -16,20 +16,16 @@ namespace vortex::math {
 /// ===============================================================================================
 /// @brief Types of the scratch buffers the solvers below hand to LAPACK.
 ///
-/// The solvers keep these in `thread_local` storage and grow them on demand, so a repeated solve
-/// of the same size allocates nothing. That also makes them live until the thread ends, which is
-/// why they deliberately use blaze's default allocator rather than `memory_scope_allocator`:
-/// solves run inside the caller's `helpers::memory_scope` (see `optimization::graph::optimize`),
-/// and a buffer drawn from that scope's arena would outlive the arena and be released through it
-/// long after it was destroyed.
+/// They live in `thread_local` storage and grow on demand, so a repeated solve of the same size
+/// allocates nothing. That makes them outlive any `memory_scope`, which is why they use blaze's
+/// default allocator: a buffer drawn from the caller's arena would be released through it long
+/// after the arena was destroyed.
 ///
-/// Routing them into the arena instead would be worse than it looks. The graph's arena caps a
-/// single block at `default_config::cache_block_max_size` (32 KiB), which the LDL^T workspace
-/// exceeds as soon as the system is large -- it is sized `n * lda`, so 2 MiB at the default
-/// `system_capacity` of 512. That trips the bounded resource's precondition in debug builds, and
-/// in release the pool forwards anything over the cap straight to the monotonic buffer, which
-/// never reuses freed memory: every solve would then consume another 2 MiB for the life of the
-/// graph. Caching outside the arena avoids both.
+/// Routing them into the arena is worse than it looks anyway. The graph caps a block at
+/// `cache_block_max_size` (32 KiB) and the LDL^T workspace is sized `n * lda` -- 2 MiB at the
+/// default `system_capacity` of 512. That trips the bounded resource's precondition in debug, and
+/// in release the pool forwards oversized blocks to the monotonic buffer, which never reuses them:
+/// every solve would consume another 2 MiB for the life of the graph.
 /// ===============================================================================================
 template <class Matrix>
 using factor_matrix = blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor>;
@@ -75,9 +71,8 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   blaze::resize(x, numeric_cast<std::size_t>(n));
   blaze::smpAssign(x, b);
 
-  // `resize` only reallocates when growing past the current capacity, so these settle at the
-  // largest system seen on this thread and cost nothing on subsequent solves. Neither buffer is
-  // read before LAPACK fills it, so there is nothing to preserve.
+  // `resize` only reallocates when growing, so these settle at the largest system seen on this
+  // thread. Neither is read before LAPACK fills it, so there is nothing to preserve.
   ipiv.resize(numeric_cast<std::size_t>(n), false);
   work.resize(numeric_cast<std::size_t>(lwork), false);
 

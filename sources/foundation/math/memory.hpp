@@ -20,32 +20,25 @@ namespace vortex::math {
 /// dynamically-sized blaze matrices/vectors are allocated from the same scoped resource as the
 /// rest of vortex (e.g. `vortex::dual::number`), instead of blaze's default global allocator.
 ///
-/// @note Blaze's dynamic containers do not treat the allocator as part of the value: the move
-/// constructor leaves `alloc_` default-constructed, move assignment keeps the destination's
-/// `alloc_`, and `resize()`/`reserve()`/`swap()` exchange the element buffer via `std::swap`
-/// while each object keeps its own allocator. A naive stateful allocator therefore ends up
-/// releasing a buffer through a different `std::pmr::memory_resource` than the one that
-/// produced it whenever such an operation straddles a `memory_scope` boundary.
+/// @note Blaze does not treat the allocator as part of a container's value: move construction
+/// leaves `alloc_` default-constructed, move assignment keeps the destination's, and
+/// `resize()`/`reserve()`/`swap()` exchange the buffer via `std::swap` while each object keeps its
+/// own. A naive stateful allocator therefore releases buffers through the wrong resource whenever
+/// one of those straddles a `memory_scope` boundary.
 ///
-/// To stay correct under those semantics, ownership is recorded with the buffer rather than in
-/// the allocator: `allocate` stores the owning resource in a header placed immediately before
-/// the returned block, and `deallocate` releases through that recorded resource. Deallocation is
-/// consequently independent of which allocator instance performs it, which is also why every
-/// instance compares equal (`is_always_equal`) -- any of them can free any block.
+/// So ownership travels with the buffer, not the allocator: `allocate` records the owning resource
+/// in a header just before the block and `deallocate` releases through it. That makes deallocation
+/// independent of which instance performs it -- hence `is_always_equal`. The captured resource
+/// still decides where *new* allocations come from.
 ///
-/// The captured resource still decides where *new* allocations come from, so a container grown
-/// inside a `memory_scope` draws from that scope's arena as intended.
+/// @warning A buffer from a scoped arena must be released before that arena dies, as for any
+/// arena-allocated object.
 ///
-/// @warning A buffer taken from a scoped arena must be released before that arena is destroyed,
-/// exactly as for any other arena-allocated object.
-///
-/// @warning This covers containers the project declares, not temporaries blaze materialises for
-/// expressions. `DynamicMatrix`/`DynamicVector` hardwire `AllocatorType` to `AlignedAllocator`
-/// instead of reporting their own `Alloc` parameter (still true on blaze master, 3.9.0), and
-/// `GetAllocator` -- which every `AddTrait`/`MultTrait`/... consults -- is an alias template and
-/// so cannot be specialised. Expression result types are consequently always allocated by
-/// `blaze::AlignedAllocator`, which calls `posix_memalign` directly. See math_types_test.cpp,
-/// which pins this behaviour so a future blaze upgrade that fixes it shows up as a test failure.
+/// @warning This covers containers the project declares, not blaze's expression temporaries.
+/// `DynamicMatrix`/`DynamicVector` hardwire `AllocatorType` to `AlignedAllocator` rather than
+/// reporting their own `Alloc` (still so on blaze 3.9.0), and `GetAllocator` -- which every
+/// arithmetic trait consults -- is an alias template and cannot be specialised, so result types
+/// always come back allocated by `AlignedAllocator`. math_types_test.cpp pins this.
 /// ================================================================================================
 template <class Type>
 class memory_scope_allocator {

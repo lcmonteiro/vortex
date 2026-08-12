@@ -77,10 +77,10 @@ TEST(MathTypes, ScopedAllocatorTracksNestedScopes) {
   EXPECT_EQ(inner.outstanding(), 0U);
 }
 
-/// @brief `resize()` past the current capacity allocates the replacement buffer with a freshly
-/// default-constructed allocator and then swaps only the buffers, leaving each container with its
-/// original allocator. This is the path `block_graph_solver::build_structure()` takes from inside
-/// `graph::optimize()`'s scope, on vectors constructed outside it.
+/// @brief `resize()` past capacity builds the replacement with a fresh allocator and then swaps
+/// only the buffers, leaving each container its original one -- the path
+/// `block_graph_solver::build_structure()` takes inside `optimize()`'s scope, on vectors
+/// constructed outside it.
 TEST(MathTypes, GivenResizeInsideScope_ExpectBuffersReleasedByOwningResource) {
   arena_memory_resource outer;
   arena_memory_resource arena;
@@ -176,11 +176,10 @@ TEST(MathTypes, GivenSwapAcrossScopes_ExpectBuffersReleasedByOwningResource) {
   EXPECT_EQ(arena.outstanding(), 0U);
 }
 
-/// @brief The solvers cache their factorization workspace in `thread_local` storage, so it lives
-/// until the thread ends. Solving happens inside the caller's `memory_scope` (see
-/// `optimization::graph::optimize`), and anything that cache retained from that scope's arena
-/// would be released through the arena long after it was destroyed -- a use-after-free at thread
-/// exit. Assert the arena gets everything back before it dies.
+/// @brief The solvers cache their workspace in `thread_local` storage, which outlives the
+/// `memory_scope` a solve runs under. Anything that cache retained from the scope's arena would be
+/// released through it long after it died -- a use-after-free at thread exit -- so assert the
+/// arena gets everything back.
 TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
   arena_memory_resource arena;
 
@@ -229,11 +228,10 @@ static_assert(std::is_same_v<
 static_assert(std::is_same_v<blaze::GetAllocator_t<blaze::DynamicMatrix<double>>,
                              blaze::AlignedAllocator<double>>);
 
-/// @brief Blaze drops a custom allocator when deducing an expression's result type: both
-/// DynamicMatrix and DynamicVector hardwire `AllocatorType` to `AlignedAllocator` rather than
-/// reporting their own `Alloc`, and every arithmetic trait routes through `GetAllocator`. These
-/// assertions document that ceiling; if a blaze upgrade ever fixes it they will start failing,
-/// which is the signal to revisit the note in foundation/math/memory.hpp.
+/// @brief Blaze drops a custom allocator when deducing an expression's result type: the containers
+/// hardwire `AllocatorType` to `AlignedAllocator` rather than reporting their own `Alloc`, and
+/// every arithmetic trait routes through `GetAllocator`. If an upgrade ever fixes it these start
+/// failing, which is the signal to revisit the note in foundation/math/memory.hpp.
 static_assert(std::is_same_v<blaze::GetAllocator_t<dynamic_matrix<double>>,
                              blaze::AlignedAllocator<double>>,
               "blaze still reports AlignedAllocator for a custom-allocator matrix");

@@ -73,10 +73,9 @@ TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
 /// Allocation budget
 /// ===============================================================================================
 
-/// @brief `memory_guard` is only meaningful if it really does intercept allocation, which depends
-/// on this binary's replacements for the global allocation functions being the ones that get
-/// linked. Check that directly, so a linking change cannot quietly turn the test below into one
-/// that passes for the wrong reason.
+/// @brief The guard is only meaningful if its replacements for the global allocation functions are
+/// the ones that get linked, so check that directly -- otherwise a linking change could quietly
+/// turn the test below into one that passes for the wrong reason.
 TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
   // `::operator new` is called directly rather than through a new-expression because the compiler
   // may elide an unused new/delete pair outright, which would prove nothing.
@@ -93,13 +92,10 @@ TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
   ::operator delete(p);
 }
 
-/// @brief A rejection stands every later one down until the outermost guard is gone.
-///
-/// Throwing unwinds, and destructors run while it does. If one of those allocated and the guard
-/// were still armed, the second throw would meet an exception already in flight and abort the
-/// process instead of failing the test. Nesting is where this is easy to get wrong: an inner
-/// guard's destructor reinstates the enclosing depth, which re-arms the outer guard mid-unwind
-/// unless the rejection is tracked separately.
+/// @brief A rejection stands every later one down until the outermost guard is gone: a destructor
+/// allocating during the unwind would otherwise throw into an in-flight exception and abort the
+/// process. Nesting is where this is easy to get wrong -- an inner guard's destructor reinstates
+/// the enclosing depth, re-arming the outer guard mid-unwind.
 TEST(MemoryGuard, GivenNestedGuards_ExpectRejectionStandsDownUntilOutermostExits) {
   auto inner_threw = false;
   auto unwound_allocation_allowed = false;
@@ -142,18 +138,14 @@ TEST(MemoryGuard, GivenArenaBackedAllocation_ExpectNoThrow) {
 
 /// @brief A warmed-up `optimize()` must not touch the heap at all.
 ///
-/// The graph draws from an arena that owns its buffer, so everything `optimize()` needs is already
-/// in hand before the guard is armed. Any allocation it then makes has to come from the heap, and
-/// the guard throws at the point it happens.
+/// The graph draws from an arena owning its buffer, so everything `optimize()` needs is in hand
+/// before the guard arms; anything it allocates after that comes from the heap and throws where it
+/// happens. That covers the arena's own growth, `std::pmr`'s default resource when an allocation
+/// ignores the active scope -- which used to take 160 `dual::number` derivative-vector copies per
+/// call -- and any container or raw `new` added later. For `blaze::AlignedAllocator` see the note
+/// on `memory_guard`; that channel is zero too, measured out of band.
 ///
-/// This covers every source that goes through `operator new`: the arena's own growth, `std::pmr`'s
-/// default resource when an allocation ignores the active scope -- `polymorphic_allocator` does
-/// not propagate on copy construction, which used to send 160 `dual::number` derivative-vector
-/// copies per call there -- and any plain container or raw `new` added to the path later. It does
-/// not cover `blaze::AlignedAllocator`; see the note on `memory_guard`. That channel is zero too,
-/// measured out of band, since `math::solve_ldlt` began caching its LAPACK buffers.
-///
-/// Being pass/fail rather than a budget, this does not depend on how many iterations the solver
+/// Being pass/fail rather than a budget, it does not depend on how many iterations the solver
 /// takes, so a different LAPACK cannot shift it.
 TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   using Key = SlamGraph::key_type;

@@ -12,9 +12,7 @@ namespace vortex::test {
 
 /// ===============================================================================================
 /// @brief Thrown by `operator new` when an allocation happens inside a `memory_guard` scope.
-///
-/// It carries a literal message and nothing else: building the exception must not allocate, or
-/// reporting the problem would trigger the very thing being reported.
+/// Carries a literal and nothing else: building it must not itself allocate.
 /// ===============================================================================================
 class unexpected_allocation : public std::bad_alloc {
  public:
@@ -24,39 +22,22 @@ class unexpected_allocation : public std::bad_alloc {
 };
 
 /// ===============================================================================================
-/// @brief Forbids heap allocation for as long as it is in scope.
+/// @brief Forbids heap allocation while in scope, throwing at the offending allocation itself so a
+/// stack trace points at it.
 ///
-///     {
-///       const memory_guard guard;
-///       do_work();          // throws unexpected_allocation on the first `new`
-///     }
+/// The test binary replaces every form of the global `operator new`, so this covers raw `new`,
+/// standard containers, and any `std::pmr` resource over `std::pmr::new_delete_resource`. A
+/// resource owning its storage (`arena_memory_resource`) never reaches `operator new` and stays
+/// allowed: the work under test can still get memory, just not from the heap.
 ///
-/// The throw happens at the allocation itself, so a debugger or a stack trace points straight at
-/// the offending line rather than at a counter checked afterwards.
+/// Only the first allocation is reported -- throwing again while that exception unwinds would be
+/// `std::terminate` -- so guards stand down until the outermost one leaves scope. Arming is
+/// per-thread. The `nothrow` forms cannot throw and return `nullptr` instead.
 ///
-/// The test binary replaces every form of the global `operator new`, so this covers allocations
-/// from any source that goes through them: raw `new`, standard containers, and every `std::pmr`
-/// resource built on `std::pmr::new_delete_resource` -- including the default resource. Memory
-/// served from a resource that owns its storage, such as `arena_memory_resource`, does not touch
-/// `operator new` and is therefore allowed, which is the point: the work under test can still get
-/// memory, just not from the heap.
-///
-/// @note How much of `blaze::AlignedAllocator` is covered depends on the element type, and on the
-/// build. It splits on `AlignmentOf_v<T>`: at 8 or above it calls `alignedAllocate`, which goes
-/// straight to `posix_memalign` and is invisible here; below 8 it calls `operator new[]`, which
-/// this sees. With SSE2 every vectorizable type reports 16, so all of them slip past. An
-/// unvectorized build reports plain `alignof` instead, leaving only `double` and other 8-aligned
-/// types outside -- and since blaze 3.8.2 has no NEON, that is what aarch64 gets, so `ipiv` and
-/// friends are caught there but not on x86. Closing the gap for good would mean interposing a
-/// libc symbol or patching blaze; neither is worth it for a test fixture.
-///
-/// Only the first allocation is reported: rejecting throws, and any allocation attempted while
-/// that exception unwinds is let through, because throwing again mid-unwind is `std::terminate`
-/// rather than a test failure. Guards stay stood down until the outermost one leaves scope, so
-/// nesting is safe too. Arming is per-thread, so a guard on one thread does not constrain another.
-///
-/// The `nothrow` forms of `operator new` cannot throw, so under a guard they return `nullptr`
-/// instead -- an allocation failure the caller is already required to handle.
+/// @note `blaze::AlignedAllocator` splits on `AlignmentOf_v<T>`: 8 or above reaches
+/// `posix_memalign` and is invisible here, below it calls `operator new[]` and is caught. Under
+/// SSE2 every vectorizable type reports 16 and slips past; an unvectorized build reports plain
+/// `alignof`, leaving only `double` outside -- and blaze 3.8.2 has no NEON, so that is aarch64.
 /// ===============================================================================================
 class memory_guard {
  public:
@@ -69,7 +50,7 @@ class memory_guard {
   auto operator=(memory_guard&&) -> memory_guard& = delete;
 
  private:
-  /// @brief Guard depth in effect when this guard was constructed, reinstated on destruction.
+  /// @brief Guard depth in effect at construction, reinstated on destruction.
   std::size_t previous_depth_;
 };
 
