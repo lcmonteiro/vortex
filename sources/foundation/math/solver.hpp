@@ -6,6 +6,7 @@
 #ifndef VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP
 #define VORTEX_FOUNDATION_MATH_MATH_SOLVER_HPP
 
+#include <concepts>
 #include <cstddef>
 
 #include "foundation/math/types.hpp"
@@ -16,7 +17,8 @@ namespace vortex::math {
 /// ===============================================================================================
 /// @brief Types of the scratch buffers the solvers hand to LAPACK.
 ///
-/// Element type and storage order come from `Matrix`; its allocator deliberately does not. These
+/// Element type and storage order come from the caller's types; their allocator deliberately does
+/// not -- the element types are constrained equal, so the workspaces agree with LAPACK. These
 /// live in `thread_local` storage, so declaring them `Matrix` -- which is the caller's type, hence
 /// `memory_scope_allocator` -- would let them hold a block of an arena from some earlier solve and
 /// release it through that arena at thread exit, long after it died. `heap_allocator` says that
@@ -31,9 +33,9 @@ using factor_matrix =
     blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor,
                          heap_allocator<blaze::ElementType_t<Matrix>>>;
 
-template <class Matrix>
-using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Matrix>, blaze::columnVector,
-                                           heap_allocator<blaze::ElementType_t<Matrix>>>;
+template <class Vector>
+using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Vector>, blaze::columnVector,
+                                           heap_allocator<blaze::ElementType_t<Vector>>>;
 
 using pivot_vector = blaze::DynamicVector<blaze::blas_int_t, blaze::columnVector,
                                           heap_allocator<blaze::blas_int_t>>;
@@ -51,7 +53,8 @@ using pivot_vector = blaze::DynamicVector<blaze::blas_int_t, blaze::columnVector
 // The function does not throw exceptions.
 /// ===============================================================================================
 template <class Matrix, class Vector>
-requires blaze::IsColumnMajorMatrix_v<Matrix>
+requires blaze::IsColumnMajorMatrix_v<Matrix> &&
+         std::same_as<blaze::ElementType_t<Matrix>, blaze::ElementType_t<Vector>>
 inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
   VORTEX_PRECONDITION(h.rows() == std::size(b), "incompatible matrix and vector");
@@ -59,8 +62,9 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   using blaze::numeric_cast;
 
   static thread_local factor_matrix<Matrix> h_factor;
+  static thread_local factor_vector<Vector> work;
+  // LAPACK's pivot indices are integers whatever the system's element type is.
   static thread_local pivot_vector ipiv;
-  static thread_local factor_vector<Matrix> work;
 
   h_factor = h;
 

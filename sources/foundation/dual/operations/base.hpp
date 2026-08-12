@@ -111,8 +111,6 @@ struct binary_operation {
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(duo(n, i), v);
     }
-    // The index list belongs to the operand, so this copy is real -- but it is taken
-    // from `memory()`, and the derivative vector is moved out rather than copied.
     return std::tuple{dindex_t{n.dindex(), memory()}, std::move(dv)};
   }
 
@@ -124,8 +122,6 @@ struct binary_operation {
     for (auto i : n.dindex()) {
       dv[i] = self()->dvalue(v, duo(n, i));
     }
-    // The index list belongs to the operand, so this copy is real -- but it is taken
-    // from `memory()`, and the derivative vector is moved out rather than copied.
     return std::tuple{dindex_t{n.dindex(), memory()}, std::move(dv)};
   }
 
