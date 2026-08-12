@@ -15,23 +15,33 @@
 namespace {
 
 /// @brief Nesting depth of the active guards on this thread; non-zero means allocation is
-/// forbidden. Per-thread so a guard constrains only the thread that installed it.
-thread_local std::size_t g_forbidden_depth = 0;
+/// forbidden. Per-thread, so a guard constrains only the thread that installed it.
+thread_local std::size_t g_alloc_forbidden = 0;
 
-/// @brief Rejects the allocation if a guard is active.
+/// @brief Set once an allocation has been rejected, and cleared only when the outermost guard
+/// leaves scope.
 ///
-/// Arming is cleared before throwing. Unwinding runs destructors, and one of those attempting an
-/// allocation would otherwise throw a second exception while the first is in flight, which ends in
-/// `std::terminate` rather than a test failure. Each `memory_guard` restores the depth it saved
-/// rather than decrementing, so clearing it here cannot corrupt an enclosing guard.
+/// Rejecting throws, and the throw unwinds. Destructors run during that unwind, and one of them
+/// allocating would throw a second exception while the first is still in flight -- which is
+/// `std::terminate`, not a test failure. So the first rejection stands down every later one until
+/// the stack has fully unwound past all the guards. Tracking this separately from the depth is
+/// what makes that work when guards nest: an inner guard's destructor restores the enclosing
+/// depth, which would otherwise re-arm the outer guard part-way through the unwind.
+thread_local bool g_alloc_rejected = false;
+
+/// @brief Rejects the allocation if a guard is active and nothing has been rejected yet.
 auto check() -> void {
-  if (0 != g_forbidden_depth) {
-    g_forbidden_depth = 0;
+  if (0 != g_alloc_forbidden && not g_alloc_rejected) {
+    g_alloc_rejected = true;
     throw vortex::test::unexpected_allocation{};
   }
 }
 
-/// @brief Zero-sized requests must still return distinct pointers, hence the bump to 1.
+/// @brief Allocates, rounding a zero-sized request up to one byte.
+///
+/// `::operator new(0)` has to hand back a non-null pointer distinct from every other live object,
+/// but `malloc(0)` is allowed to return null. Without the bump, a zero-sized `new` on such a libc
+/// would trip the null check below and report an allocation failure that never happened.
 auto allocate(std::size_t bytes) -> void* {
   check();
   auto* const p = std::malloc(0 == bytes ? 1 : bytes);
@@ -61,11 +71,18 @@ auto release(void* const p) noexcept -> void { std::free(p); }
 
 namespace vortex::test {
 
-memory_guard::memory_guard() noexcept : previous_{g_forbidden_depth} {
-  g_forbidden_depth = previous_ + 1;
+memory_guard::memory_guard() noexcept : previous_depth_{g_alloc_forbidden} {
+  g_alloc_forbidden = previous_depth_ + 1;
 }
 
-memory_guard::~memory_guard() noexcept { g_forbidden_depth = previous_; }
+memory_guard::~memory_guard() noexcept {
+  // Restored rather than decremented: a rejection may have cleared the depth, and decrementing
+  // from there would wrap.
+  g_alloc_forbidden = previous_depth_;
+  if (0 == g_alloc_forbidden) {
+    g_alloc_rejected = false;
+  }
+}
 
 }  // namespace vortex::test
 

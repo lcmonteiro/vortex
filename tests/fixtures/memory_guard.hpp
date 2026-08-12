@@ -46,10 +46,10 @@ class unexpected_allocation : public std::bad_alloc {
 /// `blaze::DynamicVector`/`DynamicMatrix` slips past. Catching it would mean interposing a libc
 /// symbol in the test binary, which is not worth the portability risk.
 ///
-/// The guard disarms itself the moment it throws, so an allocation attempted while the stack is
-/// unwinding cannot throw a second time and call `std::terminate`. It also means only the first
-/// allocation in a scope is reported, which is all a test needs. Nesting is supported, and arming
-/// is per-thread, so a guard on one thread does not constrain another.
+/// Only the first allocation is reported: rejecting throws, and any allocation attempted while
+/// that exception unwinds is let through, because throwing again mid-unwind is `std::terminate`
+/// rather than a test failure. Guards stay stood down until the outermost one leaves scope, so
+/// nesting is safe too. Arming is per-thread, so a guard on one thread does not constrain another.
 ///
 /// The `nothrow` forms of `operator new` cannot throw, so under a guard they return `nullptr`
 /// instead -- an allocation failure the caller is already required to handle.
@@ -65,7 +65,8 @@ class memory_guard {
   auto operator=(memory_guard&&) -> memory_guard& = delete;
 
  private:
-  std::size_t previous_;
+  /// @brief Guard depth in effect when this guard was constructed, reinstated on destruction.
+  std::size_t previous_depth_;
 };
 
 }  // namespace vortex::test

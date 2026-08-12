@@ -93,6 +93,40 @@ TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
   ::operator delete(p);
 }
 
+/// @brief A rejection stands every later one down until the outermost guard is gone.
+///
+/// Throwing unwinds, and destructors run while it does. If one of those allocated and the guard
+/// were still armed, the second throw would meet an exception already in flight and abort the
+/// process instead of failing the test. Nesting is where this is easy to get wrong: an inner
+/// guard's destructor reinstates the enclosing depth, which re-arms the outer guard mid-unwind
+/// unless the rejection is tracked separately.
+TEST(MemoryGuard, GivenNestedGuards_ExpectRejectionStandsDownUntilOutermostExits) {
+  auto inner_threw = false;
+  auto unwound_allocation_allowed = false;
+  {
+    const memory_guard outer;
+    try {
+      const memory_guard inner;
+      ::operator delete(::operator new(64));
+    } catch (const vortex::test::unexpected_allocation&) {
+      inner_threw = true;
+      // Still inside `outer`, standing in for a destructor allocating during the unwind.
+      ::operator delete(::operator new(64));
+      unwound_allocation_allowed = true;
+    }
+  }
+  EXPECT_TRUE(inner_threw);
+  EXPECT_TRUE(unwound_allocation_allowed);
+
+  // The outermost guard has gone, so the next scope arms again.
+  EXPECT_THROW(
+      {
+        const memory_guard guard;
+        ::operator delete(::operator new(64));
+      },
+      vortex::test::unexpected_allocation);
+}
+
 /// @brief A resource that owns its storage satisfies allocations without reaching the heap, so
 /// work drawing from one runs happily under a guard.
 TEST(MemoryGuard, GivenArenaBackedAllocation_ExpectNoThrow) {
