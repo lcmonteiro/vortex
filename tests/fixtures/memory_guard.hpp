@@ -41,10 +41,14 @@ class unexpected_allocation : public std::bad_alloc {
 /// `operator new` and is therefore allowed, which is the point: the work under test can still get
 /// memory, just not from the heap.
 ///
-/// @note `blaze::AlignedAllocator` is not covered. It calls `posix_memalign` directly
-/// (blaze/util/Memory.h) and never reaches `operator new`, so anything declared as a plain
-/// `blaze::DynamicVector`/`DynamicMatrix` slips past. Catching it would mean interposing a libc
-/// symbol in the test binary, which is not worth the portability risk.
+/// @note How much of `blaze::AlignedAllocator` is covered depends on the element type, and on the
+/// build. It splits on `AlignmentOf_v<T>`: at 8 or above it calls `alignedAllocate`, which goes
+/// straight to `posix_memalign` and is invisible here; below 8 it calls `operator new[]`, which
+/// this sees. With SSE2 every vectorizable type reports 16, so all of them slip past. An
+/// unvectorized build reports plain `alignof` instead, leaving only `double` and other 8-aligned
+/// types outside -- and since blaze 3.8.2 has no NEON, that is what aarch64 gets, so `ipiv` and
+/// friends are caught there but not on x86. Closing the gap for good would mean interposing a
+/// libc symbol or patching blaze; neither is worth it for a test fixture.
 ///
 /// Only the first allocation is reported: rejecting throws, and any allocation attempted while
 /// that exception unwinds is let through, because throwing again mid-unwind is `std::terminate`
