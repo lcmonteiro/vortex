@@ -2,8 +2,13 @@
 
 ## `blaze-scoped-allocator.patch`
 
-Applied at fetch time, always. It is vortex's memory model, not an option: with it absent nothing
-is scope-allocated and `helpers::memory_scope` has no effect on blaze containers.
+Applied unconditionally at configure time. It is vortex's memory model, not an option: with it
+absent nothing is scope-allocated and `helpers::memory_scope` has no effect on blaze containers.
+
+Applied after `FetchContent_MakeAvailable` rather than through `PATCH_COMMAND`, because that step
+is skipped when blaze is supplied via `FETCHCONTENT_SOURCE_DIR_BLAZE` -- which would leave a build
+silently unscoped. The marker is tested first, so reconfiguring is a no-op, and a failure to apply
+is a hard configure error rather than a quiet fallback to stock blaze.
 
 It makes `blaze::AlignedAllocator` draw from vortex's active `helpers::memory_scope`, the only way
 to reach blaze's *expression temporaries*: the containers hardwire `AllocatorType` to
