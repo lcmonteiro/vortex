@@ -35,7 +35,7 @@ using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 /// when deducing expression result types.
 ///
 /// Storage that must outlive the scope it is sized in opts out by sizing it under a scope that
-/// outlives it instead -- see `math::workspace_memory`.
+/// outlives it instead -- see the solvers' workspaces in `math/solver.hpp`.
 /// ===============================================================================================
 template <class Type, bool SO = column_major>
 using dynamic_matrix = blaze::DynamicMatrix<Type, SO>;

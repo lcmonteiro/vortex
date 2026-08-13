@@ -29,5 +29,5 @@ lenient allocator, a hard crash under a strict one such as Android's Scudo.
 Including ones that outlive the scope. `math::solve_ldlt` caches its LAPACK workspace in
 `thread_local` storage; sized under the caller's scope with the patch on, it holds a block of an
 arena from an earlier solve and releases it at thread exit -- a use-after-free, confirmed under
-ASan. The solvers size theirs under `math::workspace_memory` instead, and anything long-lived added
-later needs a scope that outlives it too.
+ASan. The solvers size theirs back on `std::pmr::new_delete_resource` instead, and anything
+long-lived added later needs a scope that outlives it too.

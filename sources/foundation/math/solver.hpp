@@ -20,29 +20,21 @@ namespace vortex::math {
 /// @brief Types of the scratch buffers the solvers hand to LAPACK. Element type and storage order
 /// come from the caller's types; the element types are constrained equal, so the workspaces agree
 /// with LAPACK.
+///
+/// They live in `thread_local` storage, which outlives the scope a solve runs under, so they are
+/// sized back on `std::pmr::new_delete_resource` -- `scoped_allocate` records the resource with the
+/// block, so one taken from the caller's arena would be released through that arena at thread exit,
+/// long after it died.
+///
+/// Holding them across calls is the point: they grow on demand, so a repeated solve of the same
+/// size allocates nothing. Routing them into the arena would be worse anyway -- the graph caps a
+/// block at 32 KiB and the LDL^T workspace is `n * lda`, 2 MiB at the default `system_capacity`.
 /// ===============================================================================================
 template <class Matrix>
 using factor_matrix = blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor>;
 
 template <class Vector>
 using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Vector>, blaze::columnVector>;
-
-/// ===============================================================================================
-/// @brief Where the solvers size their workspaces: the process heap, whatever scope the solve runs
-/// under.
-///
-/// They live in `thread_local` storage, which outlives that scope. Sized under it they would hold a
-/// block of an arena from some earlier solve and release it through that arena at thread exit, long
-/// after it died -- `scoped_allocate` records the resource with the block, so the release follows
-/// the allocation wherever it came from.
-///
-/// Holding them across calls is the point: they grow on demand, so a repeated solve of the same
-/// size allocates nothing. Routing them into the arena would be worse anyway -- the graph caps a
-/// block at 32 KiB and the LDL^T workspace is `n * lda`, 2 MiB at the default `system_capacity`.
-/// ===============================================================================================
-inline auto workspace_memory() noexcept -> std::pmr::memory_resource* {
-  return std::pmr::new_delete_resource();
-}
 
 /// ===============================================================================================
 /// @brief Solves a symmetric indefinite system of linear equations using the Bunch-Kaufman LDL^T
@@ -77,7 +69,7 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   auto info = blas_int_t{0};
 
   {
-    const helpers::memory_scope workspace{workspace_memory()};
+    const helpers::memory_scope workspace{std::pmr::new_delete_resource()};
 
     h_factor = h;
     lda = numeric_cast<blas_int_t>(h_factor.spacing());
@@ -119,7 +111,7 @@ inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool 
 
   static thread_local factor_matrix<Matrix> h_factor;
   {
-    const helpers::memory_scope workspace{workspace_memory()};
+    const helpers::memory_scope workspace{std::pmr::new_delete_resource()};
     h_factor = h;
   }
 
