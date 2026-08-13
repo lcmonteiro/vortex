@@ -8,8 +8,7 @@
 #include <memory_resource>
 
 #include "tests/fixtures/simple_slam_graph.hpp"
-#include "tests/fixtures/arena_memory_resource.hpp"
-#include "tests/fixtures/memory_guard.hpp"
+#include "tests/fixtures/memory_arena.hpp"
 
 namespace {
 
@@ -76,14 +75,14 @@ TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
 /// @brief Checks the guard's replacements are the ones linked -- otherwise the budget test below
 /// would pass for the wrong reason. `::operator new` is called directly because the compiler may
 /// elide an unused new/delete pair, which would prove nothing.
-TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
+TEST(MemoryArena, GivenAllocationInGuardedScope_ExpectThrow) {
   EXPECT_THROW(
       {
-        const memory_guard guard;
+        const memory_arena::guard guard;
         void* const p = ::operator new(64);
         ::operator delete(p);
       },
-      vortex::test::unexpected_allocation);
+      memory_violation);
 
   // The guard leaves nothing armed behind it.
   void* const p = ::operator new(64);
@@ -93,26 +92,47 @@ TEST(MemoryGuard, GivenAllocationInScope_ExpectThrow) {
 /// @brief The guard disarms before throwing, so allocation is permitted while the exception
 /// unwinds. Without it the destructor below throws into an exception already in flight, aborting
 /// the process instead of failing the test.
-TEST(MemoryGuard, GivenRejection_ExpectAllocationPermittedWhileUnwinding) {
+TEST(MemoryArena, GivenRejection_ExpectAllocationPermittedWhileUnwinding) {
   struct allocates_on_destruction {
     ~allocates_on_destruction() { ::operator delete(::operator new(64)); }
   };
 
   EXPECT_THROW(
       {
-        const memory_guard guard;
+        const memory_arena::guard guard;
         const allocates_on_destruction unwinds;  // destroyed as the throw below unwinds
         ::operator delete(::operator new(64));
       },
-      vortex::test::unexpected_allocation);
+      memory_violation);
 
   // The guard is gone, so the next scope arms again.
   EXPECT_THROW(
       {
-        const memory_guard guard;
+        const memory_arena::guard guard;
         ::operator delete(::operator new(64));
       },
-      vortex::test::unexpected_allocation);
+      memory_violation);
+}
+
+/// @brief An arena serves from its own buffer, so it stays usable under a guard.
+TEST(MemoryArena, GivenGuardedScope_ExpectArenaAllocationPermitted) {
+  memory_arena arena;
+
+  void* p = nullptr;
+  {
+    const memory_arena::guard guard;
+    p = arena.allocate(64, alignof(std::max_align_t));
+    arena.deallocate(p, 64, alignof(std::max_align_t));
+  }
+  EXPECT_TRUE(arena.owns(p));
+}
+
+/// @brief A block the arena never handed out is rejected by address rather than freed.
+TEST(MemoryArena, GivenForeignBlock_ExpectDeallocationThrows) {
+  memory_arena arena;
+
+  auto foreign = std::byte{};
+  EXPECT_THROW(arena.deallocate(&foreign, sizeof(foreign), alignof(std::byte)), memory_violation);
 }
 
 /// @brief A warmed-up `optimize()` must not touch the heap at all.
@@ -123,7 +143,7 @@ TEST(MemoryGuard, GivenRejection_ExpectAllocationPermittedWhileUnwinding) {
 TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   using Key = SlamGraph::key_type;
 
-  arena_memory_resource arena{std::size_t{8} << 20U};
+  memory_arena arena{std::size_t{8} << 20U};
 
   SlamGraph g{&arena};
   go::option<PositionNode> p1 = g.build<PositionNode>(Key{1});
@@ -155,7 +175,7 @@ TEST(SlamOptimizationBudget, GivenWarmedUpOptimize_ExpectNoHeapAllocation) {
   // sizes it and the LAPACK workspaces. The assertion is outside because gtest's macros allocate.
   auto succeeded = false;
   {
-    const memory_guard guard;
+    const memory_arena::guard guard;
     seed_estimations();
     succeeded = g.optimize(iterations).has_value();
   }

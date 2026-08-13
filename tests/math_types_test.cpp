@@ -12,26 +12,24 @@
 #include "foundation/math/solver.hpp"
 #include "foundation/math/types.hpp"
 #include "helpers/memory.hpp"
-#include "tests/fixtures/arena_memory_resource.hpp"
-#include "tests/fixtures/memory_guard.hpp"
+#include "tests/fixtures/memory_arena.hpp"
 
 namespace {
 
 using vortex::math::dynamic_matrix;
 using vortex::math::dynamic_vector;
 using vortex::helpers::memory_scope;
-using vortex::test::arena_memory_resource;
-using vortex::test::memory_guard;
+using vortex::test::memory_arena;
 
 TEST(MathTypes, DynamicVectorUsesActiveMemoryScope) {
-  arena_memory_resource resource;
+  memory_arena resource;
   const memory_scope scope{&resource};
 
   // Under a guard, so reaching the heap instead of the arena throws. Kept to the allocation
   // itself because gtest's macros allocate too.
   auto v = [] { return dynamic_vector<double>(4, 0.0); }();
   {
-    const memory_guard guard;
+    const memory_arena::guard guard;
     v.resize(64, false);
   }
   v[0] = 1.0;
@@ -43,7 +41,7 @@ TEST(MathTypes, DynamicVectorUsesActiveMemoryScope) {
 }
 
 TEST(MathTypes, DynamicMatrixUsesActiveMemoryScope) {
-  arena_memory_resource resource;
+  memory_arena resource;
   const memory_scope scope{&resource};
 
   dynamic_matrix<double> m(2, 2, 0.0);
@@ -59,8 +57,8 @@ TEST(MathTypes, DynamicMatrixUsesActiveMemoryScope) {
 /// the buffers, leaving each container its original one. This is what
 /// `block_graph_solver::build_structure()` does inside `optimize()`'s scope.
 TEST(MathTypes, GivenResizeInsideScope_ExpectBuffersReleasedByOwningResource) {
-  arena_memory_resource outer;
-  arena_memory_resource arena;
+  memory_arena outer;
+  memory_arena arena;
 
   {
     const memory_scope outer_scope{&outer};
@@ -79,8 +77,8 @@ TEST(MathTypes, GivenResizeInsideScope_ExpectBuffersReleasedByOwningResource) {
 
 /// @brief Same reasoning for a matrix, which `build_structure()` also resizes.
 TEST(MathTypes, GivenMatrixResizeInsideScope_ExpectBuffersReleasedByOwningResource) {
-  arena_memory_resource outer;
-  arena_memory_resource arena;
+  memory_arena outer;
+  memory_arena arena;
 
   {
     const memory_scope outer_scope{&outer};
@@ -100,8 +98,8 @@ TEST(MathTypes, GivenMatrixResizeInsideScope_ExpectBuffersReleasedByOwningResour
 /// @brief Blaze's move assignment keeps the destination's allocator while stealing the source's
 /// buffer, so a value moved out of a scope must still be released through the scope's resource.
 TEST(MathTypes, GivenMoveAcrossScopes_ExpectBufferReleasedByOwningResource) {
-  arena_memory_resource outer;
-  arena_memory_resource arena;
+  memory_arena outer;
+  memory_arena arena;
 
   {
     const memory_scope outer_scope{&outer};
@@ -119,8 +117,8 @@ TEST(MathTypes, GivenMoveAcrossScopes_ExpectBufferReleasedByOwningResource) {
 
 /// @brief `swap()` exchanges the element buffers but not the allocators.
 TEST(MathTypes, GivenSwapAcrossScopes_ExpectBuffersReleasedByOwningResource) {
-  arena_memory_resource outer;
-  arena_memory_resource arena;
+  memory_arena outer;
+  memory_arena arena;
 
   {
     const memory_scope outer_scope{&outer};
@@ -142,7 +140,7 @@ TEST(MathTypes, GivenSwapAcrossScopes_ExpectBuffersReleasedByOwningResource) {
 /// `memory_scope` a solve runs under. Anything it retained from the arena would be released
 /// through the arena at thread exit, long after it died.
 TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
-  arena_memory_resource arena;
+  memory_arena arena;
 
   {
     const memory_scope scope{&arena};
@@ -164,7 +162,7 @@ TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
 /// @brief A plain blaze type -- no vortex alias, no explicit allocator -- draws from the active
 /// scope. This is what the blaze patch buys, and it failing means the patch did not apply.
 TEST(MathTypes, GivenPlainBlazeContainers_ExpectActiveScope) {
-  arena_memory_resource resource;
+  memory_arena resource;
   const memory_scope scope{&resource};
 
   const blaze::DynamicMatrix<double> m(8, 8, 1.0);

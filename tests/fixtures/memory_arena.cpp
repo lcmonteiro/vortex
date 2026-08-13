@@ -1,12 +1,12 @@
 /// ===============================================================================================
 /// @file
-/// @brief Replacements for the global allocation functions, enforcing `memory_guard`.
+/// @brief Replacements for the global allocation functions, enforcing `memory_arena::guard`.
 ///
 /// Being the standard replaceable operators, defining them here redirects every `new` and `delete`
 /// in the test binary, libstdc++'s included -- which is what lets a guard see through
 /// `std::pmr::new_delete_resource` and the standard containers.
 /// ===============================================================================================
-#include "tests/fixtures/memory_guard.hpp"
+#include "tests/fixtures/memory_arena.hpp"
 
 #include <cstddef>
 #include <cstdlib>
@@ -22,7 +22,7 @@ thread_local bool g_alloc_forbidden = false;
 auto check() -> void {
   if (g_alloc_forbidden) {
     g_alloc_forbidden = false;
-    throw vortex::test::unexpected_allocation{};
+    throw vortex::test::memory_violation{"heap allocation inside a memory_arena::guard scope"};
   }
 }
 
@@ -56,9 +56,9 @@ auto release(void* const p) noexcept -> void { std::free(p); }
 
 namespace vortex::test {
 
-memory_guard::memory_guard() noexcept { g_alloc_forbidden = true; }
+memory_arena::guard::guard() noexcept { g_alloc_forbidden = true; }
 
-memory_guard::~memory_guard() noexcept { g_alloc_forbidden = false; }
+memory_arena::guard::~guard() noexcept { g_alloc_forbidden = false; }
 
 }  // namespace vortex::test
 
