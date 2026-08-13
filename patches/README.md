@@ -27,7 +27,7 @@ lenient allocator, a hard crash under a strict one such as Android's Scudo.
 ### It makes every blaze container scope-bound
 
 Including ones that outlive the scope. `math::solve_ldlt` caches its LAPACK workspace in
-`thread_local` storage; left on blaze's default allocator with the patch on, it holds a block of an
+`thread_local` storage; sized under the caller's scope with the patch on, it holds a block of an
 arena from an earlier solve and releases it at thread exit -- a use-after-free, confirmed under
-ASan. `math::heap_allocator` exists for exactly that, and anything long-lived added later needs it
-too.
+ASan. The solvers size theirs under `math::workspace_memory` instead, and anything long-lived added
+later needs a scope that outlives it too.

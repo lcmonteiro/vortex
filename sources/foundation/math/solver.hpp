@@ -8,34 +8,41 @@
 
 #include <concepts>
 #include <cstddef>
+#include <memory_resource>
 
 #include "foundation/math/types.hpp"
 #include "helpers/contracts.hpp"
+#include "helpers/memory.hpp"
 
 namespace vortex::math {
 
 /// ===============================================================================================
-/// @brief Types of the scratch buffers the solvers hand to LAPACK.
+/// @brief Types of the scratch buffers the solvers hand to LAPACK. Element type and storage order
+/// come from the caller's types; the element types are constrained equal, so the workspaces agree
+/// with LAPACK.
+/// ===============================================================================================
+template <class Matrix>
+using factor_matrix = blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor>;
+
+template <class Vector>
+using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Vector>, blaze::columnVector>;
+
+/// ===============================================================================================
+/// @brief Where the solvers size their workspaces: the process heap, whatever scope the solve runs
+/// under.
 ///
-/// Element type and storage order come from the caller's types; their allocator deliberately does
-/// not -- the element types are constrained equal, so the workspaces agree with LAPACK. These
-/// live in `thread_local` storage, so leaving them on blaze's default allocator -- which the patch
-/// redirects into the active scope -- would let them hold a block of an arena from some earlier
-/// solve and release it through that arena at thread exit, long after it died. `heap_allocator` is
-/// the opt-out.
+/// They live in `thread_local` storage, which outlives that scope. Sized under it they would hold a
+/// block of an arena from some earlier solve and release it through that arena at thread exit, long
+/// after it died -- `scoped_allocate` records the resource with the block, so the release follows
+/// the allocation wherever it came from.
 ///
 /// Holding them across calls is the point: they grow on demand, so a repeated solve of the same
 /// size allocates nothing. Routing them into the arena would be worse anyway -- the graph caps a
 /// block at 32 KiB and the LDL^T workspace is `n * lda`, 2 MiB at the default `system_capacity`.
 /// ===============================================================================================
-template <class Matrix>
-using factor_matrix =
-    blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor,
-                         heap_allocator<blaze::ElementType_t<Matrix>>>;
-
-template <class Vector>
-using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Vector>, blaze::columnVector,
-                                           heap_allocator<blaze::ElementType_t<Vector>>>;
+inline auto workspace_memory() noexcept -> std::pmr::memory_resource* {
+  return std::pmr::new_delete_resource();
+}
 
 /// ===============================================================================================
 /// @brief Solves a symmetric indefinite system of linear equations using the Bunch-Kaufman LDL^T
@@ -61,25 +68,27 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   static thread_local factor_matrix<Matrix> h_factor;
   static thread_local factor_vector<Vector> work;
   // LAPACK's pivot indices are integers whatever the system's element type is.
-  static thread_local blaze::DynamicVector<blaze::blas_int_t, blaze::columnVector,
-                                           heap_allocator<blaze::blas_int_t>>
-      ipiv;
+  static thread_local blaze::DynamicVector<blas_int_t> ipiv;
 
-  h_factor = h;
-
-  const auto n = numeric_cast<blas_int_t>(h_factor.rows());
-  const auto lda = numeric_cast<blas_int_t>(h_factor.spacing());
+  const auto n = numeric_cast<blas_int_t>(h.rows());
   const auto ldb = numeric_cast<blas_int_t>(std::size(b));
   const auto nrhs = blas_int_t{1};
-  const auto lwork = blas_int_t{n * lda};
+  auto lda = blas_int_t{0};
   auto info = blas_int_t{0};
+
+  {
+    const helpers::memory_scope workspace{workspace_memory()};
+
+    h_factor = h;
+    lda = numeric_cast<blas_int_t>(h_factor.spacing());
+    // `resize` only reallocates when growing, and LAPACK fills both, so nothing to preserve.
+    ipiv.resize(numeric_cast<std::size_t>(n), false);
+    work.resize(numeric_cast<std::size_t>(n * lda), false);
+  }
+  const auto lwork = blas_int_t{n * lda};
 
   blaze::resize(x, numeric_cast<std::size_t>(n));
   blaze::smpAssign(x, b);
-
-  // `resize` only reallocates when growing, and LAPACK fills both, so nothing to preserve.
-  ipiv.resize(numeric_cast<std::size_t>(n), false);
-  work.resize(numeric_cast<std::size_t>(lwork), false);
 
   // Solve A * x = b via Bunch-Kaufman diagonal pivoting: P * L * D * L^T * P^T
   blaze::sysv('L', n, nrhs, h_factor.data(), lda, ipiv.data(), x.data(), ldb, work.data(), lwork,
@@ -109,7 +118,10 @@ inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool 
   VORTEX_PRECONDITION(h.rows() == std::size(b), "incompatible matrix and vector");
 
   static thread_local factor_matrix<Matrix> h_factor;
-  h_factor = h;
+  {
+    const helpers::memory_scope workspace{workspace_memory()};
+    h_factor = h;
+  }
 
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(h_factor.rows());
   const auto lda = blaze::numeric_cast<blaze::blas_int_t>(h_factor.spacing());
