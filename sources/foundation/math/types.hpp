@@ -34,8 +34,8 @@ using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 /// place. Naming an allocator here would only cover the first of the three, since blaze drops it
 /// when deducing expression result types.
 ///
-/// Storage that must outlive the scope it is sized in opts out by sizing it under a scope that
-/// outlives it instead -- see the solvers' workspaces in `math/solver.hpp`.
+/// Storage that must outlive the scope it is sized in has to be sized under a scope that outlives
+/// it instead.
 /// ===============================================================================================
 template <class Type, bool SO = column_major>
 using dynamic_matrix = blaze::DynamicMatrix<Type, SO>;

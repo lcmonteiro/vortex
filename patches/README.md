@@ -26,8 +26,8 @@ lenient allocator, a hard crash under a strict one such as Android's Scudo.
 
 ### It makes every blaze container scope-bound
 
-Including ones that outlive the scope. `math::solve_ldlt` caches its LAPACK workspace in
-`thread_local` storage; sized under the caller's scope with the patch on, it holds a block of an
-arena from an earlier solve and releases it at thread exit -- a use-after-free, confirmed under
-ASan. The solvers size theirs back on `std::pmr::new_delete_resource` instead, and anything
-long-lived added later needs a scope that outlives it too.
+So a container must not outlive the scope it was sized in. `math::solve_ldlt` used to cache its
+LAPACK workspace in `thread_local` storage; with the patch on that holds a block of an arena from an
+earlier solve and releases it at thread exit -- a use-after-free, confirmed under ASan. Its
+workspaces are now local to the solve, released inside the same scope. Anything long-lived added
+later has to be sized under a scope that outlives it.

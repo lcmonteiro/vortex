@@ -8,11 +8,9 @@
 
 #include <concepts>
 #include <cstddef>
-#include <memory_resource>
 
 #include "foundation/math/types.hpp"
 #include "helpers/contracts.hpp"
-#include "helpers/memory.hpp"
 
 namespace vortex::math {
 
@@ -21,14 +19,8 @@ namespace vortex::math {
 /// come from the caller's types; the element types are constrained equal, so the workspaces agree
 /// with LAPACK.
 ///
-/// They live in `thread_local` storage, which outlives the scope a solve runs under, so they are
-/// sized back on `std::pmr::new_delete_resource` -- `scoped_allocate` records the resource with the
-/// block, so one taken from the caller's arena would be released through that arena at thread exit,
-/// long after it died.
-///
-/// Holding them across calls is the point: they grow on demand, so a repeated solve of the same
-/// size allocates nothing. Routing them into the arena would be worse anyway -- the graph caps a
-/// block at 32 KiB and the LDL^T workspace is `n * lda`, 2 MiB at the default `system_capacity`.
+/// They are local to the solve, so they draw from the scope it runs under and are released inside
+/// it. Nothing here outlives that scope, which is what keeps them off any allocator of their own.
 /// ===============================================================================================
 template <class Matrix>
 using factor_matrix = blaze::DynamicMatrix<blaze::ElementType_t<Matrix>, blaze::columnMajor>;
@@ -57,27 +49,18 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   using blaze::blas_int_t;
   using blaze::numeric_cast;
 
-  static thread_local factor_matrix<Matrix> h_factor;
-  static thread_local factor_vector<Vector> work;
-  // LAPACK's pivot indices are integers whatever the system's element type is.
-  static thread_local blaze::DynamicVector<blas_int_t> ipiv;
+  auto h_factor = factor_matrix<Matrix>(h);
 
-  const auto n = numeric_cast<blas_int_t>(h.rows());
+  const auto n = numeric_cast<blas_int_t>(h_factor.rows());
+  const auto lda = numeric_cast<blas_int_t>(h_factor.spacing());
   const auto ldb = numeric_cast<blas_int_t>(std::size(b));
   const auto nrhs = blas_int_t{1};
-  auto lda = blas_int_t{0};
+  const auto lwork = blas_int_t{n * lda};
   auto info = blas_int_t{0};
 
-  {
-    const helpers::memory_scope workspace{std::pmr::new_delete_resource()};
-
-    h_factor = h;
-    lda = numeric_cast<blas_int_t>(h_factor.spacing());
-    // `resize` only reallocates when growing, and LAPACK fills both, so nothing to preserve.
-    ipiv.resize(numeric_cast<std::size_t>(n), false);
-    work.resize(numeric_cast<std::size_t>(n * lda), false);
-  }
-  const auto lwork = blas_int_t{n * lda};
+  // LAPACK's pivot indices are integers whatever the system's element type is.
+  auto ipiv = blaze::DynamicVector<blas_int_t>(numeric_cast<std::size_t>(n));
+  auto work = factor_vector<Vector>(numeric_cast<std::size_t>(lwork));
 
   blaze::resize(x, numeric_cast<std::size_t>(n));
   blaze::smpAssign(x, b);
@@ -109,11 +92,7 @@ inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool 
   VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
   VORTEX_PRECONDITION(h.rows() == std::size(b), "incompatible matrix and vector");
 
-  static thread_local factor_matrix<Matrix> h_factor;
-  {
-    const helpers::memory_scope workspace{std::pmr::new_delete_resource()};
-    h_factor = h;
-  }
+  auto h_factor = factor_matrix<Matrix>(h);
 
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(h_factor.rows());
   const auto lda = blaze::numeric_cast<blaze::blas_int_t>(h_factor.spacing());
