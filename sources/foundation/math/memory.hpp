@@ -35,8 +35,11 @@ class heap_allocator {
     return static_cast<Type*>(::operator new(n * sizeof(Type), kAlignment));
   }
 
-  auto deallocate(Type* p, std::size_t n) noexcept -> void {
-    ::operator delete(p, n * sizeof(Type), kAlignment);
+  /// @brief The size is not passed on: the sized form of `operator delete` is only declared when
+  /// sized deallocation is enabled, which clang does not do by default. It is an optimisation hint,
+  /// so the aligned overload alone is both correct and portable.
+  auto deallocate(Type* p, std::size_t /*n*/) noexcept -> void {
+    ::operator delete(p, kAlignment);
   }
 
   friend auto operator==(const heap_allocator&, const heap_allocator&) noexcept -> bool {
