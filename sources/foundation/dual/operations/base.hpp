@@ -35,8 +35,6 @@ struct unary_operation {
 
   template <class T>
   auto operator()(const number<T>& n) const {
-    // The index list is the operand's and has to be copied; the derivative vector is freshly built
-    // and can be moved. The constructor overloads resolve to exactly that pairing.
     return number<T>{value(n), n.dindex(), dvalue(n)};
   }
 

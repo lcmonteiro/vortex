@@ -19,10 +19,10 @@ namespace vortex::math {
 ///
 /// Element type and storage order come from the caller's types; their allocator deliberately does
 /// not -- the element types are constrained equal, so the workspaces agree with LAPACK. These
-/// live in `thread_local` storage, so declaring them `Matrix` -- which is the caller's type, hence
-/// `memory_scope_allocator` -- would let them hold a block of an arena from some earlier solve and
-/// release it through that arena at thread exit, long after it died. `heap_allocator` says that
-/// independence explicitly, so it survives VORTEX_BLAZE_SCOPED_ALLOCATOR redirecting blaze's own.
+/// live in `thread_local` storage, so leaving them on blaze's default allocator -- which the patch
+/// redirects into the active scope -- would let them hold a block of an arena from some earlier
+/// solve and release it through that arena at thread exit, long after it died. `heap_allocator` is
+/// the opt-out.
 ///
 /// Holding them across calls is the point: they grow on demand, so a repeated solve of the same
 /// size allocates nothing. Routing them into the arena would be worse anyway -- the graph caps a
@@ -36,9 +36,6 @@ using factor_matrix =
 template <class Vector>
 using factor_vector = blaze::DynamicVector<blaze::ElementType_t<Vector>, blaze::columnVector,
                                            heap_allocator<blaze::ElementType_t<Vector>>>;
-
-using pivot_vector = blaze::DynamicVector<blaze::blas_int_t, blaze::columnVector,
-                                          heap_allocator<blaze::blas_int_t>>;
 
 /// ===============================================================================================
 /// @brief Solves a symmetric indefinite system of linear equations using the Bunch-Kaufman LDL^T
@@ -64,7 +61,9 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   static thread_local factor_matrix<Matrix> h_factor;
   static thread_local factor_vector<Vector> work;
   // LAPACK's pivot indices are integers whatever the system's element type is.
-  static thread_local pivot_vector ipiv;
+  static thread_local blaze::DynamicVector<blaze::blas_int_t, blaze::columnVector,
+                                           heap_allocator<blaze::blas_int_t>>
+      ipiv;
 
   h_factor = h;
 

@@ -28,24 +28,24 @@ template <class Type, std::size_t R, std::size_t C, bool SO = column_major>
 using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 
 /// ===============================================================================================
-/// @brief Dynamically-sized blaze containers defaulted onto `memory_scope_allocator`.
+/// @brief Dynamically-sized blaze containers, on blaze's default allocator.
 ///
-/// The project's spelling of `blaze::DynamicMatrix`/`blaze::DynamicVector`. `Alloc` is a default
-/// rather than a fixed argument so an explicit one is still honoured; blaze's group tag is left
-/// alone, since omitting it selects the same `Group0` that spelling it would.
+/// The allocator is not overridden here. `blaze::AlignedAllocator` is itself redirected into the
+/// active `helpers::memory_scope` by patches/blaze-scoped-allocator.patch, so these -- and a plain
+/// `blaze::DynamicMatrix<double>`, and every temporary blaze materialises -- all draw from the same
+/// place. Naming an allocator here would only cover the first of the three, since blaze drops it
+/// when deducing expression result types.
 ///
-/// @note `blaze::DynamicMatrix`'s own default cannot be retargeted from here -- [temp.param]/12
-/// forbids a second default argument, and blaze has no configuration hook -- so
-/// `blaze::DynamicMatrix<double>` still selects `AlignedAllocator`. Prefer these aliases.
+/// `math::heap_allocator` is the opt-out, for storage that must outlive the scope.
 /// ===============================================================================================
-template <class Type, bool SO = column_major, class Alloc = memory_scope_allocator<Type>>
-using dynamic_matrix = blaze::DynamicMatrix<Type, SO, Alloc>;
+template <class Type, bool SO = column_major>
+using dynamic_matrix = blaze::DynamicMatrix<Type, SO>;
 
 template <class Type, bool SO = column_major>
 using identity_matrix = blaze::IdentityMatrix<Type, SO>;
 
-template <class Type, bool TF = column_vector, class Alloc = memory_scope_allocator<Type>>
-using dynamic_vector = blaze::DynamicVector<Type, TF, Alloc>;
+template <class Type, bool TF = column_vector>
+using dynamic_vector = blaze::DynamicVector<Type, TF>;
 
 template <class Type, std::size_t Size, bool TF = column_vector>
 using static_vector = blaze::StaticVector<Type, Size, TF>;

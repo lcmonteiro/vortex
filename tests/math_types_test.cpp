@@ -1,13 +1,12 @@
 /// ===============================================================================================
 /// @file
-/// @brief Unit tests for `vortex::math` matrix/vector types and the `memory_scope_allocator` that
-/// ties dynamically-sized blaze containers to `helpers::memory_scope`.
+/// @brief Unit tests for `vortex::math` matrix/vector types and the patched `AlignedAllocator`
+/// that ties blaze's dynamic containers to `helpers::memory_scope`.
 /// ===============================================================================================
 #include <gtest/gtest.h>
 
 #include <cstddef>
 #include <memory_resource>
-#include <type_traits>
 #include <utility>
 
 #include "foundation/math/solver.hpp"
@@ -162,48 +161,9 @@ TEST(MathSolver, GivenScopedArena_ExpectSolversRetainNothingAfterScopeEnds) {
   }
 }
 
-/// ===============================================================================================
-/// Allocator wiring
-/// ===============================================================================================
-
-/// @brief The aliases default onto memory_scope_allocator: the parameters exist to be overridden,
-/// not to change what the default resolves to.
-static_assert(std::is_same_v<dynamic_matrix<double>,
-                             blaze::DynamicMatrix<double, vortex::math::column_major,
-                                                  vortex::math::memory_scope_allocator<double>>>);
-static_assert(std::is_same_v<dynamic_vector<double>,
-                             blaze::DynamicVector<double, vortex::math::column_vector,
-                                                  vortex::math::memory_scope_allocator<double>>>);
-
-/// @brief ...while an explicitly supplied allocator is still honoured.
-static_assert(std::is_same_v<
-              dynamic_matrix<double, vortex::math::column_major, blaze::AlignedAllocator<double>>,
-              blaze::DynamicMatrix<double, vortex::math::column_major,
-                                   blaze::AlignedAllocator<double>>>);
-
-/// @brief Blaze's own spelling is unaffected: [temp.param]/12 forbids retargeting its default.
-static_assert(std::is_same_v<blaze::GetAllocator_t<blaze::DynamicMatrix<double>>,
-                             blaze::AlignedAllocator<double>>);
-
-/// @brief Blaze drops a custom allocator when deducing an expression's result type: the containers
-/// hardwire `AllocatorType` to `AlignedAllocator`, and every arithmetic trait routes through
-/// `GetAllocator`. If an upgrade fixes it these start failing.
-static_assert(std::is_same_v<blaze::GetAllocator_t<dynamic_matrix<double>>,
-                             blaze::AlignedAllocator<double>>,
-              "blaze still reports AlignedAllocator for a custom-allocator matrix");
-static_assert(std::is_same_v<blaze::MultTrait_t<dynamic_matrix<double>, dynamic_matrix<double>>,
-                             blaze::DynamicMatrix<double, vortex::math::column_major,
-                                                  blaze::AlignedAllocator<double>>>,
-              "blaze still drops the custom allocator from A * B");
-static_assert(std::is_same_v<blaze::AddTrait_t<dynamic_matrix<double>, dynamic_matrix<double>>,
-                             blaze::DynamicMatrix<double, vortex::math::column_major,
-                                                  blaze::AlignedAllocator<double>>>,
-              "blaze still drops the custom allocator from A + B");
-
-#ifdef VORTEX_BLAZE_SCOPED_ALLOCATOR
-/// @brief With the patch applied, a plain blaze type draws from the active scope -- the one thing
-/// no project-side alias can achieve.
-TEST(MathTypes, GivenPatchedBlaze_ExpectPlainContainersUseActiveScope) {
+/// @brief A plain blaze type -- no vortex alias, no explicit allocator -- draws from the active
+/// scope. This is what the blaze patch buys, and it failing means the patch did not apply.
+TEST(MathTypes, GivenPlainBlazeContainers_ExpectActiveScope) {
   arena_memory_resource resource;
   const memory_scope scope{&resource};
 
@@ -213,14 +173,5 @@ TEST(MathTypes, GivenPatchedBlaze_ExpectPlainContainersUseActiveScope) {
   EXPECT_TRUE(resource.owns(m.data()));
   EXPECT_TRUE(resource.owns(v.data()));
 }
-#endif
-
-/// @brief Buffers must satisfy blaze's SIMD alignment, which it checks via `checkAlignment` on
-/// every allocation and reports as a bad_alloc when violated.
-
-/// @brief Named containers are scope-allocated, including through the expressions below. What is
-/// asserted here is the split: operands and assignment targets go through the scope, and the
-/// suite as a whole still completes -- blaze falling back to AlignedAllocator for an intermediate
-/// is a heap allocation, not a failure.
 
 }  // namespace

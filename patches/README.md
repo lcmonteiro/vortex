@@ -2,11 +2,8 @@
 
 ## `blaze-scoped-allocator.patch`
 
-Applied at fetch time when `VORTEX_BLAZE_SCOPED_ALLOCATOR=ON`:
-
-```sh
-cmake -S . -B build -DVORTEX_BLAZE_SCOPED_ALLOCATOR=ON
-```
+Applied at fetch time, always. It is vortex's memory model, not an option: with it absent nothing
+is scope-allocated and `helpers::memory_scope` has no effect on blaze containers.
 
 It makes `blaze::AlignedAllocator` draw from vortex's active `helpers::memory_scope`, the only way
 to reach blaze's *expression temporaries*: the containers hardwire `AllocatorType` to
