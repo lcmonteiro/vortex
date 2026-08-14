@@ -83,7 +83,7 @@ endif()
 # ---------------------------------------------------------------------------
 # vortex library
 # ---------------------------------------------------------------------------
-add_library(vortex STATIC sources/vortex.cpp sources/foundation/math/scoped_memory.cpp)
+add_library(vortex STATIC sources/vortex.cpp sources/foundation/math/memory.cpp)
 target_compile_features(vortex PUBLIC cxx_std_20)
 target_include_directories(vortex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/sources)
 target_include_directories(vortex SYSTEM PUBLIC ${blaze_SOURCE_DIR})

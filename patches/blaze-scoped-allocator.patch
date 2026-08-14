@@ -9,7 +9,7 @@ index add6b52bc..dc4ad423b 100644
 +#if defined(VORTEX_BLAZE_SCOPED_ALLOCATOR)
 +// Routes every AlignedAllocator allocation through vortex's active helpers::memory_scope. The
 +// header is deliberately free of blaze includes, so this cannot form an include cycle.
-+#include "foundation/math/scoped_memory.hpp"
++#include "foundation/math/memory.hpp"
 +#endif
 +
  

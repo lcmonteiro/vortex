@@ -1,10 +1,10 @@
 /// ===============================================================================================
 /// @file
 ///
-/// @brief vortex.math.scoped_memory component
+/// @brief vortex.math.memory component
 /// ===============================================================================================
-#ifndef VORTEX_FOUNDATION_MATH_SCOPED_MEMORY_HPP
-#define VORTEX_FOUNDATION_MATH_SCOPED_MEMORY_HPP
+#ifndef VORTEX_FOUNDATION_MATH_MEMORY_HPP
+#define VORTEX_FOUNDATION_MATH_MEMORY_HPP
 
 #include <cstddef>
 
@@ -24,4 +24,4 @@ auto scoped_deallocate(void* p, std::size_t bytes, std::size_t alignment) noexce
 
 }  // namespace vortex::math
 
-#endif  // VORTEX_FOUNDATION_MATH_SCOPED_MEMORY_HPP
+#endif  // VORTEX_FOUNDATION_MATH_MEMORY_HPP

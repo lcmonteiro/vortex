@@ -1,9 +1,9 @@
 /// ===============================================================================================
 /// @file
 ///
-/// @brief vortex.math.scoped_memory component
+/// @brief vortex.math.memory component
 /// ===============================================================================================
-#include "foundation/math/scoped_memory.hpp"
+#include "foundation/math/memory.hpp"
 
 #include <cstddef>
 #include <cstring>
