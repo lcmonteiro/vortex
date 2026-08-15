@@ -18,8 +18,8 @@
 
 namespace vortex::optimization {
 using graph::handle;
-using graph::option;
 using graph::items;
+using graph::option;
 
 /// ===============================================================================================
 /// @brief A templated Graph class implementing optimization algorithms.
@@ -37,7 +37,7 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   using algorithm_type = typename Config::template algorithm_type<graph, graph_solver_type>;
 
  public:
-  static constexpr auto kSystemCapacity = std::size_t{Config::system_capacity};
+  static constexpr auto system_capacity = std::size_t{Config::system_capacity};
 
   using base_type = vortex::graph::storage<Nodes, Edges, Config>;
   using key_type = typename Config::key_type;
@@ -59,8 +59,8 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   /// @param iterations The number of iterations to run.
   /// @param reset Whether to reset the algorithm state.
   /// @return The number of completed iterations or an unexpected error.
-  auto optimize(std::size_t iterations,
-                bool reset = true) -> helpers::expected<std::size_t, algorithm_error> {
+  auto optimize(std::size_t iterations, bool reset = true)
+      -> helpers::expected<std::size_t, algorithm_error> {
     // Route transient dual-number (Jacobian) allocations through the graph's
     // memory arena for the duration of the optimization.
     const helpers::memory_scope scope{this->memory()};

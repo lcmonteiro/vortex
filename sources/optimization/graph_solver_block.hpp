@@ -11,6 +11,7 @@
 #include "foundation/math.hpp"
 #include "optimization/graph_operations.hpp"
 #include "optimization/graph_solver.hpp"
+
 namespace vortex::optimization {
 
 /// ===============================================================================================
@@ -36,10 +37,10 @@ class block_graph_solver : public graph_solver<Graph, LinearSolver> {
   /// @param graph The graph to be solved.
   explicit block_graph_solver(Graph& graph)
       : base_type{graph}, x_{}, b_{}, h_{}, h_diagonal_backup_{} {
-    h_.reserve(Graph::kSystemCapacity * Graph::kSystemCapacity);
-    x_.reserve(Graph::kSystemCapacity);
-    b_.reserve(Graph::kSystemCapacity);
-    h_diagonal_backup_.reserve(Graph::kSystemCapacity);
+    h_.reserve(Graph::system_capacity * Graph::system_capacity);
+    x_.reserve(Graph::system_capacity);
+    b_.reserve(Graph::system_capacity);
+    h_diagonal_backup_.reserve(Graph::system_capacity);
   }
 
   /// @brief Deleted copy constructor and defaulted move constructor.
@@ -124,27 +125,25 @@ class block_graph_solver : public graph_solver<Graph, LinearSolver> {
     }
     template <class Ni, class Nj, class H>
     auto symmetric(const Ni& node_i, const Nj& node_j, const H& update) -> void {
-      const auto position_i = node_i->position();
-      const auto position_j = node_j->position();
-      const auto dimension_i = node_i->dimension();
-      const auto dimension_j = node_j->dimension();
-      math::submatrix(self->h_, position_i, position_j, dimension_i, dimension_j) += update;
-      if (position_i != position_j) {
-        math::submatrix(self->h_, position_j, position_i, dimension_j, dimension_i) +=
-            math::trans(update);
+      const auto pos_i = node_i->position();
+      const auto pos_j = node_j->position();
+      const auto dim_i = node_i->dimension();
+      const auto dim_j = node_j->dimension();
+      math::submatrix(self->h_, pos_i, pos_j, dim_i, dim_j) += update;
+      if (pos_i != pos_j) {
+        math::submatrix(self->h_, pos_j, pos_i, dim_j, dim_i) += math::trans(update);
       }
     }
     template <class Ni, class Nj, class H>
     auto triangular(const Ni& node_i, const Nj& node_j, const H& update) -> void {
-      const auto position_i = node_i->position();
-      const auto position_j = node_j->position();
-      const auto dimension_i = node_i->dimension();
-      const auto dimension_j = node_j->dimension();
-      if (position_i >= position_j) {
-        math::submatrix(self->h_, position_i, position_j, dimension_i, dimension_j) += update;
+      const auto pos_i = node_i->position();
+      const auto pos_j = node_j->position();
+      const auto dim_i = node_i->dimension();
+      const auto dim_j = node_j->dimension();
+      if (pos_i >= pos_j) {
+        math::submatrix(self->h_, pos_i, pos_j, dim_i, dim_j) += update;
       } else {
-        math::submatrix(self->h_, position_j, position_i, dimension_j, dimension_i) +=
-            math::trans(update);
+        math::submatrix(self->h_, pos_j, pos_i, dim_j, dim_i) += math::trans(update);
       }
     }
     block_graph_solver* self;

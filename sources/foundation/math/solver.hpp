@@ -34,6 +34,7 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   using blaze::numeric_cast;
 
   // static thread_local Matrix h_factor;
+  // h_factor = h;
   Matrix h_factor = h;
 
   const auto n = numeric_cast<blas_int_t>(h_factor.rows());
@@ -77,6 +78,7 @@ inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool 
   VORTEX_PRECONDITION(h.rows() == std::size(b), "incompatible matrix and vector");
 
   // static thread_local Matrix h_factor;
+  // h_factor = h;
   Matrix h_factor = h;
 
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(h_factor.rows());

@@ -101,7 +101,6 @@ class memory_scope final {
   /// @brief Returns a reference to the thread-local pointer to the current resource.
   /// @return Reference to the thread-local pointer.
   static auto current() noexcept -> memory*& {
-    std::cerr << "aaaaaaaaaaaaaaaaa" << std::endl;
     thread_local memory* res = std::pmr::get_default_resource();
     return res;
   }
