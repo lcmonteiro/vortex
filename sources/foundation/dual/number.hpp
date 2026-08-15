@@ -45,7 +45,14 @@ struct number {
 
   /// @brief Default constructor creates a constant dual number with zero value and no derivatives.
   number() = default;
-  number(const number& other) = default;
+
+  /// @brief Copies into storage from the scope active now. A defaulted copy would not:
+  /// `std::pmr::polymorphic_allocator` does not propagate on copy construction, so it would draw
+  /// from `std::pmr::get_default_resource()` and bypass the arena the caller installed.
+  number(const number& n)
+      : value_{n.value_}, dindex_{n.dindex_, memory()}, dvalue_{n.dvalue_, memory()} {}
+
+  /// @brief Unlike the copy above, a move keeps the source's resource along with its buffer.
   number(number&&) = default;
 
   /// @brief Constructs a constant dual number with a zero derivative.
@@ -97,8 +104,18 @@ struct number {
   auto size() const -> std::size_t { return std::size(dvalue_); }
 
  protected:
+  /// @brief Builds from existing derivative storage, for the operation bases.
   number(const value_t& value, const dindex_t& dindex, const dvalue_t& dvalue)
       : value_{value}, dindex_{dindex, memory()}, dvalue_{dvalue, memory()} {}
+
+  number(const value_t& value, const dindex_t& dindex, dvalue_t&& dvalue)
+      : value_{value}, dindex_{dindex, memory()}, dvalue_{std::move(dvalue)} {}
+
+  number(const value_t& value, dindex_t&& dindex, const dvalue_t& dvalue)
+      : value_{value}, dindex_{std::move(dindex)}, dvalue_{dvalue, memory()} {}
+
+  number(const value_t& value, dindex_t&& dindex, dvalue_t&& dvalue)
+      : value_{value}, dindex_{std::move(dindex)}, dvalue_{std::move(dvalue)} {}
 
   template <class Derived>
   friend struct unary_operation;

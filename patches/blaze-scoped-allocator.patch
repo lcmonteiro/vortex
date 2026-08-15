@@ -1,0 +1,51 @@
+diff --git a/blaze/util/AlignedAllocator.h b/blaze/util/AlignedAllocator.h
+index add6b52bc..dc4ad423b 100644
+--- a/blaze/util/AlignedAllocator.h
++++ b/blaze/util/AlignedAllocator.h
+@@ -45,6 +45,12 @@
+ #include <blaze/util/Types.h>
+ #include <blaze/util/typetraits/AlignmentOf.h>
+ 
++#if defined(VORTEX_BLAZE_SCOPED_ALLOCATOR)
++// Routes every AlignedAllocator allocation through vortex's active helpers::memory_scope. The
++// header is deliberately free of blaze includes, so this cannot form an include cycle.
++#include "foundation/math/memory.hpp"
++#endif
++
+ 
+ namespace blaze {
+ 
+@@ -160,12 +166,16 @@ inline T* AlignedAllocator<T>::allocate( size_t numObjects )
+ {
+    const size_t alignment( AlignmentOf_v<T> );
+ 
++#if defined(VORTEX_BLAZE_SCOPED_ALLOCATOR)
++   return static_cast<T*>( vortex::math::scoped_allocate( numObjects*sizeof(T), alignment ) );
++#else
+    if( alignment >= 8UL ) {
+       return reinterpret_cast<T*>( alignedAllocate( numObjects*sizeof(T), alignment ) );
+    }
+    else {
+       return static_cast<T*>( operator new[]( numObjects * sizeof( T ) ) );
+    }
++#endif
+ }
+ //*************************************************************************************************
+ 
+@@ -191,12 +201,16 @@ inline void AlignedAllocator<T>::deallocate( T* ptr, size_t numObjects ) noexcep
+ 
+    const size_t alignment( AlignmentOf_v<T> );
+ 
++#if defined(VORTEX_BLAZE_SCOPED_ALLOCATOR)
++   vortex::math::scoped_deallocate( ptr, numObjects*sizeof(T), alignment );
++#else
+    if( alignment >= 8UL ) {
+       alignedDeallocate( ptr );
+    }
+    else {
+       operator delete[]( ptr );
+    }
++#endif
+ }
+ //*************************************************************************************************
+ 

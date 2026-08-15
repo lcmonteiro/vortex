@@ -33,8 +33,8 @@ inline auto solve_ldlt(const Matrix& h, const Vector& b, Vector& x) -> bool {
   using blaze::blas_int_t;
   using blaze::numeric_cast;
 
-  static thread_local Matrix h_factor;
-  h_factor = h;
+  // static thread_local Matrix h_factor;
+  Matrix h_factor = h;
 
   const auto n = numeric_cast<blas_int_t>(h_factor.rows());
   const auto lda = numeric_cast<blas_int_t>(h_factor.spacing());
@@ -76,8 +76,8 @@ inline auto solve_cholesky(const Matrix& h, const Vector& b, Vector& x) -> bool 
   VORTEX_PRECONDITION(h.rows() == h.columns(), "non-square matrix");
   VORTEX_PRECONDITION(h.rows() == std::size(b), "incompatible matrix and vector");
 
-  static thread_local Matrix h_factor;
-  h_factor = h;
+  // static thread_local Matrix h_factor;
+  Matrix h_factor = h;
 
   const auto n = blaze::numeric_cast<blaze::blas_int_t>(h_factor.rows());
   const auto lda = blaze::numeric_cast<blaze::blas_int_t>(h_factor.spacing());
