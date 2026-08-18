@@ -37,7 +37,7 @@ FetchContent_MakeAvailable(blaze)
 # therefore not optional, and applying it here rather than via FetchContent's PATCH_COMMAND covers
 # the case where blaze was supplied through FETCHCONTENT_SOURCE_DIR_BLAZE, which skips that step.
 # Testing for the marker first makes this idempotent across reconfigures.
-set(VORTEX_BLAZE_PATCH ${CMAKE_CURRENT_SOURCE_DIR}/patches/blaze-scoped-allocator.patch)
+set(VORTEX_BLAZE_PATCH ${CMAKE_CURRENT_SOURCE_DIR}/sources/foundation/math/patch/blaze-scoped-allocator.patch)
 set(VORTEX_BLAZE_PATCH_TARGET ${blaze_SOURCE_DIR}/blaze/util/AlignedAllocator.h)
 
 file(READ ${VORTEX_BLAZE_PATCH_TARGET} VORTEX_BLAZE_PATCH_TARGET_TEXT)
