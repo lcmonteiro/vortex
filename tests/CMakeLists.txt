@@ -8,6 +8,7 @@ add_executable(vortex_tests
   vector_set_test.cpp
   linear_solver_test.cpp
   information_matrix_test.cpp
+  robust_kernel_test.cpp
   graph_operations_test.cpp
   helpers/bounded_arena_resource.cpp)
 

@@ -10,6 +10,8 @@
 #include <cstddef>
 #include <variant>
 
+#include "helpers/contracts.hpp"
+
 namespace vortex::optimization {
 namespace variants {
 
@@ -50,6 +52,7 @@ struct huber_kernel_option {
   /// @brief Setter for robust kernel delta.
   /// @param value New delta value.
   auto delta(number_type value) -> void {
+    VORTEX_PRECONDITION(value > number_type{0}, "huber delta must be positive");
     delta_ = value;
     delta_sqr_ = value * value;
   }
