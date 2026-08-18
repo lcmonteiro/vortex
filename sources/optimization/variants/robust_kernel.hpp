@@ -46,7 +46,7 @@ struct null_kernel_option {
 template <class Number>
 struct huber_kernel_option {
   using number_type = Number;
-  
+
   /// @brief Setter for robust kernel delta.
   /// @param value New delta value.
   auto delta(number_type value) -> void {
@@ -86,9 +86,9 @@ struct huber_kernel_option {
 
  private:
   number_type delta_{1.};
-  number_type delta_sqr_;
-  number_type rho_;
-  number_type rho_prime_;
+  number_type delta_sqr_{1.};
+  number_type rho_{1.};
+  number_type rho_prime_{1.};
 };
 
 /// ===============================================================================================
@@ -105,7 +105,10 @@ constexpr std::size_t huber_kernel = 1;
 template <class Derived, class Config>
 struct kernel_variant {
   using number_type = typename Config::number_type;
-  using storage_type = std::variant<null_kernel_option<number_type>, huber_kernel_option<number_type>>;
+  using storage_type = std::variant<    //
+      null_kernel_option<number_type>,  //
+      huber_kernel_option<number_type>  //
+      >;
 
   constexpr kernel_variant()
       : storage_(std::variant_alternative_t<Derived::kernel_option, storage_type>{}) {
