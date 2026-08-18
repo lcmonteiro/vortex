@@ -17,7 +17,9 @@
 #   INSTALL_DEPS=auto     auto | yes | no  (system package installation).
 #
 # Usage:
-#   ./setup.sh
+#   ./setup.sh [--debug|--release] [--build-type=<Type>]
+#
+# CLI flags take precedence over BUILD_TYPE.
 #
 set -euo pipefail
 
@@ -34,6 +36,31 @@ log()  { printf '\033[1;34m[setup]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[setup]\033[0m %s\n' "$*" >&2; }
 err()  { printf '\033[1;31m[setup]\033[0m %s\n' "$*" >&2; }
 have() { command -v "$1" >/dev/null 2>&1; }
+
+usage() {
+  cat <<'EOF'
+Usage: ./setup.sh [--debug|--release] [--build-type=<Type>]
+
+Options:
+  --debug               Shortcut for --build-type=Debug
+  --release             Shortcut for --build-type=Release
+  --build-type=<Type>   Explicit CMake build type (Debug, Release, RelWithDebInfo, MinSizeRel)
+  -h, --help            Show this help message and exit
+EOF
+}
+
+parse_args() {
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --debug) BUILD_TYPE="Debug" ;;
+      --release) BUILD_TYPE="Release" ;;
+      --build-type=*) BUILD_TYPE="${1#*=}" ;;
+      -h|--help) usage; exit 0 ;;
+      *) err "Unknown argument: $1"; usage; exit 2 ;;
+    esac
+    shift
+  done
+}
 
 # --- 1. Dependencies ---------------------------------------------------------
 maybe_sudo() {
@@ -141,6 +168,7 @@ run_tests() {
 }
 
 main() {
+  parse_args "$@"
   ensure_deps
   check_tools
   configure

@@ -37,6 +37,7 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   using algorithm_type = typename Config::template algorithm_type<graph, graph_solver_type>;
 
  public:
+  /// @brief Maximum system capacity (internal matrices and vectors).
   static constexpr auto system_capacity = std::size_t{Config::system_capacity};
 
   using base_type = vortex::graph::storage<Nodes, Edges, Config>;

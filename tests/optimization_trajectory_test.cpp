@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "tests/fixtures/simple_slam_graph.hpp"
+#include "tests/helpers/bounded_arena_resource.hpp"
 
 namespace {
 
@@ -36,6 +37,7 @@ constexpr auto kRandomSeed = std::size_t{1};
 constexpr auto kMaxIterations = std::size_t{15};
 constexpr auto kExpectedIterations = std::size_t{3};
 constexpr auto kMaxErrorDistance = double{3.0};
+constexpr auto kArenaCapacity = std::size_t{0x10000010}; 
 
 using Curve = std::vector<Position>;
 
@@ -79,15 +81,14 @@ auto RandomNodeIndex(Generator& generator, std::size_t num_nodes) -> std::size_t
 class OptimizationTrajectoryTest : public ::testing::Test {
  protected:
   using Key = SlamGraph::key_type;
-
-  auto TearDown() -> void override { g_.destroy(); }
-
-  SlamGraph g_{std::pmr::new_delete_resource()};
 };
 
 /// @brief Builds a randomized, noisy SLAM problem along a sine trajectory and
 /// verifies the optimizer converges close to the ground-truth positions.
 TEST_F(OptimizationTrajectoryTest, GivenNoisyTrajectory_ExpectConvergenceNearGroundTruth) {
+  auto arena = bounded_arena_resource{kArenaCapacity, std::pmr::new_delete_resource()};
+  auto g_ = SlamGraph{&arena};
+
   auto generator = std::mt19937{kRandomSeed};
 
   const auto ref_points = BuildReferenceTrajectory(kNumberNodes, kAmplitude, kWidth);
@@ -130,6 +131,7 @@ TEST_F(OptimizationTrajectoryTest, GivenNoisyTrajectory_ExpectConvergenceNearGro
     EXPECT_NEAR(poses[idx]->estimation().y, ref_points[idx].y, kMaxErrorDistance)
         << "Node index: " << idx << std::endl;
   }
+  g_.destroy();
 }
 
 }  // namespace

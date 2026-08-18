@@ -91,6 +91,18 @@ class storage {
   static_assert(nodes_type<Nodes>, "Nodes must be a nodes_type");
   static_assert(edges_type<Edges>, "Edges must be an edges_type");
 
+  /// @brief Memory resource options for big blocks.
+  constexpr static auto big_blocks_options = std::pmr::pool_options{
+      4,                                // Number of blocks
+      Config::cache_big_block_max_size  // Block size
+  };
+
+  /// @brief Memory resource options for small blocks.
+  constexpr static auto small_blocks_options = std::pmr::pool_options{
+      Config::cache_big_block_max_size / Config::cache_small_block_max_size,  // Number of blocks
+      Config::cache_small_block_max_size                                      // Block size
+  };
+
  protected:
   // types
   using key_type = typename Config::key_type;
@@ -127,10 +139,11 @@ class storage {
   /// @brief Container main constructor.
   /// @param memory_resource
   storage(const revision_handler& revision, std::pmr::memory_resource* const memory_resource)
-      : memory_monotonic_{Config::cache_init_size, memory_resource},
-        memory_pool_{{0, Config::cache_block_max_size}, &memory_monotonic_},
-        memory_bounded_{&memory_pool_},
-        memory_{&memory_bounded_},
+      : memory_cache_{Config::cache_init_size, memory_resource},
+        memory_big_block_pool_{big_blocks_options, &memory_cache_},
+        memory_small_block_pool_{small_blocks_options, &memory_big_block_pool_},
+        memory_check_{&memory_small_block_pool_},
+        memory_{&memory_small_block_pool_},
         nodes_enable_{helpers::build<handle_map_tuple>(memory_)},
         nodes_disable_{helpers::build<handle_map_tuple>(memory_)},
         edges_enable_{helpers::build<handle_set_tuple>(memory_)},
@@ -665,9 +678,10 @@ class storage {
   const auto& revision() const { return revision_; }
 
  private:
-  std::pmr::monotonic_buffer_resource memory_monotonic_;
-  std::pmr::unsynchronized_pool_resource memory_pool_;
-  helpers::bounded_memory_resource<Config::cache_block_max_size> memory_bounded_;
+  std::pmr::monotonic_buffer_resource memory_cache_;
+  std::pmr::unsynchronized_pool_resource memory_big_block_pool_;
+  std::pmr::unsynchronized_pool_resource memory_small_block_pool_;
+  helpers::bounded_memory_resource<Config::cache_big_block_max_size> memory_check_;
   std::pmr::memory_resource* memory_;
   handle_map_tuple nodes_enable_;
   handle_map_tuple nodes_disable_;

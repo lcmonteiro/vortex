@@ -15,12 +15,16 @@ namespace vortex::graph {
 /// ===============================================================================================
 struct default_config {
   /// @brief Initial size of the cache in bytes.
-  /// @details Set to 0x80000 (524,288 bytes).
-  static constexpr std::size_t cache_init_size = 0x80000U;
+  /// @details Set to 0x1000000 (16,777,216 bytes).
+  static constexpr std::size_t cache_init_size = 0x1000000;
 
-  /// @brief Maximum size of a single cache block in bytes.
-  /// @details Set to 0x8000 (32,768 bytes).
-  static constexpr std::size_t cache_block_max_size = 0x8000;
+  /// @brief Maximum size of a big cache block in bytes.
+  /// @details Set to 0x100000 (1,048,576 bytes).
+  static constexpr std::size_t cache_big_block_max_size = 0x100000;
+
+  /// @brief Maximum size of a small cache block in bytes.
+  /// @details Set to 0x1000 (4,096 bytes).
+  static constexpr std::size_t cache_small_block_max_size = 0x1000;
 
   /// @brief Data type for node keys.
   using key_type = std::size_t;
