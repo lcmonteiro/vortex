@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <iterator>
 #include <utility>
 
 #include "foundation/dual.hpp"
@@ -237,14 +238,16 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
 
     template <std::size_t I>
     auto operator()() -> void {
-      constexpr auto D = std::get<I>(node_dimensions);
-      constexpr auto O = std::get<I>(node_offsets);
+      constexpr auto D = std::ptrdiff_t{std::get<I>(node_dimensions)};
+      constexpr auto O = std::ptrdiff_t{std::get<I>(node_offsets)};
+      constexpr auto Z = std::ptrdiff_t{0};
 
       auto& jacobian = std::get<I>(self->jacobian_);
       VORTEX_ASSERT(dimension() == std::size(residual), "residual size mismatch");
       for (std::size_t row{0}; row < dimension(); ++row) {
         const auto& partials = residual[row];
-        const auto partials_size = std::clamp(std::size(partials) - O, std::size_t{0}, D);
+        const auto partials_ssize = std::ssize(partials) - O;
+        const auto partials_size = static_cast<std::size_t>(std::clamp(partials_ssize, Z, D));
         for (std::size_t col{0}; col < partials_size; ++col) {
           jacobian(row, col) = partials.dvalue(O + col);
         }
