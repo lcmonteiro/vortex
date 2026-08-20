@@ -7,15 +7,15 @@
 #define VORTEX_OPTIMIZATION_GRAPH_NODE_HPP
 
 #include <cstddef>
+#include <span>
 
 #include "foundation/graph.hpp"
-#include "foundation/math.hpp"
 #include "helpers/buffer.hpp"
 #include "helpers/contracts.hpp"
 #include "optimization/graph_config.hpp"
 
 namespace vortex::optimization {
-using graph::edges;  
+using graph::edges;
 
 /// ===============================================================================================
 /// @brief Represents a graph node used for estimations.
@@ -37,9 +37,9 @@ class node : public helpers::types_build_t<graph::node, Edges> {
   using number_type = typename Config::number_type;
   using key_type = typename Config::key_type;
 
-  template <std::size_t D>
-  using matrix_type = math::static_matrix<number_type, D, Dimension>;
-  using vector_type = math::static_vector<number_type, Dimension>;
+  /// @brief Type of the delta vector used for updating the node's estimation.
+  template <class Scalar>
+  using update_vector = std::span<const Scalar>;
 
   /// @brief Node constructor.
   /// @param key Node identifier.
@@ -96,12 +96,11 @@ class node : public helpers::types_build_t<graph::node, Edges> {
   } position;
 
   /// @brief Updates the estimation.
-  /// @tparam Delta The delta type.
-  /// @param delta The delta to be added to the current estimation.
-  template <class Delta>
-  auto update(const Delta delta) -> void {
-    VORTEX_PRECONDITION(std::size(delta) == dimension(),
-                        "delta update size do not match with node dimension");
+  /// @param delta The increment vector to apply to the current estimation.
+  /// @tparam T The scalar type of the increment vector.
+  template <class T>
+  auto update(const update_vector<T>& delta) -> void {
+    VORTEX_PRECONDITION(std::size(delta) == dimension(), "update size not match node dimension");
     estimation(self()->plus(delta));
   }
 

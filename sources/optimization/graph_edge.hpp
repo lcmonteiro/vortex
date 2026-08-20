@@ -10,6 +10,7 @@
 #include <array>
 #include <cstddef>
 #include <iterator>
+#include <span>
 #include <utility>
 
 #include "foundation/dual.hpp"
@@ -38,9 +39,9 @@ using graph::nodes;
 /// ===============================================================================================
 template <class Derived, auto Dimension, class Type, class Nodes, class Config = default_config>
 class edge : public helpers::types_build_t<graph::edge, Nodes> {
-  using kernel_variant_type = variants::kernel_variant<Derived, Config>;
+  using kernel_variant = variants::kernel_variant<Derived, Config>;
   /// @brief Information matrix alternatives.
-  using information_variant_type = variants::information_variant<Derived, Config, Dimension>;
+  using information_variant = variants::information_variant<Derived, Config, Dimension>;
 
   /// @brief Helper alias types.
   template <std::size_t I>
@@ -55,18 +56,15 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @brief Default kernel type.
   static constexpr std::size_t kernel_option = variants::null_kernel;
 
-  /// @brief Robust kernel alternatives.
-  using kernel_types = variants::kernel_variant<Derived, Config>;
-
   /// @brief Measurement type of the edge.
   using measurement_type = Type;
 
   /// @brief Information matrix type of the edge.
-  using information_matrix_type = math::static_matrix<number_type, Dimension, Dimension>;
+  using information_matrix = math::static_matrix<number_type, Dimension, Dimension>;
 
   /// @brief Error type of the edge.
   template <class Scalar>
-  using error_vector_type = math::static_vector<Scalar, Dimension>;
+  using error_vector = math::static_vector<Scalar, Dimension>;
 
   /// @brief Constructor of the edge.
   using base_type::base_type;
@@ -107,7 +105,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
 
   /// @brief Robust kernel public accessor.
   struct kernel_variant_accessor {
-    explicit kernel_variant_accessor(kernel_variant_type& variant) : variant_{variant} {}
+    explicit kernel_variant_accessor(kernel_variant& variant) : variant_{variant} {}
 
     /// @brief Sets the robust kernel delta.
     /// @param value The new delta value.
@@ -117,7 +115,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
     auto delta() const -> number_type { return variant_->delta(); }
 
    private:
-    kernel_variant_type& variant_;
+    kernel_variant& variant_;
   } kernel{kernel_};
 
   /// @brief Updates the error, chi-squared value, and both jacobian forms
@@ -180,10 +178,10 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @note The transpose version is assumed to already include the
   /// information matrix.
   template <class Node>
-  using jacobian_matrix_type =
+  using jacobian_matrix =
       math::static_matrix<number_type, dimension(), Node::dimension(), math::column_major>;
   template <class Node>
-  using jacobian_matrix_t_type =
+  using jacobian_matrix_t =
       math::static_matrix<number_type, Node::dimension(), dimension(), math::row_major>;
 
   /// @brief Node dimensions in the combined tangent space.
@@ -221,7 +219,8 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
     auto operator()() {
       constexpr auto D = std::get<I>(node_dimensions);
       constexpr auto O = std::get<I>(node_offsets);
-      return get_node<I>(*self)->plus(dual::zeros<number_type, D, O>());
+      const auto delta = dual::zeros<number_type, D, O>();
+      return get_node<I>(*self)->plus(std::span{std::data(delta), std::size(delta)});
     }
   };
 
@@ -262,20 +261,17 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   measurement_type measurement_{};
 
   /// @brief Error vector.
-  error_vector_type<number_type> error_{};
+  error_vector<number_type> error_{};
 
   /// @brief Information matrix.
-  information_variant_type information_{};
+  information_variant information_{};
 
   /// @brief Robust kernel alternatives.
-  kernel_variant_type kernel_{};
+  kernel_variant kernel_{};
 
   /// @brief Jacobian types.
-
-  using jacobian_matrix_tuple =
-      helpers::types_wrap_build_t<std::tuple, jacobian_matrix_type, Nodes>;
-  using jacobian_matrix_t_tuple =
-      helpers::types_wrap_build_t<std::tuple, jacobian_matrix_t_type, Nodes>;
+  using jacobian_matrix_tuple = helpers::types_wrap_build_t<std::tuple, jacobian_matrix, Nodes>;
+  using jacobian_matrix_t_tuple = helpers::types_wrap_build_t<std::tuple, jacobian_matrix_t, Nodes>;
   jacobian_matrix_tuple jacobian_{};
   jacobian_matrix_t_tuple jacobian_transpose_{};
 };

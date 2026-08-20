@@ -152,12 +152,14 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   }
 
   /// @brief Updates the active nodes from the stacked state increment vector.
+  /// @param delta The stacked state increment vector.
   auto update_nodes(const vector_type& delta) -> void {
     std::size_t idx = 0;
     for_each<Nodes>(
         *this,
         [&](auto& node) {
-          node->update(math::subvector(delta, idx, node->dimension()));
+          const auto delta_view = math::subvector(delta, idx, node->dimension());
+          node->update(std::span{std::data(delta_view), std::size(delta_view)});
           idx += node->dimension();
         },
         enabled_type{});
