@@ -241,7 +241,7 @@ struct NullKernelEdge : go::edge<NullKernelEdge, 2, Point<double>, go::nodes<Poi
   static constexpr std::size_t kernel_option = go::variants::null_kernel;
 
   template <class T>
-  auto error(const Point<T>& a) -> typename Base::template error_vector_type<T> {
+  auto error(const Point<T>& a) -> typename Base::template error_vector<T> {
     return {a.x - this->measurement().x, a.y - this->measurement().y};
   }
 };
@@ -254,7 +254,7 @@ struct HuberKernelEdge : go::edge<HuberKernelEdge, 2, Point<double>, go::nodes<P
   static constexpr std::size_t kernel_option = go::variants::huber_kernel;
 
   template <class T>
-  auto error(const Point<T>& a) -> typename Base::template error_vector_type<T> {
+  auto error(const Point<T>& a) -> typename Base::template error_vector<T> {
     return {a.x - this->measurement().x, a.y - this->measurement().y};
   }
 };

@@ -53,7 +53,7 @@ struct NarrowEdge : go::edge<NarrowEdge, 2, Point<double>, go::nodes<PointNode, 
   using Base::Base;
 
   template <class T>
-  auto error(const Point<T>& a, const Point<T>& b) -> typename Base::template error_vector_type<T> {
+  auto error(const Point<T>& a, const Point<T>& b) -> typename Base::template error_vector<T> {
     return {a.x - this->measurement().x, (b.y - a.y) - this->measurement().y};
   }
 };
