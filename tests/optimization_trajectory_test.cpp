@@ -37,7 +37,7 @@ constexpr auto kRandomSeed = std::size_t{1};
 constexpr auto kMaxIterations = std::size_t{15};
 constexpr auto kExpectedIterations = std::size_t{3};
 constexpr auto kMaxErrorDistance = double{3.0};
-constexpr auto kArenaCapacity = std::size_t{0x10000010}; 
+constexpr auto kArenaCapacity = std::size_t{0x10000010};
 
 using Curve = std::vector<Position>;
 
@@ -64,8 +64,8 @@ auto NoiseFactor(Generator& generator) -> Position {
 
 /// @brief Uniform random point within [x_min, x_max] x [y_min, y_max].
 template <class Generator>
-auto RandomPoint(Generator& generator, double x_min, double x_max, double y_min, double y_max)
-    -> Position {
+auto RandomPoint(Generator& generator, double x_min, double x_max, double y_min,
+                 double y_max) -> Position {
   auto x_distribution = std::uniform_real_distribution<double>{x_min, x_max};
   auto y_distribution = std::uniform_real_distribution<double>{y_min, y_max};
   return Position{x_distribution(generator), y_distribution(generator)};
@@ -124,7 +124,14 @@ TEST_F(OptimizationTrajectoryTest, GivenNoisyTrajectory_ExpectConvergenceNearGro
 
   const auto result = g_.optimize(kMaxIterations);
   ASSERT_TRUE(result.has_value());
-  EXPECT_LE(result.value(), kExpectedIterations);
+  // Neither flag: this run does not converge, and it is not cut short by the budget either.
+  // Levenberg runs out of retries after three kept updates and stops on its own. The
+  // estimates still land within kMaxErrorDistance of ground truth, which is what the checks
+  // below verify. Recorded explicitly because the previous std::size_t return could not tell
+  // convergence from giving up, and a bare "3" read as success.
+  EXPECT_FALSE(result.value().converged);
+  EXPECT_FALSE(result.value().truncated);
+  EXPECT_LE(result.value().updates, kExpectedIterations);
   for (std::size_t idx = 0; idx < kNumberNodes; ++idx) {
     EXPECT_NEAR(poses[idx]->estimation().x, ref_points[idx].x, kMaxErrorDistance)
         << "Node index: " << idx << std::endl;

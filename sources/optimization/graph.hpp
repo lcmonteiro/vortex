@@ -12,6 +12,7 @@
 #include "foundation/math.hpp"
 #include "helpers/expected.hpp"
 #include "helpers/memory.hpp"
+#include "optimization/graph_algorithm.hpp"
 #include "optimization/graph_config.hpp"
 #include "optimization/graph_edge.hpp"  // IWYU pragma: export
 #include "optimization/graph_node.hpp"  // IWYU pragma: export
@@ -20,6 +21,30 @@ namespace vortex::optimization {
 using graph::handle;
 using graph::items;
 using graph::option;
+
+/// ===============================================================================================
+/// @brief What an optimization run did.
+///
+/// Not the result of the optimization -- that is the node estimates, which stay in the graph.
+/// This is the report on how the run got there. Paired with algorithm_error in optimize()'s
+/// expected: an error is a run that could not do what it was asked, this is a run that did.
+///
+/// @c converged and @c truncated are mutually exclusive, and encode three outcomes between them:
+///   - converged   the convergence criterion was met, and the estimate is final;
+///   - truncated   the iteration budget ran out while updates were still being kept, so the
+///                 estimate is a snapshot mid-descent and running further would help;
+///   - neither     no further update could be kept, so running further would not help.
+/// ===============================================================================================
+struct summary {
+  /// @brief Times the estimate was updated and kept, rather than updated and reverted.
+  std::size_t updates{0};
+
+  /// @brief Whether the run reached its convergence criterion.
+  bool converged{false};
+
+  /// @brief Whether the iteration budget cut the run short while it was still making progress.
+  bool truncated{false};
+};
 
 /// ===============================================================================================
 /// @brief A templated Graph class implementing optimization algorithms.
@@ -44,6 +69,7 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   using key_type = typename Config::key_type;
   using number_type = typename Config::number_type;
   using vector_type = math::dynamic_vector<number_type>;
+  using result_type = helpers::expected<summary, algorithm_error>;
   using enabled_type = typename base_type::enabled_type;
   using disabled_type = typename base_type::disabled_type;
 
@@ -57,18 +83,17 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
   using base_type::build;
 
   /// @brief Runs the graph optimization algorithm.
-  /// @param iterations The number of iterations to run.
+  /// @param iterations The maximum number of iterations to run.
   /// @param reset Whether to reset the algorithm state.
-  /// @return The number of completed iterations or an unexpected error.
-  auto optimize(std::size_t iterations, bool reset = true)
-      -> helpers::expected<std::size_t, algorithm_error> {
+  /// @return What the run did, or an unexpected error.
+  auto optimize(std::size_t iterations, bool reset = true) -> result_type {
     // Route transient dual-number (Jacobian) allocations through the graph's
     // memory arena for the duration of the optimization.
     const helpers::memory_scope scope{this->memory()};
 
-    // Special case: if no iterations are requested, return immediately.
+    // Special case: nothing was asked for, so nothing improved and the estimate is not final.
     if (0 == iterations) {
-      return 0;
+      return summary{0, false, true};
     }
 
     // Check if the graph has changed since the last optimization.
@@ -87,42 +112,47 @@ class graph : public vortex::graph::storage<Nodes, Edges, Config> {
       if (not result_solve) {
         return helpers::unexpected(result_solve.error());
       }
-      return iterations;
+      return summary{iterations, result_solve.value(), not result_solve.value()};
     }
 
     // Perform the first iteration, which may have special initialization logic.
+    // Failing to keep an update here is reported as an error rather than an outcome:
+    // nothing was ever kept, so the run made no progress at all.
     auto result_first = algorithm_.template solve<true, false>();
     if (not result_first) {
       return helpers::unexpected(result_first.error());
     }
     if (result_first.value()) {
-      return 1;
+      return summary{1, true, false};
     }
 
-    // Perform the intermediate iterations, which may have different logic than the first and last.
+    // Perform the intermediate iterations, which may have different logic than the first and
+    // last. `it` counts the iterations already behind us, and every one of them kept its
+    // update or we would have returned, so it is also the number of updates kept so far; a
+    // pass that keeps its own brings that to `it + 1`.
     for (std::size_t it = 1; it < (iterations - 1); ++it) {
       auto result_next = algorithm_.template solve<false, false>();
       if (not result_next) {
         if (algorithm_error::not_converged == result_next.error()) {
-          return it;
+          return summary{it, false, false};
         }
         return helpers::unexpected(result_next.error());
       }
       if (result_next.value()) {
-        return it;
+        return summary{it + 1, true, false};
       }
     }
 
-    // Perform the last iteration, which may have special finalization logic.
+    // Perform the last iteration, which may have special finalization logic. Every pass above
+    // kept its update, so `iterations - 1` of them are behind us.
     auto result_last = algorithm_.template solve<false, true>();
     if (not result_last) {
       if (algorithm_error::not_converged == result_last.error()) {
-        return iterations;
+        return summary{iterations - 1, false, false};
       }
       return helpers::unexpected(result_last.error());
     }
-
-    return iterations;
+    return summary{iterations, result_last.value(), not result_last.value()};
   }
 
   /// @defgroup estimations_operations Estimations Operations

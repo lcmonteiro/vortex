@@ -67,4 +67,23 @@ TEST_F(SlamOptimizationTest, ZeroIterationsIsNoop) {
   EXPECT_TRUE(result.has_value());
 }
 
+/// @brief A graph whose estimates already sit at the optimum converges on the very first
+/// iteration, so exactly one update is kept.
+TEST_F(SlamOptimizationTest, GivenAlreadyOptimalEstimates_ExpectConvergenceOnTheFirstIteration) {
+  (*p1_)->estimation(Position{1, 1});
+  (*p2_)->estimation(Position{2, 2});
+  (*p3_)->estimation(Position{2, 2});
+
+  (*l1_)->measurement(Position{1, 1});
+  (*d1_)->measurement(Position{1, 1});
+  (*d2_)->measurement(Position{0, 0});
+
+  const auto result = g_.optimize(std::size_t{10});
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_TRUE(result.value().converged);
+  EXPECT_FALSE(result.value().truncated);
+  EXPECT_EQ(result.value().updates, 1U);
+}
+
 }  // namespace
