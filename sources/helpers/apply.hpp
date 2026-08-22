@@ -10,13 +10,14 @@
 #include <tuple>
 #include <utility>
 
+#include "helpers/indices.hpp"
 #include "helpers/utility.hpp"
 
 namespace vortex::helpers {
 namespace details {
 
 template <class F, class T, std::size_t... Is>
-inline auto apply_tuple(F&& func, T&& tuple, std::index_sequence<Is...>) -> void {
+inline auto apply_tuple(F&& func, T&& tuple, indices<Is...>) -> void {
   auto& ref_func = lreference<F>(std::forward<F>(func));
   auto& ref_tuple = lreference<T>(std::forward<T>(tuple));
   (ref_func(std::get<Is>(ref_tuple)), ...);
@@ -45,13 +46,13 @@ inline auto apply_map(F&& func, T&& map) -> void {
 /// @brief Applies a function to each element in a tuple, set, or map-like container.
 template <class F, class... Ts>
 inline auto apply(F&& func, std::tuple<Ts...>& data) -> void {
-  details::apply_tuple(std::forward<F>(func), data, std::make_index_sequence<sizeof...(Ts)>{});
+  details::apply_tuple(std::forward<F>(func), data, make_indices<sizeof...(Ts)>{});
 }
 
 /// @brief Applies a function to each element in a tuple, set, or map-like container.
 template <class F, class... Ts>
 inline auto apply(F&& func, const std::tuple<Ts...>& data) -> void {
-  details::apply_tuple(std::forward<F>(func), data, std::make_index_sequence<sizeof...(Ts)>{});
+  details::apply_tuple(std::forward<F>(func), data, make_indices<sizeof...(Ts)>{});
 }
 
 /// @brief Applies a function to each element in a set-like container.

@@ -13,15 +13,13 @@
 #include <vector>
 
 #include "helpers/contracts.hpp"
+#include "helpers/indices.hpp"
 #include "helpers/memory.hpp"
 
 namespace vortex::dual {
 
-/// @brief Creates a compile-time sequence of integers from 0 to N-1.
-template <std::size_t N>
-using make_sequence = std::make_index_sequence<N>;
-template <std::size_t... I>
-using sequence = std::index_sequence<I...>;
+using helpers::indices;
+using helpers::make_indices;
 
 /// @brief Gets the current memory resource for dual number allocations.
 /// @return The current memory resource.
@@ -150,9 +148,9 @@ inline auto operator<(const T& n1, const number<T>& n2) -> bool {
 /// @tparam O The starting offset for the derivative indices (default is 0).
 template <class U, std::size_t D, std::size_t O = 0>
 constexpr auto zeros() {
-  return []<std::size_t... Is>(sequence<Is...>) {
+  return []<std::size_t... Is>(indices<Is...>) {
     return std::array{number<U>{U{0}, O + Is}...};
-  }(make_sequence<D>{});
+  }(make_indices<D>{});
 }
 
 /// @brief Type trait to check if a type is a dual number.

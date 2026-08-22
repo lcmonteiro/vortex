@@ -18,6 +18,7 @@
 #include "foundation/graph/storage.hpp"
 #include "foundation/math.hpp"
 #include "helpers/contracts.hpp"
+#include "helpers/indices.hpp"
 #include "helpers/invoke.hpp"
 #include "helpers/unroll.hpp"
 #include "optimization/graph_config.hpp"
@@ -125,19 +126,19 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
     const auto residual = helpers::invoke(  // Invoke error function with dual estimations
         error_callback{self()},             // Invoke the error function of the derived edge
         estimation_callback{self()},        // Get the dual estimation
-        helpers::Expand<base_type::n_nodes>{});
+        helpers::expand<base_type::n_nodes>{});
 
     // Copy the dual residual into the error vector and update the robust kernel's chi-squared.
     std::transform(             // Copy the dual residual into the error vector
         std::cbegin(residual),  // Begin of the dual residual
         std::cend(residual),    // End of the dual residual
         std::begin(error_),     // Write to the error vector
-        [](const auto& component) { return component.value(); });
+        [](const auto& element) { return element.value(); });
     kernel_->update(math::dot(error_, information() * error_));
 
     // Extract the jacobian and jacobian_transpose blocks for each node from the dual residual.
     helpers::unroll(                                // Iterate over each node index
-        helpers::Indexes<base_type::n_nodes>{},     // Index sequence for the number of nodes
+        helpers::range<base_type::n_nodes>{},       // Index sequence for the number of nodes
         jacobian_update_callback{self(), residual}  // update the jacobian and jacobian_transposs
     );
   }
@@ -154,7 +155,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
         callable(node_i, node_j, block);
       }
     };
-    helpers::unroll_pair(helpers::Indexes<base_type::n_nodes>{}, h_block_wrapper);
+    helpers::unroll_pair(helpers::range<base_type::n_nodes>{}, h_block_wrapper);
   }
 
   /// @brief Applies a function to each B block.
@@ -168,7 +169,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
         callable(node, block);
       }
     };
-    helpers::unroll(helpers::Indexes<base_type::n_nodes>{}, b_block_wrapper);
+    helpers::unroll(helpers::range<base_type::n_nodes>{}, b_block_wrapper);
   }
 
  protected:
@@ -185,17 +186,16 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
       math::static_matrix<number_type, Node::dimension(), dimension(), math::row_major>;
 
   /// @brief Node dimensions in the combined tangent space.
-  static constexpr auto node_dimensions = []<std::size_t... Is>(std::index_sequence<Is...>) {
+  static constexpr auto node_dimensions = []<std::size_t... Is>(helpers::indices<Is...>) {
     return std::array<std::size_t, sizeof...(Is)>{node_type_at<Is>::dimension()...};
-  }(std::make_index_sequence<base_type::n_nodes>{});
+  }(helpers::make_indices<base_type::n_nodes>{});
 
   /// @brief Node offsets in the combined tangent space.
-  static constexpr auto node_offsets =
-      []<std::size_t I, std::size_t... Is>(std::index_sequence<I, Is...>) {
-        std::array<std::size_t, sizeof...(Is) + 1> offset{0};
-        ((offset[Is] = offset[Is - 1] + node_dimensions[Is - 1]), ...);
-        return offset;
-      }(std::make_index_sequence<base_type::n_nodes>{});
+  static constexpr auto node_offsets = []<auto I, auto... Is>(helpers::indices<I, Is...>) {
+    std::array<std::size_t, sizeof...(Is) + 1> offset{0};
+    ((offset[Is] = offset[Is - 1] + node_dimensions[Is - 1]), ...);
+    return offset;
+  }(helpers::make_indices<base_type::n_nodes>{});
 
  private:
   /// @brief Helper function for casting to derived type.

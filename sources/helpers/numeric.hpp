@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <utility>
 
+#include "helpers/indices.hpp"
 namespace vortex::helpers {
 
 /// @brief Narrowing cast helper.
@@ -26,7 +27,7 @@ constexpr auto narrow_cast(From&& value) noexcept -> To {
 namespace details {
 /// @brief Multiplies @p base by itself once per element of the index sequence.
 template <class T, std::size_t... Is>
-constexpr auto int_pow(T base, std::index_sequence<Is...>) -> T {
+constexpr auto int_pow(T base, indices<Is...>) -> T {
   return ((static_cast<void>(Is), base) * ... * T{1});
 }
 }  // namespace details
@@ -38,7 +39,7 @@ constexpr auto int_pow(T base, std::index_sequence<Is...>) -> T {
 /// @return base raised to the given exponent.
 template <unsigned Exponent, class T>
 constexpr auto int_pow(T base) -> T {
-  return details::int_pow(base, std::make_index_sequence<Exponent>{});
+  return details::int_pow(base, make_indices<Exponent>{});
 }
 
 }  // namespace vortex::helpers
