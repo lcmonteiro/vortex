@@ -40,7 +40,7 @@ struct number {
   using dvalues_t = std::pmr::vector<dvalue_t>;
 
   /// @brief Default constructor: zero value, one derivative of value zero at index 0.
-  number() : value_{}, dvalues_{{dvalue_t{0, value_t{1}}}, memory()} {}
+  number() : value_{}, dvalues_{{dvalue_t{0, value_t{0}}}, memory()} {}
 
   /// @brief Copies into storage from the scope active now. A defaulted copy would not:
   /// `std::pmr::polymorphic_allocator` does not propagate on copy construction, so it would draw
