@@ -6,22 +6,36 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
+#include <iterator>
 #include <numbers>
+#include <tuple>
+#include <type_traits>
 
 namespace {
 
 using vortex::dual::number;
 using Dual = number<double>;
 
+/// @brief Gets the dvalue derivative of a dual number with respect to a given index.
+auto dvalue(const Dual& n, std::size_t index) -> double {
+  const auto it = std::lower_bound(  //
+      std::cbegin(n.dvalues()),      //
+      std::cend(n.dvalues()),        //
+      index,                         //
+      [](const auto& d, std::size_t i) { return d.index < i; });
+  return (it == std::cend(n.dvalues()) or it->index != index) ? 0.0 : it->value;
+}
+
 TEST(DualNumber, ProductRule) {
   const auto x = Dual{3.0, 0};
   const auto y = Dual{4.0, 1};
   const auto z = x * y;  // z = 12, dz/dx = y = 4, dz/dy = x = 3
   EXPECT_DOUBLE_EQ(z.value(), 12.0);
-  EXPECT_DOUBLE_EQ(z.dvalue(0), 4.0);
-  EXPECT_DOUBLE_EQ(z.dvalue(1), 3.0);
+  EXPECT_DOUBLE_EQ(dvalue(z, 0), 4.0);
+  EXPECT_DOUBLE_EQ(dvalue(z, 1), 3.0);
 }
 
 TEST(DualNumber, QuotientRule) {
@@ -29,19 +43,19 @@ TEST(DualNumber, QuotientRule) {
   const auto y = Dual{2.0, 1};
   const auto z = x / y;  // z = 3, dz/dx = 1/y = 0.5, dz/dy = -x/y^2 = -1.5
   EXPECT_DOUBLE_EQ(z.value(), 3.0);
-  EXPECT_DOUBLE_EQ(z.dvalue(0), 0.5);
-  EXPECT_DOUBLE_EQ(z.dvalue(1), -1.5);
+  EXPECT_DOUBLE_EQ(dvalue(z, 0), 0.5);
+  EXPECT_DOUBLE_EQ(dvalue(z, 1), -1.5);
 }
 
 TEST(DualNumber, Trigonometric) {
   const auto x = Dual{0.5, 0};
   const auto s = std::sin(x);
   EXPECT_NEAR(s.value(), std::sin(0.5), 1e-12);
-  EXPECT_NEAR(s.dvalue(0), std::cos(0.5), 1e-12);
+  EXPECT_NEAR(dvalue(s, 0), std::cos(0.5), 1e-12);
 
   const auto c = std::cos(x);
   EXPECT_NEAR(c.value(), std::cos(0.5), 1e-12);
-  EXPECT_NEAR(c.dvalue(0), -std::sin(0.5), 1e-12);
+  EXPECT_NEAR(dvalue(c, 0), -std::sin(0.5), 1e-12);
 }
 
 TEST(DualNumber, Atan2) {
@@ -50,15 +64,15 @@ TEST(DualNumber, Atan2) {
   const auto a = std::atan2(y, x);
   const double denom = 1.0 * 1.0 + 2.0 * 2.0;
   EXPECT_NEAR(a.value(), std::atan2(1.0, 2.0), 1e-12);
-  EXPECT_NEAR(a.dvalue(0), 2.0 / denom, 1e-12);   // d/dy =  x / (x^2 + y^2)
-  EXPECT_NEAR(a.dvalue(1), -1.0 / denom, 1e-12);  // d/dx = -y / (x^2 + y^2)
+  EXPECT_NEAR(dvalue(a, 0), 2.0 / denom, 1e-12);   // d/dy =  x / (x^2 + y^2)
+  EXPECT_NEAR(dvalue(a, 1), -1.0 / denom, 1e-12);  // d/dx = -y / (x^2 + y^2)
 }
 
 TEST(DualNumber, ExpSqrtChainRule) {
   const auto x = Dual{2.0, 0};
   const auto f = std::sqrt(std::exp(x));  // e^{x/2}, df/dx = 0.5 e^{x/2}
   EXPECT_NEAR(f.value(), std::exp(1.0), 1e-12);
-  EXPECT_NEAR(f.dvalue(0), 0.5 * std::exp(1.0), 1e-12);
+  EXPECT_NEAR(dvalue(f, 0), 0.5 * std::exp(1.0), 1e-12);
 }
 
 // Verifies the AD Jacobian matches a central-difference reference for a
@@ -88,7 +102,7 @@ TEST(DualNumber, JacobianMatchesNumeric) {
     const auto fm = cost(minus);
     for (int row = 0; row < 2; ++row) {
       const double numeric = (fp[row] - fm[row]) / (2 * eps);
-      EXPECT_NEAR(dual_out[row].dvalue(col), numeric, 1e-6) << "row=" << row << " col=" << col;
+      EXPECT_NEAR(dvalue(dual_out[row], col), numeric, 1e-6) << "row=" << row << " col=" << col;
     }
   }
 }
@@ -111,17 +125,17 @@ TEST(DualOperations, Negate) {
   const auto x = Dual{3.0, 0};
   const auto y = -x;
   EXPECT_DOUBLE_EQ(y.value(), -3.0);
-  EXPECT_DOUBLE_EQ(y.dvalue(0), -1.0);
+  EXPECT_DOUBLE_EQ(dvalue(y, 0), -1.0);
 }
 
 TEST(DualOperations, AbsAwayFromTheKink) {
   const auto positive = std::abs(Dual{2.0, 0});
   EXPECT_DOUBLE_EQ(positive.value(), 2.0);
-  EXPECT_DOUBLE_EQ(positive.dvalue(0), 1.0);
+  EXPECT_DOUBLE_EQ(dvalue(positive, 0), 1.0);
 
   const auto negative = std::abs(Dual{-2.0, 0});
   EXPECT_DOUBLE_EQ(negative.value(), 2.0);
-  EXPECT_DOUBLE_EQ(negative.dvalue(0), -1.0);
+  EXPECT_DOUBLE_EQ(dvalue(negative, 0), -1.0);
 }
 
 TEST(DualOperations, AbsAtTheKinkPicksZeroSubgradient) {
@@ -129,21 +143,21 @@ TEST(DualOperations, AbsAtTheKinkPicksZeroSubgradient) {
   // [-1, 1]. Pinned because a finite difference cannot distinguish the choices.
   const auto at_zero = std::abs(Dual{0.0, 0});
   EXPECT_DOUBLE_EQ(at_zero.value(), 0.0);
-  EXPECT_DOUBLE_EQ(at_zero.dvalue(0), 0.0);
+  EXPECT_DOUBLE_EQ(dvalue(at_zero, 0), 0.0);
 }
 
 TEST(DualOperations, Log) {
   const auto y = std::log(Dual{2.0, 0});
   EXPECT_NEAR(y.value(), std::log(2.0), 1e-12);
-  EXPECT_NEAR(y.dvalue(0), 0.5, 1e-12);  // d/dx log(x) = 1/x
-  EXPECT_NEAR(y.dvalue(0), NumericDerivative([](double v) { return std::log(v); }, 2.0), 1e-6);
+  EXPECT_NEAR(dvalue(y, 0), 0.5, 1e-12);  // d/dx log(x) = 1/x
+  EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::log(v); }, 2.0), 1e-6);
 }
 
 TEST(DualOperations, Log1p) {
   const auto y = std::log1p(Dual{0.5, 0});
   EXPECT_NEAR(y.value(), std::log1p(0.5), 1e-12);
-  EXPECT_NEAR(y.dvalue(0), 1.0 / 1.5, 1e-12);  // d/dx log(1+x) = 1/(1+x)
-  EXPECT_NEAR(y.dvalue(0), NumericDerivative([](double v) { return std::log1p(v); }, 0.5), 1e-6);
+  EXPECT_NEAR(dvalue(y, 0), 1.0 / 1.5, 1e-12);  // d/dx log(1+x) = 1/(1+x)
+  EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::log1p(v); }, 0.5), 1e-6);
 }
 
 TEST(DualOperations, Erf) {
@@ -151,8 +165,8 @@ TEST(DualOperations, Erf) {
   const auto y = std::erf(Dual{x0, 0});
   const auto expected = 2.0 / std::sqrt(std::numbers::pi) * std::exp(-x0 * x0);
   EXPECT_NEAR(y.value(), std::erf(x0), 1e-12);
-  EXPECT_NEAR(y.dvalue(0), expected, 1e-12);
-  EXPECT_NEAR(y.dvalue(0), NumericDerivative([](double v) { return std::erf(v); }, x0), 1e-6);
+  EXPECT_NEAR(dvalue(y, 0), expected, 1e-12);
+  EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::erf(v); }, x0), 1e-6);
 }
 
 TEST(DualOperations, Erfc) {
@@ -160,14 +174,14 @@ TEST(DualOperations, Erfc) {
   const auto y = std::erfc(Dual{x0, 0});
   const auto expected = -2.0 / std::sqrt(std::numbers::pi) * std::exp(-x0 * x0);
   EXPECT_NEAR(y.value(), std::erfc(x0), 1e-12);
-  EXPECT_NEAR(y.dvalue(0), expected, 1e-12);
-  EXPECT_NEAR(y.dvalue(0), NumericDerivative([](double v) { return std::erfc(v); }, x0), 1e-6);
+  EXPECT_NEAR(dvalue(y, 0), expected, 1e-12);
+  EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::erfc(v); }, x0), 1e-6);
 }
 
 TEST(DualOperations, ErfAndErfcDerivativesAreOpposite) {
   // erf(x) + erfc(x) == 1, so their derivatives must cancel exactly.
   const auto x = Dual{0.7, 0};
-  EXPECT_NEAR(std::erf(x).dvalue(0) + std::erfc(x).dvalue(0), 0.0, 1e-15);
+  EXPECT_NEAR(dvalue(std::erf(x), 0) + dvalue(std::erfc(x), 0), 0.0, 1e-15);
 }
 
 /// ===============================================================================================
@@ -183,9 +197,9 @@ TEST(DualOperations, MinRoutesTheDerivativeThroughTheSmallerOperand) {
   const auto m = std::invoke(vortex::dual::min{}, x, y);
 
   EXPECT_DOUBLE_EQ(m.value(), 1.0);
-  EXPECT_EQ(m.size(), 2U);             // indices of both operands are merged in
-  EXPECT_DOUBLE_EQ(m.dvalue(0), 1.0);  // flows from x
-  EXPECT_DOUBLE_EQ(m.dvalue(1), 0.0);  // y is inactive
+  EXPECT_EQ(m.size(), 2U);              // indices of both operands are merged in
+  EXPECT_DOUBLE_EQ(dvalue(m, 0), 1.0);  // flows from x
+  EXPECT_DOUBLE_EQ(dvalue(m, 1), 0.0);  // y is inactive
 }
 
 TEST(DualOperations, MaxRoutesTheDerivativeThroughTheLargerOperand) {
@@ -194,8 +208,8 @@ TEST(DualOperations, MaxRoutesTheDerivativeThroughTheLargerOperand) {
   const auto m = std::invoke(vortex::dual::max{}, x, y);
   EXPECT_DOUBLE_EQ(m.value(), 2.0);
   EXPECT_EQ(m.size(), 2U);
-  EXPECT_DOUBLE_EQ(m.dvalue(0), 0.0);  // x is inactive
-  EXPECT_DOUBLE_EQ(m.dvalue(1), 1.0);  // flows from y
+  EXPECT_DOUBLE_EQ(dvalue(m, 0), 0.0);  // x is inactive
+  EXPECT_DOUBLE_EQ(dvalue(m, 1), 1.0);  // flows from y
 }
 
 TEST(DualOperations, MinMaxAgainstAScalarBound) {
@@ -203,15 +217,15 @@ TEST(DualOperations, MinMaxAgainstAScalarBound) {
 
   const auto clamped_high = std::min(x, 5.0);
   EXPECT_DOUBLE_EQ(clamped_high.value(), 2.0);
-  EXPECT_DOUBLE_EQ(clamped_high.dvalue(0), 1.0);  // x is selected, so its derivative survives
+  EXPECT_DOUBLE_EQ(dvalue(clamped_high, 0), 1.0);  // x is selected, so its derivative survives
 
   const auto clamped_low = std::min(1.0, x);
   EXPECT_DOUBLE_EQ(clamped_low.value(), 1.0);
-  EXPECT_DOUBLE_EQ(clamped_low.dvalue(0), 0.0);  // the constant wins, derivative is cut
+  EXPECT_DOUBLE_EQ(dvalue(clamped_low, 0), 0.0);  // the constant wins, derivative is cut
 
   const auto floored = std::max(x, 5.0);
   EXPECT_DOUBLE_EQ(floored.value(), 5.0);
-  EXPECT_DOUBLE_EQ(floored.dvalue(0), 0.0);
+  EXPECT_DOUBLE_EQ(dvalue(floored, 0), 0.0);
 }
 
 TEST(DualOperations, MinMaxTiesResolveTowardsTheFirstOperand) {
@@ -221,12 +235,12 @@ TEST(DualOperations, MinMaxTiesResolveTowardsTheFirstOperand) {
   const auto y = Dual{1.0, 1};
 
   const auto smallest = std::invoke(vortex::dual::min{}, x, y);
-  EXPECT_DOUBLE_EQ(smallest.dvalue(0), 1.0);
-  EXPECT_DOUBLE_EQ(smallest.dvalue(1), 0.0);
+  EXPECT_DOUBLE_EQ(dvalue(smallest, 0), 1.0);
+  EXPECT_DOUBLE_EQ(dvalue(smallest, 1), 0.0);
 
   const auto largest = std::invoke(vortex::dual::max{}, x, y);
-  EXPECT_DOUBLE_EQ(largest.dvalue(0), 1.0);
-  EXPECT_DOUBLE_EQ(largest.dvalue(1), 0.0);
+  EXPECT_DOUBLE_EQ(dvalue(largest, 0), 1.0);
+  EXPECT_DOUBLE_EQ(dvalue(largest, 1), 0.0);
 }
 
 /// @brief Records that std::min/std::max do not reach the dual/dual overloads.
@@ -235,7 +249,7 @@ TEST(DualOperations, MinMaxTiesResolveTowardsTheFirstOperand) {
 /// of the same type the standard `template <class T> const T& min(const T&, const T&)` is the
 /// better match, so it wins and returns a reference to one of the operands. The value and its
 /// derivatives are still right, but the result is *narrower*: it carries only the winning
-/// operand's indices, so reading a partial belonging to the loser runs off the end of the
+/// operand's indices, so reading a dvalue belonging to the loser runs off the end of the
 /// derivative vector.
 TEST(DualOperations, StdMinOnTwoDualsSelectsTheStandardOverload) {
   const auto x = Dual{1.0, 0};  // one active index
@@ -255,16 +269,18 @@ TEST(DualOperations, PowWithDualBaseAndConstantExponent) {
   const auto x = Dual{2.0, 0};
   const auto y = std::pow(x, 3.0);  // x^3, dy/dx = 3x^2
   EXPECT_NEAR(y.value(), 8.0, 1e-12);
-  EXPECT_NEAR(y.dvalue(0), 12.0, 1e-12);
-  EXPECT_NEAR(y.dvalue(0), NumericDerivative([](double v) { return std::pow(v, 3.0); }, 2.0), 1e-5);
+  EXPECT_NEAR(dvalue(y, 0), 12.0, 1e-12);
+  EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::pow(v, 3.0); }, 2.0),
+              1e-5);
 }
 
 TEST(DualOperations, PowWithConstantBaseAndDualExponent) {
   const auto n = Dual{3.0, 0};
   const auto y = std::pow(2.0, n);  // 2^n, dy/dn = 2^n * ln(2)
   EXPECT_NEAR(y.value(), 8.0, 1e-12);
-  EXPECT_NEAR(y.dvalue(0), 8.0 * std::log(2.0), 1e-12);
-  EXPECT_NEAR(y.dvalue(0), NumericDerivative([](double v) { return std::pow(2.0, v); }, 3.0), 1e-5);
+  EXPECT_NEAR(dvalue(y, 0), 8.0 * std::log(2.0), 1e-12);
+  EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::pow(2.0, v); }, 3.0),
+              1e-5);
 }
 
 TEST(DualOperations, PowWithBothOperandsDual) {
@@ -272,10 +288,10 @@ TEST(DualOperations, PowWithBothOperandsDual) {
   const auto exponent = Dual{3.0, 1};
   const auto y = std::pow(base, exponent);
 
-  // Both partials at once: d/dbase = e*b^(e-1), d/dexponent = b^e * ln(b).
+  // Both dvalues at once: d/dbase = e*b^(e-1), d/dexponent = b^e * ln(b).
   EXPECT_NEAR(y.value(), 8.0, 1e-12);
-  EXPECT_NEAR(y.dvalue(0), 12.0, 1e-12);
-  EXPECT_NEAR(y.dvalue(1), 8.0 * std::log(2.0), 1e-12);
+  EXPECT_NEAR(dvalue(y, 0), 12.0, 1e-12);
+  EXPECT_NEAR(dvalue(y, 1), 8.0 * std::log(2.0), 1e-12);
 }
 
 /// ===============================================================================================
@@ -291,14 +307,14 @@ TEST(DualSharedIndex, Plus) {
   const auto t = Dual{3.0, 0};
   const auto y = t + t;  // 2t
   EXPECT_DOUBLE_EQ(y.value(), 6.0);
-  EXPECT_DOUBLE_EQ(y.dvalue(0), 2.0);
+  EXPECT_DOUBLE_EQ(dvalue(y, 0), 2.0);
 }
 
 TEST(DualSharedIndex, Minus) {
   const auto t = Dual{3.0, 0};
   const auto y = t - t;  // identically 0, so the derivative cancels
   EXPECT_DOUBLE_EQ(y.value(), 0.0);
-  EXPECT_DOUBLE_EQ(y.dvalue(0), 0.0);
+  EXPECT_DOUBLE_EQ(dvalue(y, 0), 0.0);
 }
 
 TEST(DualSharedIndex, MultipliesAndDivides) {
@@ -306,26 +322,26 @@ TEST(DualSharedIndex, MultipliesAndDivides) {
 
   const auto square = t * t;  // t^2, d/dt = 2t
   EXPECT_DOUBLE_EQ(square.value(), 9.0);
-  EXPECT_DOUBLE_EQ(square.dvalue(0), 6.0);
+  EXPECT_DOUBLE_EQ(dvalue(square, 0), 6.0);
 
   const auto unity = t / t;  // identically 1
   EXPECT_DOUBLE_EQ(unity.value(), 1.0);
-  EXPECT_NEAR(unity.dvalue(0), 0.0, 1e-15);
+  EXPECT_NEAR(dvalue(unity, 0), 0.0, 1e-15);
 }
 
 TEST(DualSharedIndex, Atan2) {
   const auto t = Dual{2.0, 0};
   const auto y = std::atan2(t, t);  // constant pi/4 along the diagonal
   EXPECT_NEAR(y.value(), std::numbers::pi / 4, 1e-12);
-  EXPECT_NEAR(y.dvalue(0), 0.0, 1e-15);
+  EXPECT_NEAR(dvalue(y, 0), 0.0, 1e-15);
 }
 
 TEST(DualSharedIndex, Pow) {
   const auto t = Dual{2.0, 0};
   const auto y = std::pow(t, t);  // t^t, d/dt = t^t (ln t + 1)
   EXPECT_NEAR(y.value(), 4.0, 1e-12);
-  EXPECT_NEAR(y.dvalue(0), 4.0 * (std::log(2.0) + 1.0), 1e-12);
-  EXPECT_NEAR(y.dvalue(0), NumericDerivative([](double v) { return std::pow(v, v); }, 2.0), 1e-5);
+  EXPECT_NEAR(dvalue(y, 0), 4.0 * (std::log(2.0) + 1.0), 1e-12);
+  EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::pow(v, v); }, 2.0), 1e-5);
 }
 
 TEST(DualSharedIndex, MinMax) {
@@ -334,11 +350,47 @@ TEST(DualSharedIndex, MinMax) {
 
   const auto smallest = std::invoke(vortex::dual::min{}, t, doubled);
   EXPECT_DOUBLE_EQ(smallest.value(), 2.0);
-  EXPECT_DOUBLE_EQ(smallest.dvalue(0), 1.0);  // t wins, carrying d/dt = 1
+  EXPECT_DOUBLE_EQ(dvalue(smallest, 0), 1.0);  // t wins, carrying d/dt = 1
 
   const auto largest = std::invoke(vortex::dual::max{}, t, doubled);
   EXPECT_DOUBLE_EQ(largest.value(), 4.0);
-  EXPECT_DOUBLE_EQ(largest.dvalue(0), 2.0);  // 2t wins, carrying d/dt = 2
+  EXPECT_DOUBLE_EQ(dvalue(largest, 0), 2.0);  // 2t wins, carrying d/dt = 2
+}
+
+/// ===============================================================================================
+/// Contracts. A dual reaching an operation must carry at least one derivative, and the derivatives
+/// it carries must be strictly ascending by index -- the ordering `dvalue`'s binary search and the
+/// merge both rely on. Both are checked with assertions, so these only run where assertions do.
+/// ===============================================================================================
+
+TEST(DualContract, SeededVariableCarriesExactlyOneDerivative) {
+  const auto x = Dual{3.0, 5};
+  ASSERT_EQ(x.size(), 1U);
+  EXPECT_EQ(x.dvalues().front().index, 5U);
+  EXPECT_DOUBLE_EQ(x.dvalues().front().value, 1.0);
+}
+
+/// @brief The invariant is structural: no constructor can produce a dual without derivatives.
+/// A seeded variable carries one, copies and moves carry what they were given, and the operations
+/// build results from operands that already carry some -- so there is no path to an empty one.
+/// A constant belongs on the scalar side, and the type no longer offers a way to spell it
+/// otherwise.
+static_assert(not std::is_constructible_v<Dual, double>,
+              "a constant dual would carry no derivatives; keep constants scalar");
+static_assert(std::is_constructible_v<Dual, double, std::size_t>,
+              "a variable is a value seeded at a tangent index");
+static_assert(std::is_copy_constructible_v<Dual> and std::is_move_constructible_v<Dual>);
+
+TEST(DualContract, ScalarConstantsGiveTheSameResultAsSeededArithmetic) {
+  const auto x = Dual{3.0, 0};
+
+  const auto scaled = x * 2.0;
+  EXPECT_DOUBLE_EQ(scaled.value(), 6.0);
+  EXPECT_DOUBLE_EQ(dvalue(scaled, 0), 2.0);
+
+  const auto shifted = 2.0 + x;
+  EXPECT_DOUBLE_EQ(shifted.value(), 5.0);
+  EXPECT_DOUBLE_EQ(dvalue(shifted, 0), 1.0);
 }
 
 }  // namespace

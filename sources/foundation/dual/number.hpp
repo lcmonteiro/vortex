@@ -12,7 +12,6 @@
 #include <utility>
 #include <vector>
 
-#include "helpers/contracts.hpp"
 #include "helpers/indices.hpp"
 #include "helpers/memory.hpp"
 
@@ -27,44 +26,35 @@ inline auto memory() noexcept -> std::pmr::memory_resource* {
   return helpers::memory_scope::get_resource();
 }
 
-/// @brief Forward-mode dual number carrying a scalar value and its partial
-/// derivatives.
-///
-/// The derivative components are stored sparsely: `dindex_` lists the active
-/// derivative indices and `dvalue_` holds the corresponding derivative values.
-///
+/// @brief Forward-mode dual number carrying a scalar value and its partial derivatives.
 /// @tparam T Underlying scalar type.
 template <class T>
 struct number {
+  /// @brief Type aliases for the underlying scalar type, index type, and derivative value type.
   using index_t = std::size_t;
   using value_t = T;
-  using dindex_t = std::pmr::vector<index_t>;
-  using dvalue_t = std::pmr::vector<value_t>;
+  struct dvalue_t {
+    index_t index{};
+    value_t value{};
+  };
+  using dvalues_t = std::pmr::vector<dvalue_t>;
 
-  /// @brief Default constructor creates a constant dual number with zero value and no derivatives.
-  number() = default;
+  /// @brief Default constructor: zero value, one derivative of value zero at index 0.
+  number() : value_{}, dvalues_{{dvalue_t{0, value_t{1}}}, memory()} {}
 
   /// @brief Copies into storage from the scope active now. A defaulted copy would not:
   /// `std::pmr::polymorphic_allocator` does not propagate on copy construction, so it would draw
   /// from `std::pmr::get_default_resource()` and bypass the arena the caller installed.
-  number(const number& n)
-      : value_{n.value_}, dindex_{n.dindex_, memory()}, dvalue_{n.dvalue_, memory()} {}
+  number(const number& n) : value_{n.value_}, dvalues_{n.dvalues_, memory()} {}
 
   /// @brief Unlike the copy above, a move keeps the source's resource along with its buffer.
   number(number&&) = default;
-
-  /// @brief Constructs a constant dual number with a zero derivative.
-  /// @param value The scalar value.
-  explicit number(const value_t& value)  //
-      : value_{value}, dindex_{memory()}, dvalue_{memory()} {}
 
   /// @brief Constructs an independent variable seeded at the given index.
   /// @param value The scalar value.
   /// @param index Derivative index assigned to this variable (derivative 1).
   explicit number(const value_t& value, index_t index)
-      : value_{value}, dindex_({index}, memory()), dvalue_(index + 1, value_t{0}, memory()) {
-    dvalue_.back() = value_t{1};
-  }
+      : value_{value}, dvalues_{{dvalue_t{index, value_t{1}}}, memory()} {}
 
   /// @brief Assignment operators.
   auto operator=(const number&) -> number<T>& = default;
@@ -81,39 +71,18 @@ struct number {
   /// @return The scalar value.
   auto value() const -> const value_t& { return value_; }
 
-  /// @brief Gets the active derivative indices.
-  /// @return The list of active derivative indices.
-  auto dindex() const -> const dindex_t& { return dindex_; }
+  /// @brief Gets the active partial derivatives, sorted by index.
+  /// @return The list of `(index, value)` entries.
+  auto dvalues() const -> const dvalues_t& { return dvalues_; }
 
-  /// @brief Gets the derivative values.
-  /// @return The derivative value components.
-  auto dvalue() const -> const dvalue_t& { return dvalue_; }
-
-  /// @brief Gets a single derivative component.
-  /// @param i Derivative index.
-  /// @return The derivative value at index @p i.
-  auto dvalue(index_t i) const -> const value_t& {
-    VORTEX_ASSERT(i < std::size(dvalue_), "derivative index out of range");
-    return dvalue_[i];
-  }
-
-  /// @brief Gets the number of derivative components.
+  /// @brief Gets the number of active partial derivatives.
+  /// @note It is never zero.
   /// @return The size of the derivative storage.
-  auto size() const -> std::size_t { return std::size(dvalue_); }
+  auto size() const -> std::size_t { return std::size(dvalues_); }
 
  protected:
   /// @brief Builds from existing derivative storage, for the operation bases.
-  number(const value_t& value, const dindex_t& dindex, const dvalue_t& dvalue)
-      : value_{value}, dindex_{dindex, memory()}, dvalue_{dvalue, memory()} {}
-
-  number(const value_t& value, const dindex_t& dindex, dvalue_t&& dvalue)
-      : value_{value}, dindex_{dindex, memory()}, dvalue_{std::move(dvalue)} {}
-
-  number(const value_t& value, dindex_t&& dindex, const dvalue_t& dvalue)
-      : value_{value}, dindex_{std::move(dindex)}, dvalue_{dvalue, memory()} {}
-
-  number(const value_t& value, dindex_t&& dindex, dvalue_t&& dvalue)
-      : value_{value}, dindex_{std::move(dindex)}, dvalue_{std::move(dvalue)} {}
+  number(const value_t& value, dvalues_t&& dvalues) : value_{value}, dvalues_{std::move(dvalues)} {}
 
   template <class Derived>
   friend struct unary_operation;
@@ -122,8 +91,7 @@ struct number {
 
  private:
   value_t value_{};
-  dindex_t dindex_{memory()};
-  dvalue_t dvalue_{memory()};
+  dvalues_t dvalues_{memory()};
 };
 
 /// @brief Compares two dual numbers by their scalar value.

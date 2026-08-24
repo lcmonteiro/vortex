@@ -6,7 +6,6 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_EDGE_HPP
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <iterator>
@@ -119,35 +118,62 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
     kernel_variant& variant_;
   } kernel{kernel_};
 
-  /// @brief Updates the error, chi-squared value, and both jacobian forms
-  /// for every connected node in a single evaluation of `error(...)`.
+  /// @brief Updates the error, chi-squared value, and both jacobian forms for every connected node
+  /// in a single evaluation of `error(...)`.
   auto update() -> void {
-    // Evaluate the derived edge's `error(...)` with dual estimations for every node at once.
-    const auto residual = helpers::invoke(  // Invoke error function with dual estimations
-        error_callback{self()},             // Invoke the error function of the derived edge
-        estimation_callback{self()},        // Get the dual estimation
+    // compute the residuals and their derivatives with respect to each node's.
+    const auto residuals = helpers::invoke(
+        [this](auto&&... estimations) {
+          return self()->error(std::forward<decltype(estimations)>(estimations)...);
+        },
+        [this]<auto I> {
+          constexpr auto D = std::get<I>(node_dimensions);
+          constexpr auto O = std::get<I>(node_offsets);
+          const auto delta = dual::zeros<number_type, D, O>();
+          return get_node<I>(*this)->plus(std::span{std::data(delta), std::size(delta)});
+        },
         helpers::expand<base_type::n_nodes>{});
+    VORTEX_ASSERT(dimension() == std::size(residuals), "residual size mismatch");
 
-    // Copy the dual residual into the error vector and update the robust kernel's chi-squared.
-    std::transform(             // Copy the dual residual into the error vector
-        std::cbegin(residual),  // Begin of the dual residual
-        std::cend(residual),    // End of the dual residual
-        std::begin(error_),     // Write to the error vector
-        [](const auto& element) { return element.value(); });
+    // update the error vector with the real values of the residuals.
+    helpers::unroll(helpers::range<dimension()>{}, [this, &residuals]<auto I> {
+      const auto& residual = residuals[I];
+      error_[I] = residual.value();
+    });
+
+    // update kernel and chi-squared value.
     kernel_->update(math::dot(error_, information() * error_));
 
-    // Extract the jacobian and jacobian_transpose blocks for each node from the dual residual.
-    helpers::unroll(                                // Iterate over each node index
-        helpers::range<base_type::n_nodes>{},       // Index sequence for the number of nodes
-        jacobian_update_callback{self(), residual}  // update the jacobian and jacobian_transposs
-    );
+    // update jacobians and their transposes.
+    helpers::unroll(helpers::range<base_type::n_nodes>{}, [this]<auto I> {
+      auto& jacobian = std::get<I>(jacobian_);
+      jacobian.reset();
+    });
+    helpers::unroll(helpers::range<dimension()>{}, [this, &residuals]<auto I> {
+      const auto& residual = residuals[I];
+      const auto end = std::cend(residual.dvalues());
+      auto it = std::cbegin(residual.dvalues());
+      helpers::unroll(helpers::range<base_type::n_nodes>{}, [this, &it, end]<auto J> {
+        constexpr auto D = std::get<J>(node_dimensions);
+        constexpr auto O = std::get<J>(node_offsets);
+        auto& jacobian = std::get<J>(jacobian_);
+        for (; it != end and it->index < (O + D); ++it) {
+          jacobian(I, it->index - O) = it->value;
+        }
+      });
+    });
+    helpers::unroll(helpers::range<base_type::n_nodes>{}, [this]<auto I> {
+      const auto& jacobian = std::get<I>(jacobian_);
+      auto& jacobian_transpose = std::get<I>(jacobian_transpose_);
+      jacobian_transpose = math::trans(jacobian) * kernel_->robustify(information());
+    });
   }
 
   /// @brief Applies a function to each H block.
   /// @param callable Function that receives the nodes and the block value.
   template <class Fn>
   auto foreach_h_block(Fn&& callable) -> void {
-    const auto h_block_wrapper = [this, &callable]<std::size_t I, std::size_t J> {
+    const auto h_block_wrapper = [this, &callable]<auto I, auto J> {
       auto& node_i = get_node<I>(*this);
       auto& node_j = get_node<J>(*this);
       if ((not node_i->disable()) and (not node_j->disable())) {
@@ -162,7 +188,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @param callable Function that receives the nodes and the block value.
   template <class Fn>
   auto foreach_b_block(Fn&& callable) -> void {
-    const auto b_block_wrapper = [this, &callable]<std::size_t I> {
+    const auto b_block_wrapper = [this, &callable]<auto I> {
       auto& node = get_node<I>(*this);
       if (not node->disable()) {
         const auto block = std::get<I>(this->jacobian_transpose_) * this->error_;
@@ -186,7 +212,7 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
       math::static_matrix<number_type, Node::dimension(), dimension(), math::row_major>;
 
   /// @brief Node dimensions in the combined tangent space.
-  static constexpr auto node_dimensions = []<std::size_t... Is>(helpers::indices<Is...>) {
+  static constexpr auto node_dimensions = []<auto... Is>(helpers::indices<Is...>) {
     return std::array<std::size_t, sizeof...(Is)>{node_type_at<Is>::dimension()...};
   }(helpers::make_indices<base_type::n_nodes>{});
 
@@ -202,65 +228,10 @@ class edge : public helpers::types_build_t<graph::edge, Nodes> {
   /// @return A pointer to derived type.
   auto self() -> Derived* { return static_cast<Derived*>(this); }
 
-  /// @brief Invoke the error function
-  struct error_callback {
-    Derived* self;
-    template <class... T>
-    auto operator()(T&&... values) {
-      return self->error(std::forward<T>(values)...);
-    }
-  };
-
-  /// @brief Produces dual-number estimations for *every* connected node at once, each seeded at its
-  /// own non-overlapping range within the edge's combined tangent space.
-  struct estimation_callback {
-    Derived* self;
-    template <std::size_t I>
-    auto operator()() {
-      constexpr auto D = std::get<I>(node_dimensions);
-      constexpr auto O = std::get<I>(node_offsets);
-      const auto delta = dual::zeros<number_type, D, O>();
-      return get_node<I>(*self)->plus(std::span{std::data(delta), std::size(delta)});
-    }
-  };
-
-  /// @brief Reads node `I`'s jacobian block from its offset range in the combined dual residual.
-  template <class Residual>
-  struct jacobian_update_callback {
-    Derived* self;
-    const Residual& residual;
-
-    template <class T>
-    auto robustify(const T& information) {
-      return self->kernel_->robustify(information);
-    }
-
-    template <std::size_t I>
-    auto operator()() -> void {
-      constexpr auto D = std::ptrdiff_t{std::get<I>(node_dimensions)};
-      constexpr auto O = std::ptrdiff_t{std::get<I>(node_offsets)};
-      constexpr auto Z = std::ptrdiff_t{0};
-
-      auto& jacobian = std::get<I>(self->jacobian_);
-      VORTEX_ASSERT(dimension() == std::size(residual), "residual size mismatch");
-      for (std::size_t row{0}; row < dimension(); ++row) {
-        const auto& partials = residual[row];
-        const auto partials_ssize = std::ssize(partials) - O;
-        const auto partials_size = static_cast<std::size_t>(std::clamp(partials_ssize, Z, D));
-        for (std::size_t col{0}; col < partials_size; ++col) {
-          jacobian(row, col) = partials.dvalue(O + col);
-        }
-      }
-
-      auto& jacobian_transpose = std::get<I>(self->jacobian_transpose_);
-      jacobian_transpose = math::trans(jacobian) * robustify(self->information());
-    }
-  };
-
   /// @brief Measurement value.
   measurement_type measurement_{};
 
-  /// @brief Error vector.
+  /// @brief Error value.
   error_vector<number_type> error_{};
 
   /// @brief Information matrix.

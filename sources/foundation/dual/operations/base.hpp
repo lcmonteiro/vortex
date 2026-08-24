@@ -6,9 +6,6 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 
-#include <tuple>
-#include <utility>
-
 #include "foundation/dual/number.hpp"
 
 namespace vortex::dual {
@@ -17,7 +14,6 @@ namespace vortex::dual {
 /// @tparam T Underlying scalar type.
 template <class T>
 struct duo {
-  duo(const number<T>& n, std::size_t i) : v{n.value()}, d{n.dvalue(i)} {}
   const T& v;
   const T& d;
 };
@@ -35,7 +31,7 @@ struct unary_operation {
 
   template <class T>
   auto operator()(const number<T>& n) const {
-    return number<T>{value(n), n.dindex(), dvalue(n)};
+    return number<T>{value(n), dvalues(n)};
   }
 
  protected:
@@ -47,13 +43,14 @@ struct unary_operation {
   }
 
   template <class T>
-  auto dvalue(const number<T>& n) const {
-    using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(std::size(n), T{0}, memory());
-    for (const auto i : n.dindex()) {
-      dv[i] = self()->dvalue(duo(n, i));
+  auto dvalues(const number<T>& n) const {
+    using dvalues_t = typename number<T>::dvalues_t;
+    auto out = dvalues_t(memory());
+    out.reserve(std::size(n.dvalues()));
+    for (const auto& [index, derivative] : n.dvalues()) {
+      out.emplace_back(index, self()->dvalue(duo<T>{n.value(), derivative}));
     }
-    return dv;
+    return out;
   }
 };
 
@@ -74,23 +71,17 @@ struct binary_operation {
 
   template <class T>
   auto operator()(const number<T>& n1, const T& v2) const {
-    const auto value = this->value(n1.value(), v2);
-    auto [dindex, dvalue] = this->dvalues(n1, v2);
-    return number<T>{value, std::move(dindex), std::move(dvalue)};
+    return number<T>{this->value(n1.value(), v2), this->dvalues(n1, v2)};
   }
 
   template <class T>
   auto operator()(const T& v1, const number<T>& n2) const {
-    const auto value = this->value(v1, n2.value());
-    auto [dindex, dvalue] = this->dvalues(v1, n2);
-    return number<T>{value, std::move(dindex), std::move(dvalue)};
+    return number<T>{this->value(v1, n2.value()), this->dvalues(v1, n2)};
   }
 
   template <class T>
   auto operator()(const number<T>& n1, const number<T>& n2) const {
-    const auto value = this->value(n1.value(), n2.value());
-    auto [dindex, dvalue] = this->dvalues(n1, n2);
-    return number<T>{value, std::move(dindex), std::move(dvalue)};
+    return number<T>{this->value(n1.value(), n2.value()), this->dvalues(n1, n2)};
   }
 
  protected:
@@ -103,74 +94,74 @@ struct binary_operation {
 
   template <class T>
   auto dvalues(const number<T>& n, const T& v) const {
-    using dindex_t = typename number<T>::dindex_t;
-    using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(std::size(n), T{0}, memory());
-    for (auto i : n.dindex()) {
-      dv[i] = self()->dvalue(duo(n, i), v);
+    using dvalues_t = typename number<T>::dvalues_t;
+    auto out = dvalues_t(memory());
+    out.reserve(std::size(n.dvalues()));
+    for (const auto& [index, derivative] : n.dvalues()) {
+      out.emplace_back(index, self()->dvalue(duo<T>{n.value(), derivative}, v));
     }
-    return std::tuple{dindex_t{n.dindex(), memory()}, std::move(dv)};
+    return out;
   }
 
   template <class T>
   auto dvalues(const T& v, const number<T>& n) const {
-    using dindex_t = typename number<T>::dindex_t;
-    using dvalue_t = typename number<T>::dvalue_t;
-    auto dv = dvalue_t(std::size(n), T{0}, memory());
-    for (auto i : n.dindex()) {
-      dv[i] = self()->dvalue(v, duo(n, i));
+    using dvalues_t = typename number<T>::dvalues_t;
+    auto out = dvalues_t(memory());
+    out.reserve(std::size(n.dvalues()));
+    for (const auto& [index, derivative] : n.dvalues()) {
+      out.emplace_back(index, self()->dvalue(v, duo<T>{n.value(), derivative}));
     }
-    return std::tuple{dindex_t{n.dindex(), memory()}, std::move(dv)};
+    return out;
   }
 
   template <class T>
   auto dvalues(const number<T>& n1, const number<T>& n2) const {
-    using dindex_t = typename number<T>::dindex_t;
-    using dvalue_t = typename number<T>::dvalue_t;
-    const auto ds = std::max(std::size(n1), std::size(n2));
-    auto dv = dvalue_t(ds, T{0}, memory());
-    auto di = dindex_t(memory());
-    di.reserve(ds);
-    merge_index(
-        n1.dindex(), n2.dindex(),
-        [&](auto i) {
-          dv[i] = self()->dvalue(duo(n1, i), n2.value());
-          di.emplace_back(i);
+    using dvalues_t = typename number<T>::dvalues_t;
+    auto out = dvalues_t(memory());
+    out.reserve(merged_capacity(n1.dvalues(), n2.dvalues()));
+    merge_dvalues(
+        n1.dvalues(), n2.dvalues(),
+        [&](const auto& d1) {
+          out.emplace_back(d1.index, self()->dvalue(duo<T>{n1.value(), d1.value}, n2.value()));
         },
-        [&](auto i) {
-          dv[i] = self()->dvalue(n1.value(), duo(n2, i));
-          di.emplace_back(i);
+        [&](const auto& d2) {
+          out.emplace_back(d2.index, self()->dvalue(n1.value(), duo<T>{n2.value(), d2.value}));
         },
-        [&](auto i) {
-          dv[i] = self()->dvalue(duo(n1, i), duo(n2, i));
-          di.emplace_back(i);
+        [&](const auto& d1, const auto& d2) {
+          out.emplace_back(
+              d1.index, self()->dvalue(duo<T>{n1.value(), d1.value}, duo<T>{n2.value(), d2.value}));
         });
-    return std::tuple{std::move(di), std::move(dv)};
+    return out;
   }
 
  private:
-  template <class I, class OnI1, class OnI2, class OnIx>
-  auto merge_index(const I& i1, const I& i2, OnI1 on_i1, OnI2 on_i2, OnIx on_ix) const -> void {
-    auto it1 = std::cbegin(i1);
-    auto it2 = std::cbegin(i2);
-    auto end1 = std::cend(i1);
-    auto end2 = std::cend(i2);
+  template <class D>
+  static auto merged_capacity(const D& d1, const D& d2) -> std::size_t {
+    const auto lowest = std::min(d1.front().index, d2.front().index);
+    const auto highest = std::max(d1.back().index, d2.back().index);
+    return std::min(highest - lowest + 1, std::size(d1) + std::size(d2));
+  }
+
+  template <class D, class OnD1, class OnD2, class OnDx>
+  auto merge_dvalues(const D& d1, const D& d2, OnD1 on_d1, OnD2 on_d2, OnDx on_dx) const -> void {
+    auto it1 = std::cbegin(d1);
+    auto it2 = std::cbegin(d2);
+    auto end1 = std::cend(d1);
+    auto end2 = std::cend(d2);
     while (it1 != end1 && it2 != end2) {
-      const auto& v1 = *it1;
-      const auto& v2 = *it2;
-      if (v1 < v2) {
-        on_i1(v1), ++it1;
-      } else if (v2 < v1) {
-        on_i2(v2), ++it2;
+      if (it1->index < it2->index) {
+        on_d1(*it1), ++it1;
+      } else if (it2->index < it1->index) {
+        on_d2(*it2), ++it2;
       } else {
-        on_ix(v1), ++it1, ++it2;
+        on_dx(*it1, *it2), ++it1, ++it2;
       }
     }
     while (it1 != end1) {
-      on_i1(*it1++);
+      on_d1(*it1++);
     }
     while (it2 != end2) {
-      on_i2(*it2++);
+      on_d2(*it2++);
     }
   }
 };

@@ -1,10 +1,16 @@
 /// ===============================================================================================
 /// @file
-/// @brief Randomized trajectory optimization test: builds a noisy SLAM problem
+/// @brief Randomized trajectory optimization tests: build a noisy SLAM problem
 /// along a sine-wave reference trajectory (random initial poses, noisy
 /// absolute-position priors, and noisy relative-distance loop closures) and
-/// verifies the Levenberg-Marquardt solver converges close to the ground
+/// verify the Levenberg-Marquardt solver converges close to the ground
 /// truth trajectory.
+///
+/// Two scenarios share one problem generator:
+/// - a small, fast one that pins the solver's exact behaviour, and
+/// - a large one that stresses the whole pipeline -- more poses, denser loop
+///   closures, a longer and taller trajectory, and initial guesses much further
+///   from the truth.
 /// ===============================================================================================
 #include <gtest/gtest.h>
 
@@ -26,18 +32,73 @@ namespace {
 
 using namespace vortex::test;
 
-/// @brief Test parameters for the randomized trajectory optimization test.
-constexpr auto kNumberNodes = std::size_t{100};
-constexpr auto kLinksPerNode = std::size_t{10};
-constexpr auto kAmplitude = double{10.0};
-constexpr auto kWidth = double{80.0};
-constexpr auto kInitialGuessMin = double{-10.0};
-constexpr auto kInitialGuessMax = double{100.0};
-constexpr auto kRandomSeed = std::size_t{1};
-constexpr auto kMaxIterations = std::size_t{15};
+/// ===============================================================================================
+/// @brief Everything that defines one randomized trajectory problem.
+/// ===============================================================================================
+struct scenario {
+  std::size_t nodes;           //< poses along the reference trajectory
+  std::size_t links_per_node;  //< loop closures attempted per pose
+  double amplitude;            //< peak height of the reference sine wave
+  double width;                //< length of the reference trajectory
+  double guess_min;            //< lower corner of the box initial guesses are drawn from
+  double guess_max;            //< upper corner of that box
+  std::size_t seed;            //< fixes the problem: same seed, same problem, every run
+  std::size_t max_iterations;  //< iteration budget handed to optimize()
+};
+
+/// @brief Test parameters for the small trajectory optimization test.
+constexpr auto kSmall = scenario{
+    .nodes = 100,
+    .links_per_node = 10,
+    .amplitude = 10.0,
+    .width = 80.0,
+    .guess_min = -10.0,
+    .guess_max = 100.0,
+    .seed = 1,
+    .max_iterations = 15,
+};
 constexpr auto kExpectedIterations = std::size_t{3};
 constexpr auto kMaxErrorDistance = double{3.0};
 constexpr auto kArenaCapacity = std::size_t{0x10000010};
+
+/// @brief Test parameters for the large trajectory optimization test.
+constexpr auto kLarge = scenario{
+    .nodes = 600,
+    .links_per_node = 20,
+    .amplitude = 25.0,
+    .width = 200.0,
+    .guess_min = -50.0,
+    .guess_max = 250.0,
+    .seed = 7,
+    .max_iterations = 25,
+};
+
+/// @brief Accuracy bounds for the large scenario.
+///
+/// Measurements carry up to 15% multiplicative noise, so the reachable accuracy is set by the
+/// noise rather than by the solver. Both bounds are checked: the mean is what says the trajectory
+/// as a whole is recovered, the worst case is what catches a single pose left behind.
+constexpr auto kLargeMaxErrorDistance = double{6.0};
+constexpr auto kLargeMeanErrorDistance = double{2.0};
+/// @brief Arena for the large scenario. It consumes about 332 MiB (measured; the graph's
+/// monotonic cache never reclaims, so consumption is the high-water mark). 320 MiB is not enough
+/// and 384 MiB only just is, so this leaves roughly half again as headroom -- a debug build hands
+/// the arena a null upstream, where coming up short throws rather than quietly growing.
+constexpr auto kLargeArenaCapacity = std::size_t{0x20000000};
+
+/// ===============================================================================================
+/// @brief The large scenario's system is 1200 dimensions, well past what `default_config` reserves.
+///
+/// `system_capacity` sizes the solver's up-front reservation for H, x and b, made when the graph
+/// is constructed. Left at the default 512, those buffers would instead grow during `optimize()`,
+/// where the active memory scope is the graph's own optimization arena -- and the solver outlives
+/// that scope. Sizing the reservation to the problem keeps the buffers owned by the resource that
+/// will still be current when the solver is destroyed.
+/// ===============================================================================================
+struct large_config : go::default_config {
+  static constexpr auto system_capacity = std::size_t{2048};
+};
+using LargeSlamGraph = go::graph<Nodes, Edges, large_config>;
 
 using Curve = std::vector<Position>;
 
@@ -78,6 +139,65 @@ auto RandomNodeIndex(Generator& generator, std::size_t num_nodes) -> std::size_t
   return static_cast<std::size_t>(distribution(generator));
 }
 
+/// @brief Populates @p graph with the problem @p setup describes.
+/// @return The pose handles, indexed as the reference trajectory is.
+template <class Graph>
+auto BuildProblem(Graph& graph, const scenario& setup,
+                  const Curve& reference) -> std::vector<go::handle<PositionNode>> {
+  auto generator = std::mt19937{static_cast<std::mt19937::result_type>(setup.seed)};
+
+  auto poses = std::vector<go::handle<PositionNode>>{};
+  poses.reserve(setup.nodes);
+  for (std::size_t idx = 0; idx < setup.nodes; ++idx) {
+    auto pose =
+        poses.emplace_back(graph.template build<PositionNode>(typename Graph::key_type{idx}));
+    pose->estimation(
+        RandomPoint(generator, setup.guess_min, setup.guess_max, setup.guess_min, setup.guess_max));
+    const auto noise = NoiseFactor(generator);
+    auto location = graph.template build<PositionLocationEdge>(pose);
+    location->measurement(Position{reference[idx].x * noise.x, reference[idx].y * noise.y});
+  }
+
+  auto add_noise = [&generator](const Position& p) {
+    const auto noise = NoiseFactor(generator);
+    return Position{p.x * noise.x, p.y * noise.y};
+  };
+  for (std::size_t idx = 0; idx < setup.nodes; ++idx) {
+    for (std::size_t link = 0; link < setup.links_per_node; ++link) {
+      const auto other = RandomNodeIndex(generator, setup.nodes);
+      if (idx != other) {
+        auto distance = graph.template build<PositionDistanceEdge>(poses[idx], poses[other]);
+        distance->measurement(add_noise(reference[other] - reference[idx]));
+      }
+    }
+  }
+  return poses;
+}
+
+/// @brief Worst and mean distance between the solved poses and the reference trajectory.
+struct accuracy {
+  double worst{0.0};        //< largest per-axis deviation of any pose
+  double mean{0.0};         //< mean euclidean distance over all poses
+  std::size_t worst_at{0};  //< index of the pose holding the worst deviation
+};
+
+auto Measure(const std::vector<go::handle<PositionNode>>& poses,
+             const Curve& reference) -> accuracy {
+  auto result = accuracy{};
+  for (std::size_t idx = 0; idx < std::size(poses); ++idx) {
+    const auto& estimation = poses[idx]->estimation();
+    const auto deviation = std::max(std::fabs(estimation.x - reference[idx].x),
+                                    std::fabs(estimation.y - reference[idx].y));
+    if (deviation > result.worst) {
+      result.worst = deviation;
+      result.worst_at = idx;
+    }
+    result.mean += std::hypot(estimation.x - reference[idx].x, estimation.y - reference[idx].y);
+  }
+  result.mean /= static_cast<double>(std::size(poses));
+  return result;
+}
+
 class OptimizationTrajectoryTest : public ::testing::Test {
  protected:
   using Key = SlamGraph::key_type;
@@ -89,40 +209,10 @@ TEST_F(OptimizationTrajectoryTest, GivenNoisyTrajectory_ExpectConvergenceNearGro
   auto arena = bounded_arena_resource{kArenaCapacity, std::pmr::new_delete_resource()};
   auto g_ = SlamGraph{&arena};
 
-  auto generator = std::mt19937{kRandomSeed};
+  const auto ref_points = BuildReferenceTrajectory(kSmall.nodes, kSmall.amplitude, kSmall.width);
+  const auto poses = BuildProblem(g_, kSmall, ref_points);
 
-  const auto ref_points = BuildReferenceTrajectory(kNumberNodes, kAmplitude, kWidth);
-
-  auto generate_pose = [&generator]() {
-    return RandomPoint(generator, kInitialGuessMin, kInitialGuessMax, kInitialGuessMin,
-                       kInitialGuessMax);
-  };
-  auto poses = std::vector<go::handle<PositionNode>>{};
-  for (std::size_t idx = 0; idx < kNumberNodes; ++idx) {
-    auto pose = poses.emplace_back(g_.build<PositionNode>(Key{idx}));
-    const auto estimation = generate_pose();
-    pose->estimation(estimation);
-    const auto noise = NoiseFactor(generator);
-    auto location = g_.build<PositionLocationEdge>(pose);
-    location->measurement(Position{ref_points[idx].x * noise.x, ref_points[idx].y * noise.y});
-  }
-
-  auto add_noise = [&generator](const Position& p) {
-    const auto noise = NoiseFactor(generator);
-    return Position{p.x * noise.x, p.y * noise.y};
-  };
-  for (std::size_t idx = 0; idx < kNumberNodes; ++idx) {
-    for (std::size_t link = 0; link < kLinksPerNode; ++link) {
-      const auto other = RandomNodeIndex(generator, kNumberNodes);
-      if (idx != other) {
-        auto distance = g_.build<PositionDistanceEdge>(poses[idx], poses[other]);
-        const auto measurement = add_noise(ref_points[other] - ref_points[idx]);
-        distance->measurement(measurement);
-      }
-    }
-  }
-
-  const auto result = g_.optimize(kMaxIterations);
+  const auto result = g_.optimize(kSmall.max_iterations);
   ASSERT_TRUE(result.has_value());
   // Neither flag: this run does not converge, and it is not cut short by the budget either.
   // Levenberg runs out of retries after three kept updates and stops on its own. The
@@ -132,12 +222,48 @@ TEST_F(OptimizationTrajectoryTest, GivenNoisyTrajectory_ExpectConvergenceNearGro
   EXPECT_FALSE(result.value().converged);
   EXPECT_FALSE(result.value().truncated);
   EXPECT_LE(result.value().updates, kExpectedIterations);
-  for (std::size_t idx = 0; idx < kNumberNodes; ++idx) {
+  for (std::size_t idx = 0; idx < kSmall.nodes; ++idx) {
     EXPECT_NEAR(poses[idx]->estimation().x, ref_points[idx].x, kMaxErrorDistance)
         << "Node index: " << idx << std::endl;
     EXPECT_NEAR(poses[idx]->estimation().y, ref_points[idx].y, kMaxErrorDistance)
         << "Node index: " << idx << std::endl;
   }
+  g_.destroy();
+}
+
+/// @brief The same problem at scale: 600 poses and about 12,000 loop closures on a longer, taller
+/// trajectory, started from initial guesses far outside it.
+///
+/// Deliberately the expensive test in the suite. Where the small scenario pins exact solver
+/// behaviour, this one asks a broader question -- does the pipeline still recover the trajectory
+/// when the system is 1200 dimensions and every iteration evaluates twelve thousand
+/// dual-number Jacobians -- so it asserts accuracy and budget rather than an exact iteration
+/// count, which would only make it brittle.
+TEST_F(OptimizationTrajectoryTest, GivenLargeNoisyTrajectory_ExpectConvergenceNearGroundTruth) {
+  auto arena = bounded_arena_resource{kLargeArenaCapacity, std::pmr::new_delete_resource()};
+  auto g_ = LargeSlamGraph{&arena};
+
+  const auto ref_points = BuildReferenceTrajectory(kLarge.nodes, kLarge.amplitude, kLarge.width);
+  const auto poses = BuildProblem(g_, kLarge, ref_points);
+  ASSERT_EQ(std::size(poses), kLarge.nodes);
+
+  const auto result = g_.optimize(kLarge.max_iterations);
+  ASSERT_TRUE(result.has_value());
+
+  // The budget must not be what stopped it: a truncated run says the scenario outgrew
+  // max_iterations and the accuracy checks below would be measuring the budget, not the solver.
+  EXPECT_FALSE(result.value().truncated);
+  EXPECT_GT(result.value().updates, std::size_t{0});
+  EXPECT_LE(result.value().updates, kLarge.max_iterations);
+
+  const auto error = Measure(poses, ref_points);
+  EXPECT_LT(error.mean, kLargeMeanErrorDistance)
+      << "mean deviation over " << kLarge.nodes << " poses";
+  EXPECT_LT(error.worst, kLargeMaxErrorDistance)
+      << "worst deviation at node " << error.worst_at << ": estimate ("
+      << poses[error.worst_at]->estimation().x << ", " << poses[error.worst_at]->estimation().y
+      << ") vs reference (" << ref_points[error.worst_at].x << ", " << ref_points[error.worst_at].y
+      << ")";
   g_.destroy();
 }
 

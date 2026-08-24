@@ -12,6 +12,7 @@
 
 #include <cstddef>
 #include <memory_resource>
+#include <utility>
 #include <vector>
 
 #include "foundation/math.hpp"
@@ -29,7 +30,8 @@ struct Point {
 };
 
 struct NarrowEdge;
-using Edges = go::edges<NarrowEdge>;
+struct SwitchingEdge;
+using Edges = go::edges<NarrowEdge, SwitchingEdge>;
 
 struct PointNode : go::node<PointNode, 2, Point<double>, Edges> {
   using Base = go::node<PointNode, 2, Point<double>, Edges>;
@@ -55,6 +57,25 @@ struct NarrowEdge : go::edge<NarrowEdge, 2, Point<double>, go::nodes<PointNode, 
   template <class T>
   auto error(const Point<T>& a, const Point<T>& b) -> typename Base::template error_vector<T> {
     return {a.x - this->measurement().x, (b.y - a.y) - this->measurement().y};
+  }
+};
+
+/// @brief An edge whose first residual component stops depending on the second node once that
+/// node's x goes negative -- a switching constraint, written the way one ordinarily is.
+///
+/// Its point is that the *structure* of the residual changes between updates, not just its
+/// values. An edge whose dependencies are fixed can never show whether a Jacobian block is
+/// rebuilt or merely written over.
+struct SwitchingEdge : go::edge<SwitchingEdge, 2, Point<double>, go::nodes<PointNode, PointNode>> {
+  using Base = go::edge<SwitchingEdge, 2, Point<double>, go::nodes<PointNode, PointNode>>;
+  using Base::Base;
+
+  template <class T>
+  auto error(const Point<T>& a, const Point<T>& b) -> typename Base::template error_vector<T> {
+    if (0.0 < b.x) {
+      return {a.x + b.x, b.y - a.y};
+    }
+    return {a.x, b.y - a.y};
   }
 };
 
@@ -114,6 +135,49 @@ TEST_F(GraphEdgeJacobianTest, GivenANarrowResidualComponent_ExpectZeroGradientFo
   // Node b: component 0 is independent of b, so the leading entry must be exactly zero.
   EXPECT_EQ(blocks[1].first, 2U);
   EXPECT_DOUBLE_EQ(blocks[1].second[0], 0.0);
+  EXPECT_DOUBLE_EQ(blocks[1].second[1], 2.0);
+}
+
+/// @brief A Jacobian block must be rebuilt on every update, not written over.
+///
+/// The blocks are zero-initialised, so a single update cannot tell the difference -- every entry
+/// the scatter skips still happens to hold zero. It is the *second* update that can: with b.x
+/// negative the first component no longer mentions b, so b's block must lose the entry the first
+/// update put there. Scattering alone would leave it behind, and the stale derivative would then
+/// steer the solver with a dependency the residual no longer has.
+TEST(GraphEdgeStaleJacobian, GivenADependencyThatDisappears_ExpectTheBlockToBeRebuilt) {
+  Graph graph{std::pmr::new_delete_resource()};
+  const auto a = graph.build<PointNode>(Graph::key_type{1});
+  const auto b = graph.build<PointNode>(Graph::key_type{2});
+  const auto edge = graph.build<SwitchingEdge>(a, b);
+  edge->measurement(Point<double>{0.0, 0.0});
+
+  a->estimation(Point<double>{1.0, 2.0});
+  b->estimation(Point<double>{3.0, 4.0});
+  edge->update();
+
+  // While b.x is positive, component 0 is a.x + b.x: b's block carries d/db.x = 1 in row 0.
+  auto blocks = std::vector<std::pair<std::size_t, math::static_vector<double, 2>>>{};
+  edge->foreach_b_block([&blocks](const auto& node, const auto& block) {
+    blocks.emplace_back(node->key(), math::static_vector<double, 2>(block));
+  });
+  ASSERT_EQ(blocks.size(), 2U);
+  // error = [1 + 3, 4 - 2] = [4, 2]; J_b = [[1, 0], [0, 1]] so J_b^T * error = [4, 2].
+  EXPECT_DOUBLE_EQ(blocks[1].second[0], 4.0);
+
+  // Flip the switch: component 0 becomes a.x alone and must stop mentioning b entirely.
+  b->estimation(Point<double>{-3.0, 4.0});
+  edge->update();
+
+  blocks.clear();
+  edge->foreach_b_block([&blocks](const auto& node, const auto& block) {
+    blocks.emplace_back(node->key(), math::static_vector<double, 2>(block));
+  });
+  ASSERT_EQ(blocks.size(), 2U);
+  // error = [1, 2] now; J_b = [[0, 0], [0, 1]] so J_b^T * error = [0, 2]. A leading entry of 1
+  // here is the first update's derivative surviving into the second.
+  EXPECT_DOUBLE_EQ(blocks[1].second[0], 0.0)
+      << "node b's block kept a derivative from the previous update";
   EXPECT_DOUBLE_EQ(blocks[1].second[1], 2.0);
 }
 
