@@ -44,7 +44,7 @@ adjustment and sensor calibration. It combines two ideas:
 
 | Path | Responsibility |
 | --- | --- |
-| [sources/foundation/dual/](sources/foundation/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
+| [sources/foundation/dual/](sources/foundation/dual/) | Dual-number type (`number<T>`, compressed sparse derivatives) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
 | [sources/foundation/graph/](sources/foundation/graph/) | Core statically-typed graph engine — `graph`, `node`, `edge`, revision tracking, and memory management (from `vortex`). |
 | [sources/foundation/math/](sources/foundation/math/) | Dense linear-algebra wrappers over [Blaze](https://bitbucket.org/blaze-lib/blaze) (matrix/vector types, inversion, and solvers). |
 | [sources/foundation/types/](sources/foundation/types/) | Small supporting containers (e.g. `vector_set`). |
@@ -81,6 +81,18 @@ struct position_distance_edge
   from the dual residual (see `edge::jacobian()` in [sources/optimization/graph_edge.hpp](sources/optimization/graph_edge.hpp)).
 
 No finite differences, no manually maintained Jacobian blocks.
+
+Derivatives are carried in **compressed sparse form**: each dual number holds a
+single index-sorted array of `(index, value)` entries for the tangent
+directions it actually depends on. Storage is therefore proportional to the
+number of active partials rather than to the largest active index, seeding a
+variable is O(1), and each operation allocates once instead of twice.
+
+Every dual number carries at least one entry, which is why there is no way to
+build one as a bare constant — a constant belongs on the scalar side of an
+operation, where `x * 2.0` is both the spelling that compiles and the cheaper
+one. The default-constructed number is the exception the storage requires, and
+it is a constant, not a variable: value zero, derivative zero.
 
 ---
 
@@ -208,6 +220,33 @@ ctest --test-dir build --output-on-failure
   differences.
 - [tests/optimization_test.cpp](tests/optimization_test.cpp) — end-to-end
   optimization that exercises the dual-number Jacobians on the SLAM fixture.
+- [tests/optimization_trajectory_test.cpp](tests/optimization_trajectory_test.cpp) —
+  two randomized noisy-SLAM problems along a sine trajectory. The small one
+  (100 poses, ~1,000 loop closures) pins the solver's exact behaviour and runs
+  in well under a second. The large one (600 poses, ~12,000 loop closures, a
+  1,200-dimensional system) is the expensive test in the suite at a few seconds
+  — skip it with `ctest -E GivenLargeNoisyTrajectory` when iterating.
+
+### Benchmarking the AD engine
+
+[tests/dual_benchmark.cpp](tests/dual_benchmark.cpp) reports what a single
+residual evaluation costs — wall time, allocations and bytes — across
+representative edge shapes: a 2D translation constraint, an SE(2) pose-graph
+edge, a bundle-adjustment reprojection, a wide calibration edge, a deep
+expression chain, one `edge::update()`, and a full `graph::optimize()`.
+
+Allocation traffic is reported next to time because it dominates dual-number
+evaluation: a change that halves the allocations per operation shows up here
+long before it shows up in a profile.
+
+Every scenario is checked against a central finite difference before it is
+timed, so the benchmark fails rather than posting a good number if a
+representation change gets a derivative wrong. `ctest` runs it short as a
+correctness gate; run it directly for figures worth quoting:
+
+```bash
+./build/tests/vortex_dual_benchmark --iterations=50000
+```
 
 ---
 

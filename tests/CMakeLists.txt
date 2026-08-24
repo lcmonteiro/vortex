@@ -18,3 +18,15 @@ target_link_libraries(vortex_tests PRIVATE vortex::vortex gtest_main)
 target_include_directories(vortex_tests PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/sources)
 
 gtest_discover_tests(vortex_tests)
+
+# Benchmark for the dual-number engine. Its own executable so the unit-test run stays fast, and
+# because it has no gtest dependency: it verifies every scenario against a finite difference and
+# returns non-zero if a derivative is wrong. ctest runs it short; run it directly with a larger
+# --iterations for figures worth quoting.
+add_executable(vortex_dual_benchmark
+  dual_benchmark.cpp)
+
+target_link_libraries(vortex_dual_benchmark PRIVATE vortex::vortex)
+target_include_directories(vortex_dual_benchmark PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/sources)
+
+add_test(NAME DualBenchmark COMMAND vortex_dual_benchmark --iterations=2000)
