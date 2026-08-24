@@ -40,7 +40,12 @@ struct number {
   using dvalues_t = std::pmr::vector<dvalue_t>;
 
   /// @brief Default constructor: zero value, one derivative of value zero at index 0.
-  number() : value_{}, dvalues_{{dvalue_t{0, value_t{1}}}, memory()} {}
+  /// @note The derivative is zero, not one. A default-constructed number exists so that blaze can
+  /// lay out a `static_vector<number, N>` before assigning its elements, and so that every number
+  /// carries at least one derivative; it is not a variable. Seeding it at one would make an
+  /// unassigned residual component read back as depending on the first tangent direction, and the
+  /// scatter would write that into the first node's jacobian block instead of a zero row.
+  number() : value_{}, dvalues_{{dvalue_t{0, value_t{0}}}, memory()} {}
 
   /// @brief Copies into storage from the scope active now. A defaulted copy would not:
   /// `std::pmr::polymorphic_allocator` does not propagate on copy construction, so it would draw

@@ -381,6 +381,21 @@ static_assert(std::is_constructible_v<Dual, double, std::size_t>,
               "a variable is a value seeded at a tangent index");
 static_assert(std::is_copy_constructible_v<Dual> and std::is_move_constructible_v<Dual>);
 
+/// @brief A default-constructed number is storage, not a variable.
+///
+/// It exists so blaze can lay out a `static_vector<number, N>` before assigning its elements, and
+/// so that every number carries at least one derivative. Its derivative must therefore be zero: at
+/// one, an unassigned residual component would read back as depending on the first tangent
+/// direction, and the jacobian scatter would write that dependency into the first node's block.
+TEST(DualContract, DefaultCarriesAZeroDerivative) {
+  const auto defaulted = Dual{};
+  EXPECT_DOUBLE_EQ(defaulted.value(), 0.0);
+  ASSERT_EQ(defaulted.size(), 1U);
+  EXPECT_EQ(defaulted.dvalues().front().index, 0U);
+  EXPECT_DOUBLE_EQ(defaulted.dvalues().front().value, 0.0)
+      << "a default number must not read as a variable seeded at index 0";
+}
+
 TEST(DualContract, ScalarConstantsGiveTheSameResultAsSeededArithmetic) {
   const auto x = Dual{3.0, 0};
 

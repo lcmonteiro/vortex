@@ -31,7 +31,8 @@ struct Point {
 
 struct NarrowEdge;
 struct SwitchingEdge;
-using Edges = go::edges<NarrowEdge, SwitchingEdge>;
+struct PartialEdge;
+using Edges = go::edges<NarrowEdge, SwitchingEdge, PartialEdge>;
 
 struct PointNode : go::node<PointNode, 2, Point<double>, Edges> {
   using Base = go::node<PointNode, 2, Point<double>, Edges>;
@@ -76,6 +77,23 @@ struct SwitchingEdge : go::edge<SwitchingEdge, 2, Point<double>, go::nodes<Point
       return {a.x + b.x, b.y - a.y};
     }
     return {a.x, b.y - a.y};
+  }
+};
+
+/// @brief An edge that fills its residual one component at a time and leaves the last alone.
+///
+/// Writing a residual incrementally is ordinary, and it is the one way a default-constructed dual
+/// reaches the jacobian scatter: component 1 is never assigned, so it carries whatever the default
+/// carries.
+struct PartialEdge : go::edge<PartialEdge, 2, Point<double>, go::nodes<PointNode, PointNode>> {
+  using Base = go::edge<PartialEdge, 2, Point<double>, go::nodes<PointNode, PointNode>>;
+  using Base::Base;
+
+  template <class T>
+  auto error(const Point<T>& a, const Point<T>& /*b*/) -> typename Base::template error_vector<T> {
+    auto residual = typename Base::template error_vector<T>{};
+    residual[0] = a.x - this->measurement().x;
+    return residual;
   }
 };
 
@@ -179,6 +197,44 @@ TEST(GraphEdgeStaleJacobian, GivenADependencyThatDisappears_ExpectTheBlockToBeRe
   EXPECT_DOUBLE_EQ(blocks[1].second[0], 0.0)
       << "node b's block kept a derivative from the previous update";
   EXPECT_DOUBLE_EQ(blocks[1].second[1], 2.0);
+}
+
+/// @brief A residual component left unassigned must contribute nothing.
+///
+/// It holds a default-constructed dual, which carries one derivative so that every number does.
+/// That derivative is zero, so the component depends on no direction and its jacobian row is zero.
+///
+/// The H block is what shows this, not the gradient: the unassigned component's *value* is zero
+/// either way, so J^T * error cannot tell a zero row from a spurious one. H = J_a^T * J_a can --
+/// row 0 contributes 1, and a second row claiming the same dependency would make it 2.
+TEST(GraphEdgeDefaultResidual, GivenAnUnassignedComponent_ExpectAZeroJacobianRow) {
+  Graph graph{std::pmr::new_delete_resource()};
+  const auto a = graph.build<PointNode>(Graph::key_type{1});
+  const auto b = graph.build<PointNode>(Graph::key_type{2});
+  const auto edge = graph.build<PartialEdge>(a, b);
+  edge->measurement(Point<double>{0.0, 0.0});
+  a->estimation(Point<double>{5.0, 2.0});
+  b->estimation(Point<double>{3.0, 4.0});
+  edge->update();
+
+  // residual = [a.x - 0, unassigned], so only component 0 depends on anything: a.x at index 0.
+  auto diagonal = std::vector<std::pair<std::size_t, double>>{};
+  edge->foreach_h_block([&diagonal](const auto& node_i, const auto& node_j, const auto& block) {
+    if (node_i->key() == node_j->key()) {
+      diagonal.emplace_back(node_i->key(), block(0, 0));
+    }
+  });
+  ASSERT_EQ(diagonal.size(), 2U);
+
+  // J_a = [[1, 0], [0, 0]] so H_aa(0,0) = 1. A default seeded at one would make the second row
+  // claim d/da.x as well, and this would read 2.
+  EXPECT_EQ(diagonal[0].first, 1U);
+  EXPECT_DOUBLE_EQ(diagonal[0].second, 1.0)
+      << "an unassigned residual component contributed a dependency it never expressed";
+
+  // The residual never mentions b at all.
+  EXPECT_EQ(diagonal[1].first, 2U);
+  EXPECT_DOUBLE_EQ(diagonal[1].second, 0.0);
 }
 
 }  // namespace
