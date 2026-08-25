@@ -6,11 +6,11 @@
 
 **Write the error function once — the exact Jacobian comes for free.**
 
-Vortex is a compile-time, type-safe non-linear least-squares optimizer for
-graph and factor-graph problems: SLAM, bundle adjustment, sensor calibration.
-It combines a **graph optimization engine** in the spirit of
-[g2o](https://github.com/RainerKuemmerle/g2o) with **forward-mode automatic
-differentiation** (dual numbers) from
+Vortex is a **header-only C++20 library** — a compile-time, type-safe non-linear
+least-squares optimizer for graph and factor-graph problems: SLAM, bundle
+adjustment, sensor calibration. It combines a **graph optimization engine** in
+the spirit of [g2o](https://github.com/RainerKuemmerle/g2o) with **forward-mode
+automatic differentiation** (dual numbers) from
 [library-dual](https://github.com/lcmonteiro/library-dual), so edge Jacobians
 are derived *exactly* from your residual instead of hand-coded beside it.
 
