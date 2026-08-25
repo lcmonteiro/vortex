@@ -1,20 +1,24 @@
+<p align="center">
+  <img src="docs/vortex-logo.png" alt="Vortex — graph optimization engine" width="220">
+</p>
+
 # Vortex
 
-**A header-only C++20 graph-optimization library with exact, automatically
-differentiated Jacobians.**
+Vortex is a **header-only C++20 graph-optimization library** that brings
+together compile-time type safety, non-linear least-squares optimization, and
+exact automatic differentiation.
 
-Vortex (build target `vortex`) is a compile-time, type-safe non-linear
-least-squares optimizer for graph/factor-graph problems such as SLAM, bundle
-adjustment and sensor calibration. It combines two ideas:
+Inspired by [g2o](https://github.com/RainerKuemmerle/g2o) and built on
+[library-dual](https://github.com/lcmonteiro/library-dual), Vortex uses
+forward-mode automatic differentiation to compute exact edge Jacobians directly
+from a single scalar-generic `error()` function — eliminating the need to derive
+and hand-code Jacobians.
 
-- a **graph optimization engine** inspired by the classic
-  [g2o](https://github.com/RainerKuemmerle/g2o) framework, and
-- **forward-mode automatic differentiation** (dual numbers) from
-  [library-dual](https://github.com/lcmonteiro/library-dual), so edge
-  Jacobians are computed *exactly* from a single scalar-generic `error()`
-  function instead of being derived and hand-coded.
+Suitable for graph and factor-graph problems such as SLAM, bundle adjustment,
+and sensor calibration.
 
-> 💡 Write your error function **once**, and the exact **Jacobian** comes for **free**.
+> 💡 Write your error function once. Vortex gives you the exact Jacobian
+> automatically.
 
 ---
 
@@ -44,8 +48,8 @@ adjustment and sensor calibration. It combines two ideas:
 
 | Path | Responsibility |
 | --- | --- |
-| [include/vortex/foundation/dual/](include/vortex/foundation/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
-| [include/vortex/foundation/graph/](include/vortex/foundation/graph/) | Core statically-typed graph engine — `graph`, `node`, `edge`, revision tracking, and memory management (from `vortex`). |
+| [include/vortex/foundation/dual/](include/vortex/foundation/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation. |
+| [include/vortex/foundation/graph/](include/vortex/foundation/graph/) | Core statically-typed graph engine — `graph`, `node`, `edge`, revision tracking, and memory management. |
 | [include/vortex/foundation/math/](include/vortex/foundation/math/) | Dense linear-algebra wrappers over [Blaze](https://bitbucket.org/blaze-lib/blaze) (matrix/vector types, inversion, and solvers). |
 | [include/vortex/foundation/types/](include/vortex/foundation/types/) | Small supporting containers (e.g. `vector_set`). |
 | [include/vortex/optimization/](include/vortex/optimization/) | Optimizer layer: `optimize()`, Levenberg–Marquardt algorithm, block graph solver, and the Cholesky/PCG/default linear solvers. Edges compute exact Jacobians via dual numbers. |
@@ -58,27 +62,38 @@ adjustment and sensor calibration. It combines two ideas:
 
 ## How automatic differentiation works
 
-Each derived edge implements **one** scalar-generic residual function, e.g.
-[position_distance_edge](include/vortex/optimization/types/position.hpp):
+Each derived edge implements **one** scalar-generic residual function:
 
 ```cpp
-struct position_distance_edge
-    : go::edge<position_distance_edge, 2, Position, go::Nodes<PositionNode, PositionNode>> {
-  using Base::Base;
+namespace vx = vortex::optimization;
+
+struct PositionDistanceEdge
+    : vx::edge<
+          PositionDistanceEdge,
+          2,
+          Position<double>,
+          vx::nodes<PositionNode, PositionNode>> {
+  using edge::edge;
 
   template <class T>
-  auto error(const Position<T>& a, const Position<T>& b) -> Base::error_vector<T> {
-    return {(b.x - a.x) - this->measurement().x,
-            (b.y - a.y) - this->measurement().y};
+  auto error(const Position<T>& a, const Position<T>& b) -> error_vector<T> {
+    return {
+        b.x - a.x - this->measurement().x,
+        b.y - a.y - this->measurement().y,
+    };
   }
 };
 ```
+
+The library ships this edge as
+[`position_distance_edge`](include/vortex/optimization/types/position.hpp),
+templated on the scalar type so it works at any precision.
 
 - Evaluated with `T = double` → the **residual** used to compute `chi²`.
 - Evaluated with `T = dual::number<double>` → the residual carries its
   **exact partial derivatives**. The optimizer seeds one node's tangent
   increment with independent dual variables and reads the Jacobian directly
-  from the dual residual (see `edge::jacobian()` in [include/vortex/optimization/graph_edge.hpp](include/vortex/optimization/graph_edge.hpp)).
+  from the dual residual (see `edge::update()` in [include/vortex/optimization/graph_edge.hpp](include/vortex/optimization/graph_edge.hpp)).
 
 No finite differences, no manually maintained Jacobian blocks.
 
@@ -124,7 +139,7 @@ target_link_libraries(my_app PRIVATE vortex::vortex)
 ```
 
 ```cpp
-#include "vortex/vortex.h"   // pulls in vortex::optimization
+#include "vortex.h"   // pulls in vortex::optimization
 ```
 
 ---
@@ -170,11 +185,11 @@ if (result) {
 
 ### Defining your own problem
 
-1. **Node** — subclass `go::node<Derived, Dim, EstimationType, go::Edges<...>>`
+1. **Node** — subclass `vx::node<Derived, Dim, EstimationType, vx::edges<...>>`
    and implement a scalar-generic `plus(delta)` manifold retraction.
-2. **Edge** — subclass `go::edge<Derived, Dim, MeasurementType, go::Nodes<...>>`
-   and implement a scalar-generic `error(...)` returning `Base::error_vector<T>`.
-3. **Graph** — subclass `go::graph<go::Nodes<...>, go::Edges<...>>`.
+2. **Edge** — subclass `vx::edge<Derived, Dim, MeasurementType, vx::nodes<...>>`
+   and implement a scalar-generic `error(...)` returning `error_vector<T>`.
+3. **Graph** — subclass `vx::graph<vx::nodes<...>, vx::edges<...>>`.
 4. Build nodes/edges, set estimations & measurements, call `optimize()`.
 
 ---
@@ -194,7 +209,7 @@ The defaults are:
 | `system_capacity` | `0x200` |
 
 Provide your own struct deriving from `vortex::optimization::default_config` and
-pass it as the third template parameter of `go::graph` to swap any of these.
+pass it as the third template parameter of `vx::graph` to swap any of these.
 
 ---
 

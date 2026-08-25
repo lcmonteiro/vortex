@@ -17,17 +17,17 @@
 
 namespace vortex::test {
 
-namespace go = vortex::optimization;
+namespace vx = vortex::optimization;
 
-using Position = go::types::position<double>;
-using PositionNode = go::types::position_node<double>;
-using PositionDistanceEdge = go::types::position_distance_edge<double>;
-using PositionLocationEdge = go::types::position_location_edge<double>;
+using Position = vx::types::position<double>;
+using PositionNode = vx::types::position_node<double>;
+using PositionDistanceEdge = vx::types::position_distance_edge<double>;
+using PositionLocationEdge = vx::types::position_location_edge<double>;
 
-using Nodes = go::nodes<PositionNode>;
-using Edges = go::edges<PositionDistanceEdge, PositionLocationEdge>;
-struct SlamGraph : go::graph<Nodes, Edges> {
-  using Base = go::graph<Nodes, Edges>;
+using Nodes = vx::nodes<PositionNode>;
+using Edges = vx::edges<PositionDistanceEdge, PositionLocationEdge>;
+struct SlamGraph : vx::graph<Nodes, Edges> {
+  using Base = vx::graph<Nodes, Edges>;
   using Base::Base;
 };
 

@@ -20,7 +20,7 @@
 
 namespace {
 
-namespace go = vortex::optimization;
+namespace vx = vortex::optimization;
 namespace math = vortex::math;
 
 template <class Number>
@@ -31,10 +31,10 @@ struct Point {
 
 struct NarrowEdge;
 struct SwitchingEdge;
-using Edges = go::edges<NarrowEdge, SwitchingEdge>;
+using Edges = vx::edges<NarrowEdge, SwitchingEdge>;
 
-struct PointNode : go::node<PointNode, 2, Point<double>, Edges> {
-  using Base = go::node<PointNode, 2, Point<double>, Edges>;
+struct PointNode : vx::node<PointNode, 2, Point<double>, Edges> {
+  using Base = vx::node<PointNode, 2, Point<double>, Edges>;
   using Base::Base;
 
   template <class Delta>
@@ -50,8 +50,8 @@ struct PointNode : go::node<PointNode, 2, Point<double>, Edges> {
 /// derivative slots, so that component's vector has length 1 -- shorter than the second node's
 /// offset of 2. Nothing about this is exotic: a prior on one coordinate combined with a relative
 /// term is an ordinary way to write a cost.
-struct NarrowEdge : go::edge<NarrowEdge, 2, Point<double>, go::nodes<PointNode, PointNode>> {
-  using Base = go::edge<NarrowEdge, 2, Point<double>, go::nodes<PointNode, PointNode>>;
+struct NarrowEdge : vx::edge<NarrowEdge, 2, Point<double>, vx::nodes<PointNode, PointNode>> {
+  using Base = vx::edge<NarrowEdge, 2, Point<double>, vx::nodes<PointNode, PointNode>>;
   using Base::Base;
 
   template <class T>
@@ -66,8 +66,8 @@ struct NarrowEdge : go::edge<NarrowEdge, 2, Point<double>, go::nodes<PointNode, 
 /// Its point is that the *structure* of the residual changes between updates, not just its
 /// values. An edge whose dependencies are fixed can never show whether a Jacobian block is
 /// rebuilt or merely written over.
-struct SwitchingEdge : go::edge<SwitchingEdge, 2, Point<double>, go::nodes<PointNode, PointNode>> {
-  using Base = go::edge<SwitchingEdge, 2, Point<double>, go::nodes<PointNode, PointNode>>;
+struct SwitchingEdge : vx::edge<SwitchingEdge, 2, Point<double>, vx::nodes<PointNode, PointNode>> {
+  using Base = vx::edge<SwitchingEdge, 2, Point<double>, vx::nodes<PointNode, PointNode>>;
   using Base::Base;
 
   template <class T>
@@ -79,8 +79,8 @@ struct SwitchingEdge : go::edge<SwitchingEdge, 2, Point<double>, go::nodes<Point
   }
 };
 
-struct Graph : go::graph<go::nodes<PointNode>, Edges> {
-  using Base = go::graph<go::nodes<PointNode>, Edges>;
+struct Graph : vx::graph<vx::nodes<PointNode>, Edges> {
+  using Base = vx::graph<vx::nodes<PointNode>, Edges>;
   using Base::Base;
 };
 
@@ -98,9 +98,9 @@ struct GraphEdgeJacobianTest : public ::testing::Test {
   void TearDown() override { g_.destroy(); }
 
   Graph g_{std::pmr::new_delete_resource()};
-  go::option<PointNode> a_;
-  go::option<PointNode> b_;
-  go::option<NarrowEdge> e_;
+  vx::option<PointNode> a_;
+  vx::option<PointNode> b_;
+  vx::option<NarrowEdge> e_;
 };
 
 /// @brief error = [a.x, b.y - a.y] at a = (1,2), b = (3,4) gives [1, 2], so chi2 = 1 + 4.
