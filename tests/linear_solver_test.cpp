@@ -8,10 +8,10 @@
 #include <cmath>
 #include <cstddef>
 
-#include "foundation/math.hpp"
-#include "optimization/linear_solver_cholesky.hpp"
-#include "optimization/linear_solver_default.hpp"
-#include "optimization/linear_solver_pcg.hpp"
+#include "vortex/foundation/math.hpp"
+#include "vortex/optimization/linear_solver_cholesky.hpp"
+#include "vortex/optimization/linear_solver_default.hpp"
+#include "vortex/optimization/linear_solver_pcg.hpp"
 
 namespace {
 

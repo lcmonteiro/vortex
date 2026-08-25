@@ -12,11 +12,11 @@
 #include <cstddef>
 #include <memory_resource>
 
-#include "optimization/graph.hpp"
-#include "optimization/linear_solver_cholesky.hpp"
-#include "optimization/linear_solver_default.hpp"
-#include "optimization/linear_solver_pcg.hpp"
-#include "optimization/types/position.hpp"
+#include "vortex/optimization/graph.hpp"
+#include "vortex/optimization/linear_solver_cholesky.hpp"
+#include "vortex/optimization/linear_solver_default.hpp"
+#include "vortex/optimization/linear_solver_pcg.hpp"
+#include "vortex/optimization/types/position.hpp"
 
 namespace {
 

@@ -2,7 +2,7 @@
 /// @file
 /// @brief Unit tests for the dual-number forward-mode AD engine.
 /// ===============================================================================================
-#include "foundation/dual.hpp"
+#include "vortex/foundation/dual.hpp"
 
 #include <gtest/gtest.h>
 

@@ -4,7 +4,7 @@
 /// `optimization::variants::kernel_variant`, exercised both directly and
 /// through an edge that selects them via `kernel_option`.
 /// ===============================================================================================
-#include "optimization/variants/robust_kernel.hpp"
+#include "vortex/optimization/variants/robust_kernel.hpp"
 
 #include <gtest/gtest.h>
 
@@ -12,8 +12,8 @@
 #include <cstddef>
 #include <memory_resource>
 
-#include "foundation/math.hpp"
-#include "optimization/graph.hpp"
+#include "vortex/foundation/math.hpp"
+#include "vortex/optimization/graph.hpp"
 
 namespace {
 

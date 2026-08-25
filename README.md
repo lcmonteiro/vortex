@@ -31,8 +31,8 @@ adjustment and sensor calibration. It combines two ideas:
 - **Pluggable solver stack.** Levenberg–Marquardt algorithm, block graph
   solver, and Cholesky / PCG / dense linear back-ends selected through a single
   configuration struct.
-- **Header-only core** with a thin static-library shim; [Blaze](https://bitbucket.org/blaze-lib/blaze)
-  provides the dense linear algebra (backed by LAPACK/BLAS).
+- **Header-only.** [Blaze](https://bitbucket.org/blaze-lib/blaze) provides the
+  dense linear algebra (backed by LAPACK/BLAS).
 
 ---
 
@@ -44,22 +44,22 @@ adjustment and sensor calibration. It combines two ideas:
 
 | Path | Responsibility |
 | --- | --- |
-| [sources/foundation/dual/](sources/foundation/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
-| [sources/foundation/graph/](sources/foundation/graph/) | Core statically-typed graph engine — `graph`, `node`, `edge`, revision tracking, and memory management (from `vortex`). |
-| [sources/foundation/math/](sources/foundation/math/) | Dense linear-algebra wrappers over [Blaze](https://bitbucket.org/blaze-lib/blaze) (matrix/vector types, inversion, and solvers). |
-| [sources/foundation/types/](sources/foundation/types/) | Small supporting containers (e.g. `vector_set`). |
-| [sources/optimization/](sources/optimization/) | Optimizer layer: `optimize()`, Levenberg–Marquardt algorithm, block graph solver, and the Cholesky/PCG/default linear solvers. Edges compute exact Jacobians via dual numbers. |
-| [sources/helpers/](sources/helpers/) | Compile-time utilities — type lists, apply/invoke, shared/pmr helpers, traits. |
+| [include/vortex/foundation/dual/](include/vortex/foundation/dual/) | Dual-number type (`number<T>`) and math operations for forward-mode automatic differentiation (ported from `b2o`). |
+| [include/vortex/foundation/graph/](include/vortex/foundation/graph/) | Core statically-typed graph engine — `graph`, `node`, `edge`, revision tracking, and memory management (from `vortex`). |
+| [include/vortex/foundation/math/](include/vortex/foundation/math/) | Dense linear-algebra wrappers over [Blaze](https://bitbucket.org/blaze-lib/blaze) (matrix/vector types, inversion, and solvers). |
+| [include/vortex/foundation/types/](include/vortex/foundation/types/) | Small supporting containers (e.g. `vector_set`). |
+| [include/vortex/optimization/](include/vortex/optimization/) | Optimizer layer: `optimize()`, Levenberg–Marquardt algorithm, block graph solver, and the Cholesky/PCG/default linear solvers. Edges compute exact Jacobians via dual numbers. |
+| [include/vortex/helpers/](include/vortex/helpers/) | Compile-time utilities — type lists, apply/invoke, shared/pmr helpers, traits. |
 | [tests/](tests/) | GoogleTest unit and end-to-end tests, including a scalar-generic SLAM fixture. |
 
-> `sources/foundation/` groups the core modeling modules (`dual`, `graph`, `math`, `types`).
+> `include/vortex/foundation/` groups the core modeling modules (`dual`, `graph`, `math`, `types`).
 
 ---
 
 ## How automatic differentiation works
 
 Each derived edge implements **one** scalar-generic residual function, e.g.
-[position_distance_edge](sources/optimization/types/position.hpp):
+[position_distance_edge](include/vortex/optimization/types/position.hpp):
 
 ```cpp
 struct position_distance_edge
@@ -78,7 +78,7 @@ struct position_distance_edge
 - Evaluated with `T = dual::number<double>` → the residual carries its
   **exact partial derivatives**. The optimizer seeds one node's tangent
   increment with independent dual variables and reads the Jacobian directly
-  from the dual residual (see `edge::jacobian()` in [sources/optimization/graph_edge.hpp](sources/optimization/graph_edge.hpp)).
+  from the dual residual (see `edge::jacobian()` in [include/vortex/optimization/graph_edge.hpp](include/vortex/optimization/graph_edge.hpp)).
 
 No finite differences, no manually maintained Jacobian blocks.
 
@@ -124,7 +124,7 @@ target_link_libraries(my_app PRIVATE vortex::vortex)
 ```
 
 ```cpp
-#include "vortex.hpp"   // pulls in vortex::optimization
+#include "vortex/vortex.h"   // pulls in vortex::optimization
 ```
 
 ---
@@ -182,7 +182,7 @@ if (result) {
 ## Configuration
 
 Solver behaviour is selected through a configuration struct (see
-[sources/optimization/graph_config.hpp](sources/optimization/graph_config.hpp)).
+[include/vortex/optimization/graph_config.hpp](include/vortex/optimization/graph_config.hpp)).
 The defaults are:
 
 | Component | Default |

@@ -12,8 +12,8 @@
 
 #include <type_traits>
 
-#include "optimization/graph.hpp"
-#include "optimization/types/position.hpp"
+#include "vortex/optimization/graph.hpp"
+#include "vortex/optimization/types/position.hpp"
 
 namespace vortex::test {
 

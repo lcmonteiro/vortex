@@ -9,8 +9,8 @@
 #include <cstdint>
 #include <memory_resource>
 
-#include "foundation/math.hpp"
-#include "optimization/graph.hpp"
+#include "vortex/foundation/math.hpp"
+#include "vortex/optimization/graph.hpp"
 
 namespace {
 

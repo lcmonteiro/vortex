@@ -3,14 +3,14 @@
 /// @brief Unit tests for `vortex::graph::VectorSet`, the insertion-ordered
 /// unique-element container used for the graph engine's edge sets.
 /// ===============================================================================================
-#include "foundation/types/vector_set.hpp"
+#include "vortex/foundation/types/vector_set.hpp"
 
 #include <gtest/gtest.h>
 
 #include <memory_resource>
 #include <vector>
 
-#include "helpers/handle.hpp"
+#include "vortex/helpers/handle.hpp"
 
 namespace {
 

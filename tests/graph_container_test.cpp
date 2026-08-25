@@ -8,7 +8,7 @@
 #include <memory_resource>
 #include <utility>
 
-#include "helpers/memory.hpp"
+#include "vortex/helpers/memory.hpp"
 #include "tests/fixtures/simple_graph.hpp"
 
 namespace {

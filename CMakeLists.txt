@@ -33,11 +33,11 @@ FetchContent_MakeAvailable(blaze)
 
 # vortex's memory model runs through blaze's AlignedAllocator, redirected into the active
 # helpers::memory_scope -- the only way to reach blaze's expression temporaries, since blaze cannot
-# be retargeted from the project side (see sources/foundation/math/types.hpp). The patch is
+# be retargeted from the project side (see include/vortex/foundation/math/types.hpp). The patch is
 # therefore not optional, and applying it here rather than via FetchContent's PATCH_COMMAND covers
 # the case where blaze was supplied through FETCHCONTENT_SOURCE_DIR_BLAZE, which skips that step.
 # Testing for the marker first makes this idempotent across reconfigures.
-set(VORTEX_BLAZE_PATCH ${CMAKE_CURRENT_SOURCE_DIR}/sources/foundation/math/patch/blaze-scoped-allocator.patch)
+set(VORTEX_BLAZE_PATCH ${CMAKE_CURRENT_SOURCE_DIR}/include/vortex/foundation/math/patch/blaze-scoped-allocator.patch)
 set(VORTEX_BLAZE_PATCH_TARGET ${blaze_SOURCE_DIR}/blaze/util/AlignedAllocator.h)
 
 file(READ ${VORTEX_BLAZE_PATCH_TARGET} VORTEX_BLAZE_PATCH_TARGET_TEXT)
@@ -80,14 +80,14 @@ if(NOT LAPACK_LIB OR NOT BLAS_LIB)
 endif()
 
 # ---------------------------------------------------------------------------
-# vortex library
+# vortex library (header-only)
 # ---------------------------------------------------------------------------
-add_library(vortex STATIC sources/vortex.cpp)
-target_compile_features(vortex PUBLIC cxx_std_20)
-target_include_directories(vortex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/sources)
-target_include_directories(vortex SYSTEM PUBLIC ${blaze_SOURCE_DIR})
-target_link_libraries(vortex PUBLIC ${LAPACK_LIB} ${BLAS_LIB})
-target_compile_definitions(vortex PUBLIC VORTEX_BLAZE_SCOPED_ALLOCATOR)
+add_library(vortex INTERFACE)
+target_compile_features(vortex INTERFACE cxx_std_20)
+target_include_directories(vortex INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(vortex SYSTEM INTERFACE ${blaze_SOURCE_DIR})
+target_link_libraries(vortex INTERFACE ${LAPACK_LIB} ${BLAS_LIB})
+target_compile_definitions(vortex INTERFACE VORTEX_BLAZE_SCOPED_ALLOCATOR)
 add_library(vortex::vortex ALIAS vortex)
 
 # ---------------------------------------------------------------------------

@@ -7,7 +7,7 @@
 #define VORTEX_TESTS_FIXTURES_SIMPLE_GRAPH_HPP
 #include <gtest/gtest.h>
 
-#include "foundation/graph.hpp"
+#include "vortex/foundation/graph.hpp"
 
 namespace vortex::test {
 
