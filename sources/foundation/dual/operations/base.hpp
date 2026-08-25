@@ -31,7 +31,7 @@ struct unary_operation {
 
   template <class T>
   auto operator()(const number<T>& n) const {
-    return number<T>{value(n), dvalues(n)};
+    return number{value(n), dvalues(n)};
   }
 
  protected:
@@ -71,17 +71,17 @@ struct binary_operation {
 
   template <class T>
   auto operator()(const number<T>& n1, const T& v2) const {
-    return number<T>{this->value(n1.value(), v2), this->dvalues(n1, v2)};
+    return number{this->value(n1.value(), v2), this->dvalues(n1, v2)};
   }
 
   template <class T>
   auto operator()(const T& v1, const number<T>& n2) const {
-    return number<T>{this->value(v1, n2.value()), this->dvalues(v1, n2)};
+    return number{this->value(v1, n2.value()), this->dvalues(v1, n2)};
   }
 
   template <class T>
   auto operator()(const number<T>& n1, const number<T>& n2) const {
-    return number<T>{this->value(n1.value(), n2.value()), this->dvalues(n1, n2)};
+    return number{this->value(n1.value(), n2.value()), this->dvalues(n1, n2)};
   }
 
  protected:
@@ -98,7 +98,7 @@ struct binary_operation {
     auto out = dvalues_t(memory());
     out.reserve(std::size(n.dvalues()));
     for (const auto& [index, derivative] : n.dvalues()) {
-      out.emplace_back(index, self()->dvalue(duo<T>{n.value(), derivative}, v));
+      out.emplace_back(index, self()->dvalue(duo{n.value(), derivative}, v));
     }
     return out;
   }
@@ -109,7 +109,7 @@ struct binary_operation {
     auto out = dvalues_t(memory());
     out.reserve(std::size(n.dvalues()));
     for (const auto& [index, derivative] : n.dvalues()) {
-      out.emplace_back(index, self()->dvalue(v, duo<T>{n.value(), derivative}));
+      out.emplace_back(index, self()->dvalue(v, duo{n.value(), derivative}));
     }
     return out;
   }
@@ -122,14 +122,14 @@ struct binary_operation {
     merge_dvalues(
         n1.dvalues(), n2.dvalues(),
         [&](const auto& d1) {
-          out.emplace_back(d1.index, self()->dvalue(duo<T>{n1.value(), d1.value}, n2.value()));
+          out.emplace_back(d1.index, self()->dvalue(duo{n1.value(), d1.value}, n2.value()));
         },
         [&](const auto& d2) {
-          out.emplace_back(d2.index, self()->dvalue(n1.value(), duo<T>{n2.value(), d2.value}));
+          out.emplace_back(d2.index, self()->dvalue(n1.value(), duo{n2.value(), d2.value}));
         },
         [&](const auto& d1, const auto& d2) {
           out.emplace_back(
-              d1.index, self()->dvalue(duo<T>{n1.value(), d1.value}, duo<T>{n2.value(), d2.value}));
+              d1.index, self()->dvalue(duo{n1.value(), d1.value}, duo{n2.value(), d2.value}));
         });
     return out;
   }
@@ -137,6 +137,7 @@ struct binary_operation {
  private:
   template <class D>
   static auto merged_capacity(const D& d1, const D& d2) -> std::size_t {
+    VORTEX_ASSERT(not d1.empty() and not d2.empty(), "derivative vectors must be non-empty");
     const auto lowest = std::min(d1.front().index, d2.front().index);
     const auto highest = std::max(d1.back().index, d2.back().index);
     return std::min(highest - lowest + 1, std::size(d1) + std::size(d2));

@@ -40,7 +40,7 @@ struct null_kernel_option {
   }
 
  private:
-  number_type chi2_;
+  number_type chi2_{0.};
 };
 
 /// @brief Huber robust kernel: down-weights large residuals to reduce the influence of outliers.
@@ -90,7 +90,7 @@ struct huber_kernel_option {
  private:
   number_type delta_{1.};
   number_type delta_sqr_{1.};
-  number_type rho_{1.};
+  number_type rho_{0.};
   number_type rho_prime_{1.};
 };
 

@@ -203,7 +203,7 @@ TEST(RobustKernel, GivenNoUpdateYet_ExpectHuberReportsOneAndNullReportsZero) {
   auto null = null_kernel_option<double>{};
 
   // Then
-  EXPECT_DOUBLE_EQ(huber.chi2(), 1.0);
+  EXPECT_DOUBLE_EQ(huber.chi2(), 0.0);
   EXPECT_DOUBLE_EQ(null.chi2(), 0.0);
 }
 

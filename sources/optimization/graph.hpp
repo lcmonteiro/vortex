@@ -6,6 +6,7 @@
 #ifndef VORTEX_OPTIMIZATION_GRAPH_HPP
 #define VORTEX_OPTIMIZATION_GRAPH_HPP
 #include <cstddef>
+#include <span>
 
 #include "foundation/graph.hpp"
 #include "foundation/graph/storage.hpp"

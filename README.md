@@ -66,16 +66,16 @@ struct position_distance_edge
     : go::edge<position_distance_edge, 2, Position, go::Nodes<PositionNode, PositionNode>> {
   using Base::Base;
 
-  template <class A, class B>
-  auto error(const Position<A>& a, const Position<B>& b) -> Base::error_vector<A, B> {
+  template <class T>
+  auto error(const Position<T>& a, const Position<T>& b) -> Base::error_vector<T> {
     return {(b.x - a.x) - this->measurement().x,
             (b.y - a.y) - this->measurement().y};
   }
 };
 ```
 
-- Evaluated with `A = B = double` → the **residual** used to compute `chi²`.
-- Evaluated with `A = B = dual::number<double>` → the residual carries its
+- Evaluated with `T = double` → the **residual** used to compute `chi²`.
+- Evaluated with `T = dual::number<double>` → the residual carries its
   **exact partial derivatives**. The optimizer seeds one node's tangent
   increment with independent dual variables and reads the Jacobian directly
   from the dual residual (see `edge::jacobian()` in [sources/optimization/graph_edge.hpp](sources/optimization/graph_edge.hpp)).
@@ -160,10 +160,11 @@ l1->measurement(Position{1, 1});   // prior:      p1 = (1,1)
 d1->measurement(Position{1, 1});   // relative:   p2 - p1 = (1,1)
 d2->measurement(Position{0, 0});   // relative:   p3 - p2 = (0,0)
 
-// Optimize (Levenberg–Marquardt); returns helpers::expected<std::size_t, algorithm_error>
+// Optimize (Levenberg–Marquardt); returns helpers::expected<summary, algorithm_error>
 const auto result = g.optimize(/*iterations=*/10);
 if (result) {
   // Converges to p1=(1,1), p2=(2,2), p3=(2,2)
+  const auto& [updates, converged, truncated] = result.value();
 }
 ```
 
