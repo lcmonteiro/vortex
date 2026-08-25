@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/vortex-logo.png" alt="Vortex — graph optimization engine" width="220">
+</p>
+
 # Vortex
 
 **A header-only C++20 graph-optimization library with exact, automatically
