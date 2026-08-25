@@ -17,11 +17,11 @@
 
 namespace {
 
-namespace go = vortex::optimization;
+namespace vx = vortex::optimization;
 namespace math = vortex::math;
 
-using go::variants::huber_kernel_option;
-using go::variants::null_kernel_option;
+using vx::variants::huber_kernel_option;
+using vx::variants::null_kernel_option;
 
 using Matrix = math::static_matrix<double, 2, 2>;
 
@@ -220,11 +220,11 @@ struct Point {
 
 struct NullKernelEdge;
 struct HuberKernelEdge;
-using Edges = go::edges<NullKernelEdge, HuberKernelEdge>;
+using Edges = vx::edges<NullKernelEdge, HuberKernelEdge>;
 
 /// @brief Minimal 2D node with the identity retraction.
-struct PointNode : go::node<PointNode, 2, Point<double>, Edges> {
-  using Base = go::node<PointNode, 2, Point<double>, Edges>;
+struct PointNode : vx::node<PointNode, 2, Point<double>, Edges> {
+  using Base = vx::node<PointNode, 2, Point<double>, Edges>;
   using Base::Base;
 
   template <class Delta>
@@ -234,11 +234,11 @@ struct PointNode : go::node<PointNode, 2, Point<double>, Edges> {
 };
 
 /// @brief Absolute-position residual under the default (null) kernel.
-struct NullKernelEdge : go::edge<NullKernelEdge, 2, Point<double>, go::nodes<PointNode>> {
-  using Base = go::edge<NullKernelEdge, 2, Point<double>, go::nodes<PointNode>>;
+struct NullKernelEdge : vx::edge<NullKernelEdge, 2, Point<double>, vx::nodes<PointNode>> {
+  using Base = vx::edge<NullKernelEdge, 2, Point<double>, vx::nodes<PointNode>>;
   using Base::Base;
 
-  static constexpr std::size_t kernel_option = go::variants::null_kernel;
+  static constexpr std::size_t kernel_option = vx::variants::null_kernel;
 
   template <class T>
   auto error(const Point<T>& a) -> typename Base::template error_vector<T> {
@@ -247,11 +247,11 @@ struct NullKernelEdge : go::edge<NullKernelEdge, 2, Point<double>, go::nodes<Poi
 };
 
 /// @brief The same residual, selecting the Huber kernel instead.
-struct HuberKernelEdge : go::edge<HuberKernelEdge, 2, Point<double>, go::nodes<PointNode>> {
-  using Base = go::edge<HuberKernelEdge, 2, Point<double>, go::nodes<PointNode>>;
+struct HuberKernelEdge : vx::edge<HuberKernelEdge, 2, Point<double>, vx::nodes<PointNode>> {
+  using Base = vx::edge<HuberKernelEdge, 2, Point<double>, vx::nodes<PointNode>>;
   using Base::Base;
 
-  static constexpr std::size_t kernel_option = go::variants::huber_kernel;
+  static constexpr std::size_t kernel_option = vx::variants::huber_kernel;
 
   template <class T>
   auto error(const Point<T>& a) -> typename Base::template error_vector<T> {
@@ -259,8 +259,8 @@ struct HuberKernelEdge : go::edge<HuberKernelEdge, 2, Point<double>, go::nodes<P
   }
 };
 
-struct Graph : go::graph<go::nodes<PointNode>, Edges> {
-  using Base = go::graph<go::nodes<PointNode>, Edges>;
+struct Graph : vx::graph<vx::nodes<PointNode>, Edges> {
+  using Base = vx::graph<vx::nodes<PointNode>, Edges>;
   using Base::Base;
 };
 

@@ -14,7 +14,7 @@
 
 namespace {
 
-namespace go = vortex::optimization;
+namespace vx = vortex::optimization;
 namespace math = vortex::math;
 
 /// @brief Dimension for Nodes and Edges.
@@ -24,13 +24,13 @@ constexpr std::uint8_t kDimension = 2;
 struct EdgeWithIdentity;
 struct EdgeWithDiagonal;
 struct EdgeWithSymmetric;
-using Edges = go::edges<EdgeWithIdentity, EdgeWithDiagonal, EdgeWithSymmetric>;
+using Edges = vx::edges<EdgeWithIdentity, EdgeWithDiagonal, EdgeWithSymmetric>;
 
 // Nodes Definition
 using EstimationType = std::uint8_t;
 
 template <class Derived>
-using Node1Base = go::node<Derived, kDimension, EstimationType, Edges>;
+using Node1Base = vx::node<Derived, kDimension, EstimationType, Edges>;
 
 struct Node1 : Node1Base<Node1> {
   using Base = Node1Base<Node1>;
@@ -42,43 +42,43 @@ using MeasurementType = std::uint8_t;
 
 template <class Derived>
 using EdgeWithIdentityBase =
-    go::edge<Derived, kDimension, MeasurementType, go::nodes<Node1, Node1>>;
+    vx::edge<Derived, kDimension, MeasurementType, vx::nodes<Node1, Node1>>;
 
 struct EdgeWithIdentity : EdgeWithIdentityBase<EdgeWithIdentity> {
   using Base = EdgeWithIdentityBase<EdgeWithIdentity>;
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t information_option = go::variants::identity_information;
+  static constexpr std::size_t information_option = vx::variants::identity_information;
 };
 
 template <class Derived>
 using EdgeWithDiagonalBase =
-    go::edge<Derived, kDimension, MeasurementType, go::nodes<Node1, Node1>>;
+    vx::edge<Derived, kDimension, MeasurementType, vx::nodes<Node1, Node1>>;
 
 struct EdgeWithDiagonal : EdgeWithDiagonalBase<EdgeWithDiagonal> {
   using Base = EdgeWithDiagonalBase<EdgeWithDiagonal>;
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t information_option = go::variants::diagonal_information;
+  static constexpr std::size_t information_option = vx::variants::diagonal_information;
 };
 
 template <class Derived>
 using EdgeWithSymmetricBase =
-    go::edge<Derived, kDimension, MeasurementType, go::nodes<Node1, Node1>>;
+    vx::edge<Derived, kDimension, MeasurementType, vx::nodes<Node1, Node1>>;
 
 struct EdgeWithSymmetric : EdgeWithSymmetricBase<EdgeWithSymmetric> {
   using Base = EdgeWithSymmetricBase<EdgeWithSymmetric>;
   using Base::Base;
 
   /// @brief Information matrix type
-  static constexpr std::size_t information_option = go::variants::symmetric_information;
+  static constexpr std::size_t information_option = vx::variants::symmetric_information;
 };
 
 // Graph Definition
-struct Graph : go::graph<go::nodes<Node1>, Edges> {
-  using Base = go::graph<go::nodes<Node1>, Edges>;
+struct Graph : vx::graph<vx::nodes<Node1>, Edges> {
+  using Base = vx::graph<vx::nodes<Node1>, Edges>;
   using Base::Base;
 };
 

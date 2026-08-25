@@ -65,17 +65,22 @@ and sensor calibration.
 Each derived edge implements **one** scalar-generic residual function:
 
 ```cpp
-namespace go = vortex::optimization;
+namespace vx = vortex::optimization;
 
 struct PositionDistanceEdge
-    : go::edge<PositionDistanceEdge, 2, Position<double>,
-               go::nodes<PositionNode, PositionNode>> {
+    : vx::edge<
+          PositionDistanceEdge,
+          2,
+          Position<double>,
+          vx::nodes<PositionNode, PositionNode>> {
   using edge::edge;
 
   template <class T>
   auto error(const Position<T>& a, const Position<T>& b) -> error_vector<T> {
-    return {(b.x - a.x) - this->measurement().x,
-            (b.y - a.y) - this->measurement().y};
+    return {
+        b.x - a.x - this->measurement().x,
+        b.y - a.y - this->measurement().y,
+    };
   }
 };
 ```
@@ -180,11 +185,11 @@ if (result) {
 
 ### Defining your own problem
 
-1. **Node** — subclass `go::node<Derived, Dim, EstimationType, go::edges<...>>`
+1. **Node** — subclass `vx::node<Derived, Dim, EstimationType, vx::edges<...>>`
    and implement a scalar-generic `plus(delta)` manifold retraction.
-2. **Edge** — subclass `go::edge<Derived, Dim, MeasurementType, go::nodes<...>>`
+2. **Edge** — subclass `vx::edge<Derived, Dim, MeasurementType, vx::nodes<...>>`
    and implement a scalar-generic `error(...)` returning `error_vector<T>`.
-3. **Graph** — subclass `go::graph<go::nodes<...>, go::edges<...>>`.
+3. **Graph** — subclass `vx::graph<vx::nodes<...>, vx::edges<...>>`.
 4. Build nodes/edges, set estimations & measurements, call `optimize()`.
 
 ---
@@ -204,7 +209,7 @@ The defaults are:
 | `system_capacity` | `0x200` |
 
 Provide your own struct deriving from `vortex::optimization::default_config` and
-pass it as the third template parameter of `go::graph` to swap any of these.
+pass it as the third template parameter of `vx::graph` to swap any of these.
 
 ---
 

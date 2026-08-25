@@ -29,12 +29,12 @@ class SlamOptimizationTest : public ::testing::Test {
   auto TearDown() -> void override { g_.destroy(); }
 
   SlamGraph g_{std::pmr::new_delete_resource()};
-  go::option<PositionNode> p1_;
-  go::option<PositionNode> p2_;
-  go::option<PositionNode> p3_;
-  go::option<PositionDistanceEdge> d1_;
-  go::option<PositionDistanceEdge> d2_;
-  go::option<PositionLocationEdge> l1_;
+  vx::option<PositionNode> p1_;
+  vx::option<PositionNode> p2_;
+  vx::option<PositionNode> p3_;
+  vx::option<PositionDistanceEdge> d1_;
+  vx::option<PositionDistanceEdge> d2_;
+  vx::option<PositionLocationEdge> l1_;
 };
 
 /// @brief The prior on p1 = (1,1) and the relative constraint p2 - p1 = (1,1)

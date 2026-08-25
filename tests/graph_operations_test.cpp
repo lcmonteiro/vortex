@@ -37,12 +37,12 @@ class SlamGraphOperationsTest : public ::testing::Test {
   auto TearDown() -> void override { g_.destroy(); }
 
   SlamGraph g_{std::pmr::new_delete_resource()};
-  go::option<PositionNode> p1_;
-  go::option<PositionNode> p2_;
-  go::option<PositionNode> p3_;
-  go::option<PositionDistanceEdge> d1_;
-  go::option<PositionDistanceEdge> d2_;
-  go::option<PositionLocationEdge> l1_;
+  vx::option<PositionNode> p1_;
+  vx::option<PositionNode> p2_;
+  vx::option<PositionNode> p3_;
+  vx::option<PositionDistanceEdge> d1_;
+  vx::option<PositionDistanceEdge> d2_;
+  vx::option<PositionLocationEdge> l1_;
 };
 
 /// @brief Verifies that edge measurements can be set and retrieved.
@@ -140,8 +140,8 @@ TEST_F(SlamGraphOperationsTest, GivenDisabledGraph_ExpectLevenbergReset) {
 TEST_F(SlamGraphOperationsTest, GivenMeasurementForEachEdgeTypeGivenCondition_ExpectCorrectStatus) {
   auto d1 = Position{1, 0};
   auto l1 = Position{0.5, 0};
-  go::for_each<PositionDistanceEdge>(g_, [&](const auto& edge) { edge->measurement(d1); });
-  go::for_each<PositionLocationEdge>(g_, [&](const auto& edge) { edge->measurement(l1); });
+  vx::for_each<PositionDistanceEdge>(g_, [&](const auto& edge) { edge->measurement(d1); });
+  vx::for_each<PositionLocationEdge>(g_, [&](const auto& edge) { edge->measurement(l1); });
   ExpectPositionEq((*d1_)->measurement(), d1);
   ExpectPositionEq((*d2_)->measurement(), d1);
   ExpectPositionEq((*l1_)->measurement(), l1);
@@ -150,7 +150,7 @@ TEST_F(SlamGraphOperationsTest, GivenMeasurementForEachEdgeTypeGivenCondition_Ex
 /// @brief Verifies find_if retrieves the correct node by key.
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectCorrectFind) {
   constexpr auto key_that_exists = Key{2};
-  const auto& node_found = go::find_if<PositionNode>(g_, key_that_exists);
+  const auto& node_found = vx::find_if<PositionNode>(g_, key_that_exists);
   EXPECT_EQ(node_found, p2_);
 }
 
@@ -158,14 +158,14 @@ TEST_F(SlamGraphOperationsTest, GivenKey_ExpectCorrectFind) {
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectCorrectFind_Const) {
   constexpr auto key_that_exists = Key{2};
   const auto& node_found =
-      go::find_if<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_exists);
+      vx::find_if<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_exists);
   EXPECT_EQ(node_found, p2_);
 }
 
 /// @brief Verifies find_if with a predicate lambda finds the correct node.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectFind) {
   constexpr auto key_that_exists = Key{2};
-  const auto& node_found = go::find_if<PositionNode>(
+  const auto& node_found = vx::find_if<PositionNode>(
       g_, [](const auto& node) { return (node->key() == key_that_exists) ? true : false; });
   EXPECT_EQ(node_found, p2_);
 }
@@ -173,7 +173,7 @@ TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectFind) {
 /// @brief Verifies find_if with a predicate on a const graph.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectFind_Const) {
   constexpr auto key_that_exists = Key{2};
-  const auto& node_found = go::find_if<PositionNode>(
+  const auto& node_found = vx::find_if<PositionNode>(
       const_cast<const SlamGraph&>(g_),
       [](const auto& node) { return (node->key() == key_that_exists) ? true : false; });
   EXPECT_EQ(node_found, p2_);
@@ -182,7 +182,7 @@ TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectFind_Const) {
 /// @brief Verifies find_if returns empty when key does not exist.
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectNoFind) {
   constexpr auto key_that_does_not_exist = Key{100};
-  const auto& node_found = go::find_if<PositionNode>(g_, key_that_does_not_exist);
+  const auto& node_found = vx::find_if<PositionNode>(g_, key_that_does_not_exist);
   EXPECT_FALSE(node_found.has_value());
 }
 
@@ -190,14 +190,14 @@ TEST_F(SlamGraphOperationsTest, GivenKey_ExpectNoFind) {
 TEST_F(SlamGraphOperationsTest, GivenKey_ExpectNoFind_Const) {
   constexpr auto key_that_does_not_exist = Key{100};
   const auto& node_found =
-      go::find_if<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_does_not_exist);
+      vx::find_if<PositionNode>(const_cast<const SlamGraph&>(g_), key_that_does_not_exist);
   EXPECT_FALSE(node_found.has_value());
 }
 
 /// @brief Verifies find_if with a predicate returns empty when no match.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectNoFind) {
   constexpr auto key_that_does_not_exist = Key{100};
-  const auto& node_found = go::find_if<PositionNode>(
+  const auto& node_found = vx::find_if<PositionNode>(
       g_, [](const auto& node) { return (node->key() == key_that_does_not_exist) ? true : false; });
   EXPECT_FALSE(node_found.has_value());
 }
@@ -205,7 +205,7 @@ TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectNoFind) {
 /// @brief Verifies find_if with a predicate on a const graph returns empty.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectNoFind_Const) {
   constexpr auto key_that_does_not_exist = Key{100};
-  const auto& node_found = go::find_if<PositionNode>(
+  const auto& node_found = vx::find_if<PositionNode>(
       const_cast<const SlamGraph&>(g_),
       [](const auto& node) { return (node->key() == key_that_does_not_exist) ? true : false; });
   EXPECT_FALSE(node_found.has_value());
@@ -214,21 +214,21 @@ TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectNoFind_Const) {
 /// @brief Verifies remove_if with a false predicate removes nothing.
 TEST_F(SlamGraphOperationsTest, GivenFalseCondition_ExpectNonRemoval) {
   ASSERT_EQ(g_.size<PositionNode>(), 3U);
-  go::remove_if<PositionNode>(g_, [](const auto&) { return false; });
+  vx::remove_if<PositionNode>(g_, [](const auto&) { return false; });
   EXPECT_EQ(g_.size<PositionNode>(), 3U);
 }
 
 /// @brief Verifies remove_if with a true predicate removes all nodes.
 TEST_F(SlamGraphOperationsTest, GivenTrueCondition_ExpectRemoval) {
   ASSERT_EQ(g_.size<PositionNode>(), 3U);
-  go::remove_if<PositionNode>(g_, [](const auto&) { return true; });
+  vx::remove_if<PositionNode>(g_, [](const auto&) { return true; });
   EXPECT_EQ(g_.size<PositionNode>(), 0U);
 }
 
 /// @brief Verifies remove_if with a key predicate removes only the matching node.
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectRemoval) {
   ASSERT_EQ(g_.size<PositionNode>(), 3U);
-  go::remove_if<PositionNode>(g_,
+  vx::remove_if<PositionNode>(g_,
                              [](const auto& node) { return (node->key() == 1) ? true : false; });
   ASSERT_EQ(g_.size<PositionNode>(), 2U);
   EXPECT_FALSE(g_.find<PositionNode>(1).has_value());
@@ -236,41 +236,41 @@ TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectRemoval) {
 
 /// @brief Verifies disable/enable by type toggles nodes and edges correctly.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByType_ExpectCorrectStatus) {
-  go::disable<PositionNode>(g_);
-  go::disable<PositionDistanceEdge>(g_);
+  vx::disable<PositionNode>(g_);
+  vx::disable<PositionDistanceEdge>(g_);
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_TRUE((*p2_)->disable());
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::enable<PositionNode>(g_);
-  go::enable<PositionDistanceEdge>(g_);
+  vx::enable<PositionNode>(g_);
+  vx::enable<PositionDistanceEdge>(g_);
   EXPECT_FALSE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::disable<go::edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
+  vx::disable<vx::edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_TRUE((*l1_)->disable());
 
-  go::enable<go::edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
+  vx::enable<vx::edges<PositionDistanceEdge, PositionLocationEdge>>(g_);
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
 
 /// @brief Verifies that disabling twice is idempotent.
 TEST_F(SlamGraphOperationsTest, GivenDisableTwice_ExpectCorrectStatus) {
-  go::disable<PositionNode>(g_);
-  go::disable<PositionDistanceEdge>(g_);
+  vx::disable<PositionNode>(g_);
+  vx::disable<PositionDistanceEdge>(g_);
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_TRUE((*p2_)->disable());
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::disable<PositionNode>(g_);
-  go::disable<PositionDistanceEdge>(g_);
+  vx::disable<PositionNode>(g_);
+  vx::disable<PositionDistanceEdge>(g_);
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_TRUE((*p2_)->disable());
   EXPECT_TRUE((*d1_)->disable());
@@ -279,46 +279,46 @@ TEST_F(SlamGraphOperationsTest, GivenDisableTwice_ExpectCorrectStatus) {
 
 /// @brief Verifies disable/enable by key or edge reference targets correctly.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByKey_ExpectCorrectStatus) {
-  go::disable<PositionNode>(g_, Key{1});
-  go::disable<PositionDistanceEdge>(g_, *d1_);
+  vx::disable<PositionNode>(g_, Key{1});
+  vx::disable<PositionDistanceEdge>(g_, *d1_);
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::enable<PositionNode>(g_, Key{1});
-  go::enable<PositionDistanceEdge>(g_, *d1_);
+  vx::enable<PositionNode>(g_, Key{1});
+  vx::enable<PositionDistanceEdge>(g_, *d1_);
   EXPECT_FALSE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
   EXPECT_FALSE((*p3_)->disable());
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::disable<PositionDistanceEdge>(g_, *p1_);
+  vx::disable<PositionDistanceEdge>(g_, *p1_);
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::enable<PositionDistanceEdge>(g_, *p1_);
+  vx::enable<PositionDistanceEdge>(g_, *p1_);
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
 
 /// @brief Verifies disable/enable of multiple edge types by node reference.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByKeyList_ExpectCorrectStatus) {
-  go::disable<go::edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
+  vx::disable<vx::edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_TRUE((*l1_)->disable());
-  go::enable<go::edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
+  vx::enable<vx::edges<PositionDistanceEdge, PositionLocationEdge>>(g_, *p1_);
   EXPECT_FALSE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 }
 
 /// @brief Verifies disable_if/enable_if with predicates on nodes and edges.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectStatus) {
-  go::disable_if<PositionNode>(g_,
+  vx::disable_if<PositionNode>(g_,
                               [](const auto& node) { return (node->key() == 1) ? true : false; });
-  go::disable_if<PositionDistanceEdge>(
+  vx::disable_if<PositionDistanceEdge>(
       g_, [](const auto& edge) { return (edge->n_nodes == 2) ? true : false; });
   EXPECT_TRUE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
@@ -326,9 +326,9 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectSt
   EXPECT_TRUE((*d1_)->disable());
   EXPECT_FALSE((*l1_)->disable());
 
-  go::enable_if<PositionNode>(g_,
+  vx::enable_if<PositionNode>(g_,
                              [](const auto& node) { return (node->key() == 1) ? true : false; });
-  go::enable_if<PositionDistanceEdge>(
+  vx::enable_if<PositionDistanceEdge>(
       g_, [](const auto& edge) { return (edge->n_nodes == 2) ? true : false; });
   EXPECT_FALSE((*p1_)->disable());
   EXPECT_FALSE((*p2_)->disable());
@@ -476,10 +476,10 @@ TEST_F(SlamGraphOperationsTest, GivenTwoIterations_ExpectLastIterationSolvePath)
 
 /// @brief Verifies destroy of a single PositionNode node by key.
 TEST_F(SlamGraphOperationsTest, GivenPositionNodeKey_ExpectDestroyByKey) {
-  auto nodes_before = g_.size<go::nodes<PositionNode>>();
+  auto nodes_before = g_.size<vx::nodes<PositionNode>>();
   auto edges_before = g_.size<SlamGraph::edge_list>();
   g_.destroy<PositionNode>(Key{2});
-  EXPECT_LT(g_.size<go::nodes<PositionNode>>(), nodes_before);
+  EXPECT_LT(g_.size<vx::nodes<PositionNode>>(), nodes_before);
   EXPECT_LT(g_.size<SlamGraph::edge_list>(), edges_before);
 }
 

@@ -20,34 +20,34 @@
 
 namespace {
 
-namespace go = vortex::optimization;
+namespace vx = vortex::optimization;
 
-using Position = go::types::position<double>;
-using PositionNode = go::types::position_node<double>;
-using PositionDistanceEdge = go::types::position_distance_edge<double>;
-using PositionLocationEdge = go::types::position_location_edge<double>;
+using Position = vx::types::position<double>;
+using PositionNode = vx::types::position_node<double>;
+using PositionDistanceEdge = vx::types::position_distance_edge<double>;
+using PositionLocationEdge = vx::types::position_location_edge<double>;
 
-using Nodes = go::nodes<PositionNode>;
-using Edges = go::edges<PositionDistanceEdge, PositionLocationEdge>;
+using Nodes = vx::nodes<PositionNode>;
+using Edges = vx::edges<PositionDistanceEdge, PositionLocationEdge>;
 
 /// @brief The stock configuration with only the linear solver swapped out.
 template <class LinearSolver>
-struct solver_config : go::default_config {
+struct solver_config : vx::default_config {
   using linear_solver_type = LinearSolver;
 };
 
 template <class LinearSolver>
-struct SolverGraph : go::graph<Nodes, Edges, solver_config<LinearSolver>> {
-  using Base = go::graph<Nodes, Edges, solver_config<LinearSolver>>;
+struct SolverGraph : vx::graph<Nodes, Edges, solver_config<LinearSolver>> {
+  using Base = vx::graph<Nodes, Edges, solver_config<LinearSolver>>;
   using Base::Base;
 };
 
 template <class LinearSolver>
 class LinearSolverParityTest : public ::testing::Test {};
 
-using LinearSolvers = ::testing::Types<go::default_linear_solver,       //
-                                       go::cholesky_linear_solver,      //
-                                       go::pcg_linear_solver<double>>;  //
+using LinearSolvers = ::testing::Types<vx::default_linear_solver,       //
+                                       vx::cholesky_linear_solver,      //
+                                       vx::pcg_linear_solver<double>>;  //
 TYPED_TEST_SUITE(LinearSolverParityTest, LinearSolvers);
 
 /// @brief The three-node problem from optimization_test.cpp: a prior pinning p1 to (1,1) and two

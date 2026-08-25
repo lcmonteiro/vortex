@@ -95,11 +95,11 @@ constexpr auto kLargeArenaCapacity = std::size_t{0x20000000};
 /// that scope. Sizing the reservation to the problem keeps the buffers owned by the resource that
 /// will still be current when the solver is destroyed.
 /// ===============================================================================================
-struct large_config : go::default_config {
+struct large_config : vx::default_config {
   static constexpr auto system_capacity = std::size_t{2048};
 };
-using LargeSlamGraph = go::graph<Nodes, Edges, large_config>;
-using PositionNodeHandles = std::vector<go::handle<PositionNode>>;
+using LargeSlamGraph = vx::graph<Nodes, Edges, large_config>;
+using PositionNodeHandles = std::vector<vx::handle<PositionNode>>;
 using Curve = std::vector<Position>;
 
 /// @brief Builds `size` reference points along a sine-wave trajectory.
