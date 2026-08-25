@@ -32,6 +32,13 @@ class edge {
   /// @brief The number of node types connected by this edge.
   static constexpr auto n_nodes = sizeof...(Nodes);
 
+  /// @brief Only exists behind a stable handle held by storage. 
+  edge() = delete;
+  edge(const edge&) = delete;
+  edge(edge&&) = delete;
+  auto operator=(const edge&) -> edge& = delete;
+  auto operator=(edge&&) -> edge& = delete;
+
   /// @brief Constructs an edge connecting the specified nodes.
   /// @note Move and copy constructors purposely omitted
   explicit edge(const helpers::handle<Nodes>&... nodes) : disable_{}, nodes_{nodes...} {}

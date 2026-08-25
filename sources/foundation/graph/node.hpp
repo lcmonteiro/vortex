@@ -34,8 +34,19 @@ class node {
   using handler_set_tuple = std::tuple<handler_set<Edges>...>;
 
  public:
-  static constexpr auto N_TYPES = sizeof...(Edges);
+  /// @brief The number of edge types the node can manage.
+  static constexpr auto n_types = sizeof...(Edges);
 
+  /// @brief Only exists behind a stable handle held by storage. 
+  node() = delete;
+  node(const node&) = delete;
+  node(node&&) = delete;
+  auto operator=(const node&) -> node& = delete;
+  auto operator=(node&&) -> node& = delete;
+
+  /// @brief Constructs a node with a memory resource for edge sets.
+  /// @param key A key to differentiate this constructor.
+  /// @param memory A pointer to a memory resource for edge sets.
   template <class Key>
   node(const Key&, std::pmr::memory_resource* const memory)
       : disable_{}, edges_{helpers::build<handler_set_tuple>(memory)} {}

@@ -99,7 +99,7 @@ struct large_config : go::default_config {
   static constexpr auto system_capacity = std::size_t{2048};
 };
 using LargeSlamGraph = go::graph<Nodes, Edges, large_config>;
-
+using PositionNodeHandles = std::vector<go::handle<PositionNode>>;
 using Curve = std::vector<Position>;
 
 /// @brief Builds `size` reference points along a sine-wave trajectory.
@@ -142,11 +142,11 @@ auto RandomNodeIndex(Generator& generator, std::size_t num_nodes) -> std::size_t
 /// @brief Populates @p graph with the problem @p setup describes.
 /// @return The pose handles, indexed as the reference trajectory is.
 template <class Graph>
-auto BuildProblem(Graph& graph, const scenario& setup,
-                  const Curve& reference) -> std::vector<go::handle<PositionNode>> {
+auto BuildProblem(Graph& graph, const scenario& setup, const Curve& reference)  //
+    -> PositionNodeHandles {
   auto generator = std::mt19937{static_cast<std::mt19937::result_type>(setup.seed)};
 
-  auto poses = std::vector<go::handle<PositionNode>>{};
+  auto poses = PositionNodeHandles{};
   poses.reserve(setup.nodes);
   for (std::size_t idx = 0; idx < setup.nodes; ++idx) {
     auto pose =
@@ -181,8 +181,7 @@ struct accuracy {
   std::size_t worst_at{0};  //< index of the pose holding the worst deviation
 };
 
-auto Measure(const std::vector<go::handle<PositionNode>>& poses,
-             const Curve& reference) -> accuracy {
+auto Measure(const PositionNodeHandles& poses, const Curve& reference) -> accuracy {
   auto result = accuracy{};
   for (std::size_t idx = 0; idx < std::size(poses); ++idx) {
     const auto& estimation = poses[idx]->estimation();

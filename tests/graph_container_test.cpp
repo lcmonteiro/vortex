@@ -211,12 +211,12 @@ TEST_F(SimpleGraphFixture, GivenDifferentInstances_ExpectEdgeToggle) {
 }
 
 TEST_F(SimpleGraphFixture, GivenCondition_ExpectNodeToggle) {
-  g_.toggle<Node1>([](const auto& node) { return (node->N_TYPES == 2) ? true : false; },
+  g_.toggle<Node1>([](const auto& node) { return (node->n_types == 2) ? true : false; },
                    Graph::enabled);
   EXPECT_TRUE((*n1_)->disable());
   EXPECT_FALSE((*n2_)->disable());
 
-  g_.toggle<Node2>([](const auto& node) { return (node->N_TYPES == 1) ? true : false; },
+  g_.toggle<Node2>([](const auto& node) { return (node->n_types == 1) ? true : false; },
                    Graph::enabled);
   EXPECT_TRUE((*n1_)->disable());
   EXPECT_TRUE((*n2_)->disable());

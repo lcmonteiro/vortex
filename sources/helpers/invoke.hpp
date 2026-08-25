@@ -31,8 +31,8 @@ struct expand {
 };
 
 template <std::size_t N, class Fcall, class Fargs>
-auto invoke(Fcall&& call, Fargs args, expand<N> expand) -> decltype(auto) {
-  return details::invoke(std::forward<Fcall>(call), std::forward<Fargs>(args), expand.value);
+auto invoke(Fcall&& call, Fargs args, expand<N> indices) -> decltype(auto) {
+  return details::invoke(std::forward<Fcall>(call), std::forward<Fargs>(args), indices.value);
 }
 
 }  // namespace vortex::helpers

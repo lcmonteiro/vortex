@@ -7,6 +7,7 @@
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 
 #include "foundation/dual/number.hpp"
+#include "helpers/contracts.hpp"
 
 namespace vortex::dual {
 
@@ -128,7 +129,7 @@ struct binary_operation {
           out.emplace_back(d2.index, self()->dvalue(n1.value(), duo{n2.value(), d2.value}));
         },
         [&](const auto& d1, const auto& d2) {
-          out.emplace_back(
+          out.emplace_back(  //
               d1.index, self()->dvalue(duo{n1.value(), d1.value}, duo{n2.value(), d2.value}));
         });
     return out;
