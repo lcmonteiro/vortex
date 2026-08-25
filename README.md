@@ -35,9 +35,8 @@ and sensor calibration.
 - **Pluggable solver stack.** Levenberg–Marquardt algorithm, block graph
   solver, and Cholesky / PCG / dense linear back-ends selected through a single
   configuration struct.
-- **Header-only C++20.** Nothing to compile but your own code;
-  [Blaze](https://bitbucket.org/blaze-lib/blaze) supplies the dense linear
-  algebra, backed by LAPACK/BLAS.
+- **Header-only.** [Blaze](https://bitbucket.org/blaze-lib/blaze) provides the
+  dense linear algebra (backed by LAPACK/BLAS).
 
 ---
 
@@ -71,12 +70,10 @@ namespace go = vortex::optimization;
 struct PositionDistanceEdge
     : go::edge<PositionDistanceEdge, 2, Position<double>,
                go::nodes<PositionNode, PositionNode>> {
-  using Base = go::edge<PositionDistanceEdge, 2, Position<double>,
-                        go::nodes<PositionNode, PositionNode>>;
-  using Base::Base;
+  using edge::edge;
 
   template <class T>
-  auto error(const Position<T>& a, const Position<T>& b) -> Base::error_vector<T> {
+  auto error(const Position<T>& a, const Position<T>& b) -> error_vector<T> {
     return {(b.x - a.x) - this->measurement().x,
             (b.y - a.y) - this->measurement().y};
   }
@@ -91,7 +88,7 @@ templated on the scalar type so it works at any precision.
 - Evaluated with `T = dual::number<double>` → the residual carries its
   **exact partial derivatives**. The optimizer seeds one node's tangent
   increment with independent dual variables and reads the Jacobian directly
-  from the dual residual (see `edge::jacobian()` in [include/vortex/optimization/graph_edge.hpp](include/vortex/optimization/graph_edge.hpp)).
+  from the dual residual (see `edge::update()` in [include/vortex/optimization/graph_edge.hpp](include/vortex/optimization/graph_edge.hpp)).
 
 No finite differences, no manually maintained Jacobian blocks.
 
@@ -186,7 +183,7 @@ if (result) {
 1. **Node** — subclass `go::node<Derived, Dim, EstimationType, go::edges<...>>`
    and implement a scalar-generic `plus(delta)` manifold retraction.
 2. **Edge** — subclass `go::edge<Derived, Dim, MeasurementType, go::nodes<...>>`
-   and implement a scalar-generic `error(...)` returning `Base::error_vector<T>`.
+   and implement a scalar-generic `error(...)` returning `error_vector<T>`.
 3. **Graph** — subclass `go::graph<go::nodes<...>, go::edges<...>>`.
 4. Build nodes/edges, set estimations & measurements, call `optimize()`.
 
