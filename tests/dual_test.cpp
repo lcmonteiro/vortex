@@ -293,6 +293,30 @@ TEST(DualOperations, PowWithBothOperandsDual) {
   EXPECT_NEAR(dvalue(y, 1), 8.0 * std::log(2.0), 1e-12);
 }
 
+/// The derivative's two terms each vanish where their factor does, so an infinite or undefined
+/// factor beside a zero one must not turn the result into NaN.
+TEST(DualOperations, PowReturnsTheLimitWhereTheFormulaBreaksDown) {
+  // d/dx x^0 = 0, though 0 * 0^-1 is 0 * inf.
+  const auto flat = pow(Dual{0.0, 0}, 0.0);
+  EXPECT_DOUBLE_EQ(flat.value(), 1.0);
+  EXPECT_DOUBLE_EQ(dvalue(flat, 0), 0.0);
+
+  // d/dy 0^y = 0 for y > 0, though ln(0) is -inf.
+  const auto zero_base = pow(Dual{0.0, 0}, Dual{2.0, 1});
+  EXPECT_DOUBLE_EQ(zero_base.value(), 0.0);
+  EXPECT_DOUBLE_EQ(dvalue(zero_base, 0), 0.0);
+  EXPECT_DOUBLE_EQ(dvalue(zero_base, 1), 0.0);
+
+  // An exponent that is a dual but does not vary contributes nothing, even where ln(base) is
+  // undefined: (-2)^3 through a dual exponent built at another index and then cancelled.
+  const auto t = Dual{1.0, 1};
+  const auto exponent = t - t + 3.0;  // value 3, derivative 0 at index 1
+  const auto negative_base = pow(Dual{-2.0, 0}, exponent);
+  EXPECT_DOUBLE_EQ(negative_base.value(), -8.0);
+  EXPECT_DOUBLE_EQ(dvalue(negative_base, 0), 12.0);
+  EXPECT_DOUBLE_EQ(dvalue(negative_base, 1), 0.0);
+}
+
 /// ===============================================================================================
 /// Shared derivative indices
 ///
