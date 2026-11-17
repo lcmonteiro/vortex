@@ -6,9 +6,9 @@
 #ifndef VORTEX_FOUNDATION_MATH_MATH_TYPES_HPP
 #define VORTEX_FOUNDATION_MATH_MATH_TYPES_HPP
 
-#include <cstddef>
-
 #include <blaze/Math.h>
+
+#include <cstddef>
 
 namespace vortex::math {
 /// ===============================================================================================
@@ -29,10 +29,10 @@ using hybrid_matrix = blaze::HybridMatrix<Type, R, C, SO>;
 /// @brief Dynamically-sized blaze containers, on blaze's default allocator.
 ///
 /// The allocator is not overridden here. `blaze::AlignedAllocator` is itself redirected into the
-/// active `helpers::memory_scope` by foundation/math/patch/blaze-scoped-allocator.patch, so these -- and a plain
-/// `blaze::DynamicMatrix<double>`, and every temporary blaze materialises -- all draw from the same
-/// place. Naming an allocator here would only cover the first of the three, since blaze drops it
-/// when deducing expression result types.
+/// active `helpers::memory_scope` by foundation/math/patch/blaze-scoped-allocator.patch, so these
+/// -- and a plain `blaze::DynamicMatrix<double>`, and every temporary blaze materialises -- all
+/// draw from the same place. Naming an allocator here would only cover the first of the three,
+/// since blaze drops it when deducing expression result types.
 ///
 /// Storage that must outlive the scope it is sized in has to be sized under a scope that outlives
 /// it instead.

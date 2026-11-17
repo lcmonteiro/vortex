@@ -6,10 +6,18 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_BASE_HPP
 
+#include <concepts>
+#include <type_traits>
+
 #include "vortex/foundation/dual/number.hpp"
 #include "vortex/helpers/contracts.hpp"
 
 namespace vortex::dual {
+
+/// @brief An arithmetic scalar a dual number combines with. `bool` is not one: `n * true` is far
+/// more likely a mistake than a request to multiply by one.
+template <class S>
+concept scalar = std::is_arithmetic_v<S> and not std::same_as<std::remove_cv_t<S>, bool>;
 
 /// @brief Value/derivative pair for a single active index of a dual number.
 /// @tparam T Underlying scalar type.
@@ -27,9 +35,6 @@ struct duo {
 /// @tparam Derived The concrete unary operation type.
 template <class Derived>
 struct unary_operation {
-  template <class T>
-  static constexpr auto enable = is_number_v<T>;
-
   template <class T>
   auto operator()(const number<T>& n) const {
     return number{value(n), dvalues(n)};
@@ -64,12 +69,6 @@ struct unary_operation {
 /// @tparam Derived The concrete binary operation type.
 template <class Derived>
 struct binary_operation {
-  template <class T1, class T2>
-  static constexpr auto enable = (                   //
-      (is_number_v<T1> and is_number_like_v<T2>) or  //
-      (is_number_v<T2> and is_number_like_v<T1>)     //
-  );
-
   template <class T>
   auto operator()(const number<T>& n1, const T& v2) const {
     return number{this->value(n1.value(), v2), this->dvalues(n1, v2)};

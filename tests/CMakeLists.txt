@@ -16,5 +16,7 @@ add_executable(vortex_tests
 
 target_link_libraries(vortex_tests PRIVATE vortex::vortex gtest_main)
 target_include_directories(vortex_tests PRIVATE ${CMAKE_SOURCE_DIR})
+vortex_warnings(vortex_tests)
+vortex_sanitize(vortex_tests)
 
 gtest_discover_tests(vortex_tests)

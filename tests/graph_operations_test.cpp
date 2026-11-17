@@ -229,7 +229,7 @@ TEST_F(SlamGraphOperationsTest, GivenTrueCondition_ExpectRemoval) {
 TEST_F(SlamGraphOperationsTest, GivenKeyCondition_ExpectCorrectRemoval) {
   ASSERT_EQ(g_.size<PositionNode>(), 3U);
   vx::remove_if<PositionNode>(g_,
-                             [](const auto& node) { return (node->key() == 1) ? true : false; });
+                              [](const auto& node) { return (node->key() == 1) ? true : false; });
   ASSERT_EQ(g_.size<PositionNode>(), 2U);
   EXPECT_FALSE(g_.find<PositionNode>(1).has_value());
 }
@@ -317,7 +317,7 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByKeyList_ExpectCorrectStat
 /// @brief Verifies disable_if/enable_if with predicates on nodes and edges.
 TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectStatus) {
   vx::disable_if<PositionNode>(g_,
-                              [](const auto& node) { return (node->key() == 1) ? true : false; });
+                               [](const auto& node) { return (node->key() == 1) ? true : false; });
   vx::disable_if<PositionDistanceEdge>(
       g_, [](const auto& edge) { return (edge->n_nodes == 2) ? true : false; });
   EXPECT_TRUE((*p1_)->disable());
@@ -327,7 +327,7 @@ TEST_F(SlamGraphOperationsTest, GivenDisableAndEnableByCondition_ExpectCorrectSt
   EXPECT_FALSE((*l1_)->disable());
 
   vx::enable_if<PositionNode>(g_,
-                             [](const auto& node) { return (node->key() == 1) ? true : false; });
+                              [](const auto& node) { return (node->key() == 1) ? true : false; });
   vx::enable_if<PositionDistanceEdge>(
       g_, [](const auto& edge) { return (edge->n_nodes == 2) ? true : false; });
   EXPECT_FALSE((*p1_)->disable());

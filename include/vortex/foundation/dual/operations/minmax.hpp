@@ -6,13 +6,11 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_MINMAX_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_MINMAX_HPP
 
-#include <functional>
-
 #include "vortex/foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Minimum operation.
-struct min : binary_operation<min> {
+struct min_operation : binary_operation<min_operation> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
     return (v1 <= v2) ? v1 : v2;
@@ -31,7 +29,7 @@ struct min : binary_operation<min> {
   }
 };
 /// @brief Maximum operation.
-struct max : binary_operation<max> {
+struct max_operation : binary_operation<max_operation> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
     return (v1 >= v2) ? v1 : v2;
@@ -49,21 +47,34 @@ struct max : binary_operation<max> {
     return (v1 >= n2.v) ? T{0} : n2.d;
   }
 };
+/// @brief Returns the smaller operand, propagating its derivatives.
+/// @note A scalar operand is converted to the number's scalar type first.
+template <class T>
+inline auto min(const number<T>& n1, const number<T>& n2) {
+  return min_operation{}(n1, n2);
+}
+template <class T, scalar S>
+inline auto min(const number<T>& n1, const S& v2) {
+  return min_operation{}(n1, static_cast<T>(v2));
+}
+template <class T, scalar S>
+inline auto min(const S& v1, const number<T>& n2) {
+  return min_operation{}(static_cast<T>(v1), n2);
+}
+/// @brief Returns the larger operand, propagating its derivatives.
+/// @note A scalar operand is converted to the number's scalar type first.
+template <class T>
+inline auto max(const number<T>& n1, const number<T>& n2) {
+  return max_operation{}(n1, n2);
+}
+template <class T, scalar S>
+inline auto max(const number<T>& n1, const S& v2) {
+  return max_operation{}(n1, static_cast<T>(v2));
+}
+template <class T, scalar S>
+inline auto max(const S& v1, const number<T>& n2) {
+  return max_operation{}(static_cast<T>(v1), n2);
+}
 }  // namespace vortex::dual
-
-namespace std {
-/// @brief Returns the smaller of two operands, propagating derivatives.
-template <class T, class U>
-requires vortex::dual::min::enable<T, U>
-inline auto min(const T& n1, const U& n2) {
-  return std::invoke(vortex::dual::min{}, n1, n2);
-}
-/// @brief Returns the larger of two operands, propagating derivatives.
-template <class T, class U>
-requires vortex::dual::max::enable<T, U>
-inline auto max(const T& n1, const U& n2) {
-  return std::invoke(vortex::dual::max{}, n1, n2);
-}
-}  // namespace std
 
 #endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_MINMAX_HPP

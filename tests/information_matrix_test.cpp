@@ -200,8 +200,7 @@ TEST_F(InformationMatrixTestFixture, InformationMatrix_Symmetric_Set) {
   auto n2 = g_.build<Node1>(Graph::key_type{2});
   auto edge_with_diagonal = g_.build<EdgeWithSymmetric>(n1, n2);
 
-  math::symmetric_matrix<EdgeWithSymmetric::information_matrix> new_information{{1, 2},
-                                                                                     {2, 1}};
+  math::symmetric_matrix<EdgeWithSymmetric::information_matrix> new_information{{1, 2}, {2, 1}};
 
   // When
   edge_with_diagonal->information(new_information);

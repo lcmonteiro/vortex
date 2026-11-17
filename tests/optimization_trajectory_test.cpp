@@ -205,7 +205,7 @@ class OptimizationTrajectoryTest : public ::testing::Test {
 /// @brief Builds a randomized, noisy SLAM problem along a sine trajectory and
 /// verifies the optimizer converges close to the ground-truth positions.
 TEST_F(OptimizationTrajectoryTest, GivenNoisyTrajectory_ExpectConvergenceNearGroundTruth) {
-  auto arena = bounded_arena_resource{kArenaCapacity, std::pmr::new_delete_resource()};
+  auto arena = bounded_arena_resource{kArenaCapacity};
   auto g_ = SlamGraph{&arena};
 
   const auto ref_points = BuildReferenceTrajectory(kSmall.nodes, kSmall.amplitude, kSmall.width);
@@ -239,7 +239,7 @@ TEST_F(OptimizationTrajectoryTest, GivenNoisyTrajectory_ExpectConvergenceNearGro
 /// dual-number Jacobians -- so it asserts accuracy and budget rather than an exact iteration
 /// count, which would only make it brittle.
 TEST_F(OptimizationTrajectoryTest, GivenLargeNoisyTrajectory_ExpectConvergenceNearGroundTruth) {
-  auto arena = bounded_arena_resource{kLargeArenaCapacity, std::pmr::new_delete_resource()};
+  auto arena = bounded_arena_resource{kLargeArenaCapacity};
   auto g_ = LargeSlamGraph{&arena};
 
   const auto ref_points = BuildReferenceTrajectory(kLarge.nodes, kLarge.amplitude, kLarge.width);

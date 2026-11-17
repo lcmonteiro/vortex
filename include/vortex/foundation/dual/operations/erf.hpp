@@ -6,13 +6,12 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_ERF_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_ERF_HPP
 #include <cmath>
-#include <functional>
 
 #include "vortex/foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Error-function operation.
-struct erf : unary_operation<erf> {
+struct erf_operation : unary_operation<erf_operation> {
   template <class T>
   auto value(const T& v) const {
     return std::erf(v);
@@ -28,7 +27,7 @@ struct erf : unary_operation<erf> {
 };
 
 /// @brief Complementary error-function operation.
-struct erfc : unary_operation<erfc> {
+struct erfc_operation : unary_operation<erfc_operation> {
   template <class T>
   auto value(const T& v) const {
     return std::erfc(v);
@@ -43,21 +42,16 @@ struct erfc : unary_operation<erfc> {
   static constexpr T two_over_sqrt_pi = T{1.12837916709551257389615890312154517L};
 };
 
-}  // namespace vortex::dual
-
-namespace std {
 /// @brief Computes the error function of a dual number.
 template <class T>
-requires vortex::dual::erf::enable<T>
-inline auto erf(const T& n) {
-  return std::invoke(vortex::dual::erf{}, n);
+inline auto erf(const number<T>& n) {
+  return erf_operation{}(n);
 }
 /// @brief Computes the complementary error function of a dual number.
 template <class T>
-requires vortex::dual::erfc::enable<T>
-inline auto erfc(const T& n) {
-  return std::invoke(vortex::dual::erfc{}, n);
+inline auto erfc(const number<T>& n) {
+  return erfc_operation{}(n);
 }
-}  // namespace std
+}  // namespace vortex::dual
 
 #endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_ERF_HPP

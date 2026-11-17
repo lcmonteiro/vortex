@@ -14,6 +14,10 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 option(VORTEX_BUILD_TESTS "Build vortex tests" ON)
+# Both off by default, so a consumer's build is never broken by a newer compiler's warnings. CI
+# turns them on.
+option(VORTEX_WARNINGS_AS_ERRORS "Fail the tests' build on any compiler warning" OFF)
+option(VORTEX_SANITIZE "Build the tests with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 
 include(FetchContent)
 
@@ -89,6 +93,39 @@ target_include_directories(vortex SYSTEM INTERFACE ${blaze_SOURCE_DIR})
 target_link_libraries(vortex INTERFACE ${LAPACK_LIB} ${BLAS_LIB})
 target_compile_definitions(vortex INTERFACE VORTEX_BLAZE_SCOPED_ALLOCATOR)
 add_library(vortex::vortex ALIAS vortex)
+
+# ---------------------------------------------------------------------------
+# Warnings, for the tests
+#
+# -Wshadow because generic cost functions pull math names in with `using std::sin;` and similar,
+# and the library must not then reuse those names for its own variables.
+# ---------------------------------------------------------------------------
+function(vortex_warnings target)
+  if(MSVC)
+    target_compile_options(${target} PRIVATE /W4)
+    if(VORTEX_WARNINGS_AS_ERRORS)
+      target_compile_options(${target} PRIVATE /WX)
+    endif()
+  else()
+    target_compile_options(${target} PRIVATE -Wall -Wextra -Wshadow)
+    if(VORTEX_WARNINGS_AS_ERRORS)
+      target_compile_options(${target} PRIVATE -Werror)
+    endif()
+  endif()
+endfunction()
+
+# ---------------------------------------------------------------------------
+# Sanitizers, for the tests
+#
+# -fno-sanitize-recover makes undefined behaviour fail the test rather than print and carry on.
+# ---------------------------------------------------------------------------
+function(vortex_sanitize target)
+  if(VORTEX_SANITIZE AND NOT MSVC)
+    set(flags -fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer)
+    target_compile_options(${target} PRIVATE ${flags})
+    target_link_options(${target} PRIVATE ${flags})
+  endif()
+endfunction()
 
 # ---------------------------------------------------------------------------
 # Tests

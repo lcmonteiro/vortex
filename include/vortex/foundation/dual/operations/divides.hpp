@@ -6,13 +6,11 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_DIVIDES_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_DIVIDES_HPP
 
-#include <functional>
-
 #include "vortex/foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Division operation.
-struct divides : binary_operation<divides> {
+struct divides_operation : binary_operation<divides_operation> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
     return v1 / v2;
@@ -32,10 +30,18 @@ struct divides : binary_operation<divides> {
 };
 
 /// @brief Divides two operands, propagating derivatives.
-template <class T, class U>
-requires divides::enable<T, U>
-inline auto operator/(const T& n1, const U& n2) {
-  return std::invoke(divides{}, n1, n2);
+/// @note A scalar operand is converted to the number's scalar type first.
+template <class T>
+inline auto operator/(const number<T>& n1, const number<T>& n2) {
+  return divides_operation{}(n1, n2);
+}
+template <class T, scalar S>
+inline auto operator/(const number<T>& n1, const S& v2) {
+  return divides_operation{}(n1, static_cast<T>(v2));
+}
+template <class T, scalar S>
+inline auto operator/(const S& v1, const number<T>& n2) {
+  return divides_operation{}(static_cast<T>(v1), n2);
 }
 }  // namespace vortex::dual
 

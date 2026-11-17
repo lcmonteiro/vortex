@@ -44,7 +44,6 @@ constexpr auto constant(Type v) -> Type {
   return v;
 }
 
-
 }  // namespace vortex::helpers
 
 #endif  // VORTEX_HELPERS_TRAITS_HPP
