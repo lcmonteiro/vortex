@@ -7,13 +7,12 @@
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_SIN_HPP
 
 #include <cmath>
-#include <functional>
 
 #include "vortex/foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Sine operation.
-struct sin : unary_operation<sin> {
+struct sin_operation : unary_operation<sin_operation> {
   template <class T>
   auto value(const T& v) const {
     return std::sin(v);
@@ -23,15 +22,11 @@ struct sin : unary_operation<sin> {
     return std::cos(n.v) * n.d;
   }
 };
-}  // namespace vortex::dual
-
-namespace std {
 /// @brief Computes the sine of a dual number.
 template <class T>
-requires vortex::dual::sin::enable<T>
-inline auto sin(const T& n) {
-  return std::invoke(vortex::dual::sin{}, n);
+inline auto sin(const number<T>& n) {
+  return sin_operation{}(n);
 }
-}  // namespace std
+}  // namespace vortex::dual
 
 #endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_SIN_HPP

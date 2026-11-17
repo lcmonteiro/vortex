@@ -60,8 +60,10 @@ struct number {
   auto operator=(const number&) -> number<T>& = default;
   auto operator=(number&&) -> number<T>& = default;
 
-  /// @brief Implicit conversion to the underlying scalar type.
-  operator const value_t&() const { return value_; }
+  /// @brief Explicit conversion to the underlying scalar type.
+  /// @note Explicit so that a math function without a dual overload, `std::tanh(n)` say, fails to
+  /// compile instead of silently evaluating on the value and dropping every derivative.
+  explicit operator const value_t&() const { return value_; }
 
   /// @brief Sets the scalar value.
   /// @param v The new scalar value.
@@ -128,14 +130,6 @@ template <class T>
 struct is_number<number<T>> : std::true_type {};
 template <class T>
 constexpr bool is_number_v = is_number<T>::value;
-
-/// @brief Type trait to check if a type is a dual number or a scalar.
-template <class T>
-struct is_number_like : std::is_arithmetic<T> {};
-template <class T>
-struct is_number_like<number<T>> : std::true_type {};
-template <class T>
-constexpr bool is_number_like_v = is_number_like<T>::value;
 
 }  // namespace vortex::dual
 

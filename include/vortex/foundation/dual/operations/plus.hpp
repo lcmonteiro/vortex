@@ -6,13 +6,11 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_PLUS_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_PLUS_HPP
 
-#include <functional>
-
 #include "vortex/foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Addition operation.
-struct plus : binary_operation<plus> {
+struct plus_operation : binary_operation<plus_operation> {
   template <class T>
   auto value(const T& v1, const T& v2) const {
     return v1 + v2;
@@ -32,10 +30,18 @@ struct plus : binary_operation<plus> {
 };
 
 /// @brief Adds two operands, propagating derivatives.
-template <class T, class U>
-requires plus::enable<T, U>
-inline auto operator+(const T& n1, const U& n2) {
-  return std::invoke(plus{}, n1, n2);
+/// @note A scalar operand is converted to the number's scalar type first.
+template <class T>
+inline auto operator+(const number<T>& n1, const number<T>& n2) {
+  return plus_operation{}(n1, n2);
+}
+template <class T, scalar S>
+inline auto operator+(const number<T>& n1, const S& v2) {
+  return plus_operation{}(n1, static_cast<T>(v2));
+}
+template <class T, scalar S>
+inline auto operator+(const S& v1, const number<T>& n2) {
+  return plus_operation{}(static_cast<T>(v1), n2);
 }
 }  // namespace vortex::dual
 

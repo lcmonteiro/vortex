@@ -7,14 +7,13 @@
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_ABS_HPP
 
 #include <cmath>
-#include <functional>
 
 #include "vortex/foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 
 /// @brief Absolute-value operation.
-struct abs : unary_operation<abs> {
+struct abs_operation : unary_operation<abs_operation> {
   template <class T>
   auto value(const T& v) const {
     return std::abs(v);
@@ -26,15 +25,11 @@ struct abs : unary_operation<abs> {
   }
 };
 
-}  // namespace vortex::dual
-
-namespace std {
 /// @brief Computes the absolute value of a dual number.
 template <class T>
-requires vortex::dual::abs::enable<T>
-inline auto abs(const T& n) {
-  return std::invoke(vortex::dual::abs{}, n);
+inline auto abs(const number<T>& n) {
+  return abs_operation{}(n);
 }
-}  // namespace std
+}  // namespace vortex::dual
 
 #endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_ABS_HPP

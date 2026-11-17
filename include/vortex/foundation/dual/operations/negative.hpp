@@ -6,13 +6,11 @@
 #ifndef VORTEX_FOUNDATION_DUAL_OPERATIONS_NEGATIVE_HPP
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_NEGATIVE_HPP
 
-#include <functional>
-
 #include "vortex/foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Negation operation.
-struct negate : unary_operation<negate> {
+struct negate_operation : unary_operation<negate_operation> {
   template <class T>
   auto value(const T& v) const {
     return -v;
@@ -25,9 +23,8 @@ struct negate : unary_operation<negate> {
 
 /// @brief Negates a dual number, propagating derivatives.
 template <class T>
-requires negate::enable<T>
-inline auto operator-(const T& n) {
-  return std::invoke(negate{}, n);
+inline auto operator-(const number<T>& n) {
+  return negate_operation{}(n);
 }
 }  // namespace vortex::dual
 

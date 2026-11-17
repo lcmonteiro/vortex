@@ -49,11 +49,11 @@ TEST(DualNumber, QuotientRule) {
 
 TEST(DualNumber, Trigonometric) {
   const auto x = Dual{0.5, 0};
-  const auto s = std::sin(x);
+  const auto s = sin(x);
   EXPECT_NEAR(s.value(), std::sin(0.5), 1e-12);
   EXPECT_NEAR(dvalue(s, 0), std::cos(0.5), 1e-12);
 
-  const auto c = std::cos(x);
+  const auto c = cos(x);
   EXPECT_NEAR(c.value(), std::cos(0.5), 1e-12);
   EXPECT_NEAR(dvalue(c, 0), -std::sin(0.5), 1e-12);
 }
@@ -61,7 +61,7 @@ TEST(DualNumber, Trigonometric) {
 TEST(DualNumber, Atan2) {
   const auto y = Dual{1.0, 0};
   const auto x = Dual{2.0, 1};
-  const auto a = std::atan2(y, x);
+  const auto a = atan2(y, x);
   const double denom = 1.0 * 1.0 + 2.0 * 2.0;
   EXPECT_NEAR(a.value(), std::atan2(1.0, 2.0), 1e-12);
   EXPECT_NEAR(dvalue(a, 0), 2.0 / denom, 1e-12);   // d/dy =  x / (x^2 + y^2)
@@ -70,7 +70,7 @@ TEST(DualNumber, Atan2) {
 
 TEST(DualNumber, ExpSqrtChainRule) {
   const auto x = Dual{2.0, 0};
-  const auto f = std::sqrt(std::exp(x));  // e^{x/2}, df/dx = 0.5 e^{x/2}
+  const auto f = sqrt(exp(x));  // e^{x/2}, df/dx = 0.5 e^{x/2}
   EXPECT_NEAR(f.value(), std::exp(1.0), 1e-12);
   EXPECT_NEAR(dvalue(f, 0), 0.5 * std::exp(1.0), 1e-12);
 }
@@ -129,11 +129,11 @@ TEST(DualOperations, Negate) {
 }
 
 TEST(DualOperations, AbsAwayFromTheKink) {
-  const auto positive = std::abs(Dual{2.0, 0});
+  const auto positive = abs(Dual{2.0, 0});
   EXPECT_DOUBLE_EQ(positive.value(), 2.0);
   EXPECT_DOUBLE_EQ(dvalue(positive, 0), 1.0);
 
-  const auto negative = std::abs(Dual{-2.0, 0});
+  const auto negative = abs(Dual{-2.0, 0});
   EXPECT_DOUBLE_EQ(negative.value(), 2.0);
   EXPECT_DOUBLE_EQ(dvalue(negative, 0), -1.0);
 }
@@ -141,20 +141,20 @@ TEST(DualOperations, AbsAwayFromTheKink) {
 TEST(DualOperations, AbsAtTheKinkPicksZeroSubgradient) {
   // abs() is not differentiable at 0; the implementation selects 0 from the subgradient
   // [-1, 1]. Pinned because a finite difference cannot distinguish the choices.
-  const auto at_zero = std::abs(Dual{0.0, 0});
+  const auto at_zero = abs(Dual{0.0, 0});
   EXPECT_DOUBLE_EQ(at_zero.value(), 0.0);
   EXPECT_DOUBLE_EQ(dvalue(at_zero, 0), 0.0);
 }
 
 TEST(DualOperations, Log) {
-  const auto y = std::log(Dual{2.0, 0});
+  const auto y = log(Dual{2.0, 0});
   EXPECT_NEAR(y.value(), std::log(2.0), 1e-12);
   EXPECT_NEAR(dvalue(y, 0), 0.5, 1e-12);  // d/dx log(x) = 1/x
   EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::log(v); }, 2.0), 1e-6);
 }
 
 TEST(DualOperations, Log1p) {
-  const auto y = std::log1p(Dual{0.5, 0});
+  const auto y = log1p(Dual{0.5, 0});
   EXPECT_NEAR(y.value(), std::log1p(0.5), 1e-12);
   EXPECT_NEAR(dvalue(y, 0), 1.0 / 1.5, 1e-12);  // d/dx log(1+x) = 1/(1+x)
   EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::log1p(v); }, 0.5), 1e-6);
@@ -162,7 +162,7 @@ TEST(DualOperations, Log1p) {
 
 TEST(DualOperations, Erf) {
   constexpr auto x0 = 0.3;
-  const auto y = std::erf(Dual{x0, 0});
+  const auto y = erf(Dual{x0, 0});
   const auto expected = 2.0 / std::sqrt(std::numbers::pi) * std::exp(-x0 * x0);
   EXPECT_NEAR(y.value(), std::erf(x0), 1e-12);
   EXPECT_NEAR(dvalue(y, 0), expected, 1e-12);
@@ -171,7 +171,7 @@ TEST(DualOperations, Erf) {
 
 TEST(DualOperations, Erfc) {
   constexpr auto x0 = 0.3;
-  const auto y = std::erfc(Dual{x0, 0});
+  const auto y = erfc(Dual{x0, 0});
   const auto expected = -2.0 / std::sqrt(std::numbers::pi) * std::exp(-x0 * x0);
   EXPECT_NEAR(y.value(), std::erfc(x0), 1e-12);
   EXPECT_NEAR(dvalue(y, 0), expected, 1e-12);
@@ -181,7 +181,7 @@ TEST(DualOperations, Erfc) {
 TEST(DualOperations, ErfAndErfcDerivativesAreOpposite) {
   // erf(x) + erfc(x) == 1, so their derivatives must cancel exactly.
   const auto x = Dual{0.7, 0};
-  EXPECT_NEAR(dvalue(std::erf(x), 0) + dvalue(std::erfc(x), 0), 0.0, 1e-15);
+  EXPECT_NEAR(dvalue(erf(x), 0) + dvalue(erfc(x), 0), 0.0, 1e-15);
 }
 
 /// ===============================================================================================
@@ -192,9 +192,7 @@ TEST(DualOperations, MinRoutesTheDerivativeThroughTheSmallerOperand) {
   const auto x = Dual{1.0, 0};
   const auto y = Dual{2.0, 1};
 
-  // Invoked directly rather than through std::min: for two duals the standard two-argument
-  // std::min is the better overload and shadows this one. See StdMinOnTwoDuals... below.
-  const auto m = std::invoke(vortex::dual::min{}, x, y);
+  const auto m = vortex::dual::min(x, y);
 
   EXPECT_DOUBLE_EQ(m.value(), 1.0);
   EXPECT_EQ(m.size(), 2U);              // indices of both operands are merged in
@@ -205,7 +203,7 @@ TEST(DualOperations, MinRoutesTheDerivativeThroughTheSmallerOperand) {
 TEST(DualOperations, MaxRoutesTheDerivativeThroughTheLargerOperand) {
   const auto x = Dual{1.0, 0};
   const auto y = Dual{2.0, 1};
-  const auto m = std::invoke(vortex::dual::max{}, x, y);
+  const auto m = vortex::dual::max(x, y);
   EXPECT_DOUBLE_EQ(m.value(), 2.0);
   EXPECT_EQ(m.size(), 2U);
   EXPECT_DOUBLE_EQ(dvalue(m, 0), 0.0);  // x is inactive
@@ -215,15 +213,15 @@ TEST(DualOperations, MaxRoutesTheDerivativeThroughTheLargerOperand) {
 TEST(DualOperations, MinMaxAgainstAScalarBound) {
   const auto x = Dual{2.0, 0};
 
-  const auto clamped_high = std::min(x, 5.0);
+  const auto clamped_high = min(x, 5.0);
   EXPECT_DOUBLE_EQ(clamped_high.value(), 2.0);
   EXPECT_DOUBLE_EQ(dvalue(clamped_high, 0), 1.0);  // x is selected, so its derivative survives
 
-  const auto clamped_low = std::min(1.0, x);
+  const auto clamped_low = min(1.0, x);
   EXPECT_DOUBLE_EQ(clamped_low.value(), 1.0);
   EXPECT_DOUBLE_EQ(dvalue(clamped_low, 0), 0.0);  // the constant wins, derivative is cut
 
-  const auto floored = std::max(x, 5.0);
+  const auto floored = max(x, 5.0);
   EXPECT_DOUBLE_EQ(floored.value(), 5.0);
   EXPECT_DOUBLE_EQ(dvalue(floored, 0), 0.0);
 }
@@ -234,40 +232,41 @@ TEST(DualOperations, MinMaxTiesResolveTowardsTheFirstOperand) {
   const auto x = Dual{1.0, 0};
   const auto y = Dual{1.0, 1};
 
-  const auto smallest = std::invoke(vortex::dual::min{}, x, y);
+  const auto smallest = vortex::dual::min(x, y);
   EXPECT_DOUBLE_EQ(dvalue(smallest, 0), 1.0);
   EXPECT_DOUBLE_EQ(dvalue(smallest, 1), 0.0);
 
-  const auto largest = std::invoke(vortex::dual::max{}, x, y);
+  const auto largest = vortex::dual::max(x, y);
   EXPECT_DOUBLE_EQ(dvalue(largest, 0), 1.0);
   EXPECT_DOUBLE_EQ(dvalue(largest, 1), 0.0);
 }
 
-/// @brief Records that std::min/std::max do not reach the dual/dual overloads.
+/// @brief Generic code reaches the dual overloads, and only std::min itself does not.
 ///
-/// vortex::dual::min is `template <class T, class U> requires enable<T, U>`, but for two operands
-/// of the same type the standard `template <class T> const T& min(const T&, const T&)` is the
-/// better match, so it wins and returns a reference to one of the operands. The value and its
-/// derivatives are still right, but the result is *narrower*: it carries only the winning
-/// operand's indices, so reading a dvalue belonging to the loser runs off the end of the
-/// derivative vector.
-TEST(DualOperations, StdMinOnTwoDualsSelectsTheStandardOverload) {
-  const auto x = Dual{1.0, 0};  // one active index
-  const auto y = Dual{2.0, 1};  // two active indices
+/// The dual functions live in vortex::dual and are found by argument-dependent lookup, the same
+/// way a cost function written once for double and for dual numbers calls them: `using std::min;
+/// min(a, b)`. For two duals vortex::dual::min takes `number<T>` and is the more specialised
+/// candidate, so it beats the standard `const T& min(const T&, const T&)` and merges both
+/// operands' indices. Spelling `std::min` asks for the standard one, which compares by value and
+/// returns a reference to the winner, carrying only that operand's indices.
+TEST(DualOperations, MinOnTwoDualsFoundByLookupMergesBothOperands) {
+  const auto x = Dual{1.0, 0};
+  const auto y = Dual{2.0, 1};
+
+  using std::min;
+  const auto merged = min(x, y);
+  EXPECT_EQ(merged.size(), 2U);
+  EXPECT_DOUBLE_EQ(dvalue(merged, 0), 1.0);
+  EXPECT_DOUBLE_EQ(dvalue(merged, 1), 0.0);
 
   const auto& selected = std::min(x, y);
-
-  EXPECT_EQ(&selected, &x) << "std::min returned a new object, so the overload set changed";
-  EXPECT_EQ(selected.size(), x.size());
-
-  // The vortex operation would have merged both operands' indices instead.
-  EXPECT_EQ(std::invoke(vortex::dual::min{}, x, y).size(), 2U);
-  EXPECT_LT(selected.size(), std::invoke(vortex::dual::min{}, x, y).size());
+  EXPECT_EQ(&selected, &x);
+  EXPECT_EQ(selected.size(), 1U);
 }
 
 TEST(DualOperations, PowWithDualBaseAndConstantExponent) {
   const auto x = Dual{2.0, 0};
-  const auto y = std::pow(x, 3.0);  // x^3, dy/dx = 3x^2
+  const auto y = pow(x, 3.0);  // x^3, dy/dx = 3x^2
   EXPECT_NEAR(y.value(), 8.0, 1e-12);
   EXPECT_NEAR(dvalue(y, 0), 12.0, 1e-12);
   EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::pow(v, 3.0); }, 2.0),
@@ -276,7 +275,7 @@ TEST(DualOperations, PowWithDualBaseAndConstantExponent) {
 
 TEST(DualOperations, PowWithConstantBaseAndDualExponent) {
   const auto n = Dual{3.0, 0};
-  const auto y = std::pow(2.0, n);  // 2^n, dy/dn = 2^n * ln(2)
+  const auto y = pow(2.0, n);  // 2^n, dy/dn = 2^n * ln(2)
   EXPECT_NEAR(y.value(), 8.0, 1e-12);
   EXPECT_NEAR(dvalue(y, 0), 8.0 * std::log(2.0), 1e-12);
   EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::pow(2.0, v); }, 3.0),
@@ -286,7 +285,7 @@ TEST(DualOperations, PowWithConstantBaseAndDualExponent) {
 TEST(DualOperations, PowWithBothOperandsDual) {
   const auto base = Dual{2.0, 0};
   const auto exponent = Dual{3.0, 1};
-  const auto y = std::pow(base, exponent);
+  const auto y = pow(base, exponent);
 
   // Both dvalues at once: d/dbase = e*b^(e-1), d/dexponent = b^e * ln(b).
   EXPECT_NEAR(y.value(), 8.0, 1e-12);
@@ -331,14 +330,14 @@ TEST(DualSharedIndex, MultipliesAndDivides) {
 
 TEST(DualSharedIndex, Atan2) {
   const auto t = Dual{2.0, 0};
-  const auto y = std::atan2(t, t);  // constant pi/4 along the diagonal
+  const auto y = atan2(t, t);  // constant pi/4 along the diagonal
   EXPECT_NEAR(y.value(), std::numbers::pi / 4, 1e-12);
   EXPECT_NEAR(dvalue(y, 0), 0.0, 1e-15);
 }
 
 TEST(DualSharedIndex, Pow) {
   const auto t = Dual{2.0, 0};
-  const auto y = std::pow(t, t);  // t^t, d/dt = t^t (ln t + 1)
+  const auto y = pow(t, t);  // t^t, d/dt = t^t (ln t + 1)
   EXPECT_NEAR(y.value(), 4.0, 1e-12);
   EXPECT_NEAR(dvalue(y, 0), 4.0 * (std::log(2.0) + 1.0), 1e-12);
   EXPECT_NEAR(dvalue(y, 0), NumericDerivative([](double v) { return std::pow(v, v); }, 2.0), 1e-5);
@@ -348,11 +347,11 @@ TEST(DualSharedIndex, MinMax) {
   const auto t = Dual{2.0, 0};
   const auto doubled = t * 2.0;  // active at the same index as t
 
-  const auto smallest = std::invoke(vortex::dual::min{}, t, doubled);
+  const auto smallest = vortex::dual::min(t, doubled);
   EXPECT_DOUBLE_EQ(smallest.value(), 2.0);
   EXPECT_DOUBLE_EQ(dvalue(smallest, 0), 1.0);  // t wins, carrying d/dt = 1
 
-  const auto largest = std::invoke(vortex::dual::max{}, t, doubled);
+  const auto largest = vortex::dual::max(t, doubled);
   EXPECT_DOUBLE_EQ(largest.value(), 4.0);
   EXPECT_DOUBLE_EQ(dvalue(largest, 0), 2.0);  // 2t wins, carrying d/dt = 2
 }
@@ -392,5 +391,51 @@ TEST(DualContract, ScalarConstantsGiveTheSameResultAsSeededArithmetic) {
   EXPECT_DOUBLE_EQ(shifted.value(), 5.0);
   EXPECT_DOUBLE_EQ(dvalue(shifted, 0), 1.0);
 }
+
+/// ===============================================================================================
+/// Operand types
+/// ===============================================================================================
+
+TEST(DualOperands, AnyArithmeticScalarCombinesWithANumber) {
+  const auto x = Dual{3.0, 0};
+
+  const auto doubled = x * 2;  // int
+  EXPECT_DOUBLE_EQ(doubled.value(), 6.0);
+  EXPECT_DOUBLE_EQ(dvalue(doubled, 0), 2.0);
+
+  const auto halved = x / 2.0f;  // float
+  EXPECT_DOUBLE_EQ(halved.value(), 1.5);
+  EXPECT_DOUBLE_EQ(dvalue(halved, 0), 0.5);
+
+  const auto shifted = 1u - x;  // unsigned, scalar on the left
+  EXPECT_DOUBLE_EQ(shifted.value(), -2.0);
+  EXPECT_DOUBLE_EQ(dvalue(shifted, 0), -1.0);
+
+  const auto squared = pow(x, 2);
+  EXPECT_DOUBLE_EQ(squared.value(), 9.0);
+  EXPECT_DOUBLE_EQ(dvalue(squared, 0), 6.0);
+
+  const auto clamped = max(x, 5);
+  EXPECT_DOUBLE_EQ(clamped.value(), 5.0);
+  EXPECT_DOUBLE_EQ(dvalue(clamped, 0), 0.0);
+}
+
+template <class A, class B>
+concept multipliable = requires(const A& a, const B& b) { a* b; };
+template <class A>
+concept has_sin = requires(const A& a) { std::sin(a); };
+template <class A>
+concept has_tanh = requires(const A& a) { std::tanh(a); };
+
+static_assert(multipliable<Dual, int> and multipliable<long, Dual> and multipliable<Dual, float>);
+static_assert(not multipliable<Dual, bool>, "n * true is a mistake, not a multiplication by one");
+static_assert(not multipliable<Dual, number<float>>, "mixing scalar types must be explicit");
+
+/// The math overloads are not added to namespace std (undefined behaviour), and a number does not
+/// convert to its scalar implicitly, so a std:: call cannot quietly evaluate on the value alone and
+/// drop the derivatives: it does not compile.
+static_assert(not has_sin<Dual> and not has_tanh<Dual>);
+static_assert(not std::is_convertible_v<Dual, double>);
+static_assert(std::is_constructible_v<double, Dual>, "the value is still reachable explicitly");
 
 }  // namespace

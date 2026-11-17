@@ -7,13 +7,12 @@
 #define VORTEX_FOUNDATION_DUAL_OPERATIONS_SQRT_HPP
 
 #include <cmath>
-#include <functional>
 
 #include "vortex/foundation/dual/operations/base.hpp"
 
 namespace vortex::dual {
 /// @brief Square-root operation.
-struct sqrt : unary_operation<sqrt> {
+struct sqrt_operation : unary_operation<sqrt_operation> {
   template <class T>
   auto value(const T& v) const {
     return std::sqrt(v);
@@ -23,15 +22,11 @@ struct sqrt : unary_operation<sqrt> {
     return n.d / (T{2} * std::sqrt(n.v));
   }
 };
-}  // namespace vortex::dual
-
-namespace std {
 /// @brief Computes the square root of a dual number.
 template <class T>
-requires vortex::dual::sqrt::enable<T>
-inline auto sqrt(const T& n) {
-  return std::invoke(vortex::dual::sqrt{}, n);
+inline auto sqrt(const number<T>& n) {
+  return sqrt_operation{}(n);
 }
-}  // namespace std
+}  // namespace vortex::dual
 
 #endif  // VORTEX_FOUNDATION_DUAL_OPERATIONS_SQRT_HPP
