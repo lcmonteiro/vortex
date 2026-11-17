@@ -30,9 +30,8 @@ class memory_violation : public std::bad_alloc {
 /// @brief A fixed-capacity memory resource that owns its storage and validates both ends of it.
 ///
 /// One `std::vector` buffer from the heap up front, handed to a
-/// `std::pmr::monotonic_buffer_resource`. In debug builds that resource's upstream is
-/// `std::pmr::null_memory_resource()`, so exhausting @p capacity throws `std::bad_alloc` instead of
-/// silently growing onto the heap; release builds fall back to @p upstream instead.
+/// `std::pmr::monotonic_buffer_resource` whose upstream is `std::pmr::null_memory_resource()`, so
+/// exhausting @p capacity throws `std::bad_alloc` instead of silently growing onto the heap.
 ///
 /// Its blocks are a contiguous range it owns, so a container releasing through the wrong resource
 /// is caught by address rather than counted for someone to assert on afterwards.
@@ -44,11 +43,9 @@ class bounded_arena_resource : public std::pmr::memory_resource {
  public:
   static constexpr std::size_t default_capacity = std::size_t{1} << 20U;
 
-  /// @param capacity Bytes to reserve from the heap. Exhausting it throws `std::bad_alloc` in
-  /// debug builds, or forwards to @p upstream in release builds.
-  /// @param upstream Resource used once @p capacity is exhausted. Only reachable in release
-  /// builds.
-  explicit bounded_arena_resource(std::size_t capacity, std::pmr::memory_resource* const upstream)
+  /// @param capacity Bytes to reserve from the heap. Exhausting it throws `std::bad_alloc`, in
+  /// every build type.
+  explicit bounded_arena_resource(std::size_t capacity)
       : buffer_(capacity),
         arena_(std::data(buffer_), std::size(buffer_), std::pmr::null_memory_resource()) {}
 
