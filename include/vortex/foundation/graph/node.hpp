@@ -37,7 +37,7 @@ class node {
   /// @brief The number of edge types the node can manage.
   static constexpr auto n_types = sizeof...(Edges);
 
-  /// @brief Only exists behind a stable handle held by storage. 
+  /// @brief Only exists behind a stable handle held by storage.
   node() = delete;
   node(const node&) = delete;
   node(node&&) = delete;

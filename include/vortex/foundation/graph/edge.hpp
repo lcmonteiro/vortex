@@ -32,7 +32,7 @@ class edge {
   /// @brief The number of node types connected by this edge.
   static constexpr auto n_nodes = sizeof...(Nodes);
 
-  /// @brief Only exists behind a stable handle held by storage. 
+  /// @brief Only exists behind a stable handle held by storage.
   edge() = delete;
   edge(const edge&) = delete;
   edge(edge&&) = delete;

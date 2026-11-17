@@ -142,7 +142,8 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
     if constexpr (config_type::lambda_init > 0) {
       return helpers::constant<number_type>(config_type::lambda_init);
     } else {
-      return helpers::constant<number_type>(config_type::tau) * math::max(math::diagonal(solver_.h()));
+      return helpers::constant<number_type>(config_type::tau) *
+             math::max(math::diagonal(solver_.h()));
     }
   }
 
@@ -173,7 +174,7 @@ class levenberg_algorithm : public algorithm<Graph, GraphSolver> {
  private:
   using base_type::graph_;
   using base_type::solver_;
-  
+
   // Levenberg state
   number_type lambda_;
   number_type lambda_factor_;
